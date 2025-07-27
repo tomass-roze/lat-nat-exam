@@ -1,20 +1,20 @@
 /**
  * @fileoverview Main TypeScript interfaces and types for Latvian Citizenship Exam
- * 
+ *
  * This file serves as the central export point for all TypeScript interfaces
  * and types used throughout the Latvian Citizenship Naturalization Exam web application.
- * 
+ *
  * The type system provides comprehensive coverage for:
  * - Question data structures and validation
- * - Exam state management and progress tracking  
+ * - Exam state management and progress tracking
  * - Results calculation and performance analytics
  * - Session persistence and recovery
  * - Form validation and error handling
  * - Constants and configuration values
- * 
+ *
  * All interfaces follow TypeScript best practices with strict typing,
  * comprehensive documentation, and runtime type guards where appropriate.
- * 
+ *
  * @author Latvian Citizenship Exam Development Team
  * @version 1.0.0
  * @since 2024
@@ -31,7 +31,7 @@ export {
   VALIDATION_ERRORS,
   NATIONAL_ANTHEM_REFERENCE,
   NATIONAL_ANTHEM_TEXT,
-  
+
   // Type aliases for constants
   type ScoringThreshold,
   type SessionConfigType,
@@ -49,21 +49,21 @@ export {
   type QuestionPoolMetadata,
   type SelectedQuestions,
   type SelectionMetadata,
-  
+
   // Answer interfaces
   type QuestionAnswer,
   type CategoryAnswers,
   type AnswerValidation,
   type AnswerValidationError,
-  
+
   // Randomization and selection
   type RandomizationOptions,
   type QuestionSelectionResult,
-  
+
   // Type guards
   isQuestion,
   isQuestionPool,
-  
+
   // Utility types
   type QuestionIdsByCategory,
   type QuestionUpdate,
@@ -78,7 +78,7 @@ export {
   type TestStateMetadata,
   type ExamProgress,
   type SectionProgress,
-  
+
   // Exam context and navigation
   type ExamContext,
   type ExamNavigation,
@@ -86,14 +86,14 @@ export {
   type ValidationError,
   type ExamPerformance,
   type PauseEvent,
-  
+
   // Exam submission
   type ExamSubmission,
-  
+
   // Type guards
   isValidTestState,
   isReadyForSubmission,
-  
+
   // Utility types
   type TestStateUpdate,
   type AnswerUpdate,
@@ -108,7 +108,7 @@ export {
   type AnthemResult,
   type MultipleChoiceResult,
   type OverallResult,
-  
+
   // Detailed analysis
   type CharacterDiff,
   type AnthemAnalysis,
@@ -116,25 +116,25 @@ export {
   type ErrorPattern,
   type AnthemTiming,
   type TextQualityMetrics,
-  
+
   // Answer results
   type AnswerResult,
   type MultipleChoiceAnalysis,
-  
+
   // Analytics and performance
   type ResultAnalytics,
   type PerformanceTrends,
   type PerformanceBenchmarks,
   type ExamStatistics,
-  
+
   // Score calculation utilities
   calculateAnthemAccuracy,
   calculateMultipleChoiceScore,
   isSectionPassed,
-  
+
   // Type guards
   isValidTestResults,
-  
+
   // Utility types
   type SectionScores,
   type SectionPassStatus,
@@ -150,31 +150,31 @@ export {
   type BrowserInfo,
   type SessionConfig,
   type SessionMigration,
-  
+
   // Session operations
   type SessionPersistenceResult,
   type SessionError,
   type SessionErrorCode,
-  
+
   // Session recovery
   type SessionRecovery,
   type SessionRecoveryOption,
   type SessionRecoveryPreview,
-  
+
   // Auto-save functionality
   type AutoSaveConfig,
   type AutoSaveStatus,
-  
+
   // Session synchronization
   type SessionSync,
   type SessionConflict,
   type StorageQuota,
-  
+
   // Type guards
   isValidSessionData,
   isSessionExpired,
   isSessionCorrupted,
-  
+
   // Utility types
   type SessionOperation,
   type SessionStatus,
@@ -191,38 +191,38 @@ export {
   type ValidationContext,
   type FieldValidationResult,
   type ValidationResult,
-  
+
   // Error and warning types
   type ValidationError as FormValidationError,
   type ValidationWarning,
   type ValidationInfo,
   type ValidationSummary,
   type ValidationMetadata,
-  
+
   // Form validation schema
   type FormValidationSchema,
   type FieldDependency,
   type CustomValidator,
-  
+
   // Real-time validation
   type RealTimeValidationConfig,
   type ValidationTrigger,
-  
+
   // Section-specific validation
   type AnthemValidationConfig,
   type MultipleChoiceValidationConfig,
   type SessionValidationConfig,
-  
+
   // Validation state management
   type ValidationState,
   type ValidationHistoryEntry,
   type BuiltInValidators,
-  
+
   // Type guards
   isValidationError,
   isValidationSuccessful,
   canSubmitWithValidation,
-  
+
   // Utility types
   type SectionValidationResults,
   type FieldValidationState,
@@ -332,7 +332,7 @@ export const COMPATIBLE_VERSIONS = ['1.0.0'] as const
 /**
  * Type for compatible version strings
  */
-export type CompatibleVersion = typeof COMPATIBLE_VERSIONS[number]
+export type CompatibleVersion = (typeof COMPATIBLE_VERSIONS)[number]
 
 /**
  * Migration information for version compatibility

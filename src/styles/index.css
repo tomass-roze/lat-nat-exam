@@ -51,6 +51,10 @@
 }
 
 /* Ensure Latvian characters render properly */
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   font-family: Inter, system-ui, sans-serif;
   min-height: 100vh;

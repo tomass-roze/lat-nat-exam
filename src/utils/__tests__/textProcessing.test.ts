@@ -1,6 +1,6 @@
 /**
  * @fileoverview Unit tests for Latvian text processing utilities
- * 
+ *
  * Comprehensive test suite for textProcessing.ts functions including:
  * - Text normalization and character handling
  * - Accuracy calculation algorithms
@@ -42,10 +42,10 @@ describe('Text Normalization', () => {
     // Test composed vs decomposed diacritics
     const composed = 'ā' // Single composed character
     const decomposed = 'a\u0304' // Base + combining macron
-    
+
     const normalizedComposed = normalizeLatvianText(composed)
     const normalizedDecomposed = normalizeLatvianText(decomposed)
-    
+
     assert.strictEqual(normalizedComposed, normalizedDecomposed)
   })
 
@@ -136,7 +136,7 @@ describe('Character Differences', () => {
     const reference = 'abcde'
     const submitted = 'abc'
     const differences = generateCharacterDifferences(reference, submitted)
-    
+
     assert.strictEqual(differences.length, 2)
     assert.strictEqual(differences[0].type, 'missing')
     assert.strictEqual(differences[0].expected, 'd')
@@ -148,7 +148,7 @@ describe('Character Differences', () => {
     const reference = 'abc'
     const submitted = 'abcde'
     const differences = generateCharacterDifferences(reference, submitted)
-    
+
     assert.strictEqual(differences.length, 2)
     assert.strictEqual(differences[0].type, 'extra')
     assert.strictEqual(differences[0].actual, 'd')
@@ -160,7 +160,7 @@ describe('Character Differences', () => {
     const reference = 'abc'
     const submitted = 'aXc'
     const differences = generateCharacterDifferences(reference, submitted)
-    
+
     assert.strictEqual(differences.length, 1)
     assert.strictEqual(differences[0].type, 'incorrect')
     assert.strictEqual(differences[0].expected, 'b')
@@ -172,7 +172,7 @@ describe('Character Differences', () => {
     const reference = 'line1\\nline2'
     const submitted = 'line1\\nliXe2'
     const differences = generateCharacterDifferences(reference, submitted)
-    
+
     assert.strictEqual(differences.length, 1)
     assert.strictEqual(differences[0].lineNumber, 2)
     assert.strictEqual(differences[0].linePosition, 3)
@@ -182,7 +182,7 @@ describe('Character Differences', () => {
     const reference = 'ā'
     const submitted = 'a'
     const differences = generateCharacterDifferences(reference, submitted)
-    
+
     assert.strictEqual(differences.length, 1)
     assert.strictEqual(differences[0].type, 'incorrect')
     assert.strictEqual(differences[0].expected, 'ā')
@@ -222,9 +222,12 @@ describe('Anthem Comparison', () => {
 
   test('compareAnthemText with partial match', () => {
     // Take first half of anthem
-    const partial = NATIONAL_ANTHEM_TEXT.substring(0, Math.floor(NATIONAL_ANTHEM_TEXT.length / 2))
+    const partial = NATIONAL_ANTHEM_TEXT.substring(
+      0,
+      Math.floor(NATIONAL_ANTHEM_TEXT.length / 2)
+    )
     const result = compareAnthemText(partial)
-    
+
     assert.ok(result.accuracy < 100)
     assert.ok(result.accuracy > 0)
     assert.ok(result.characterDifferences.length > 0)
@@ -238,9 +241,9 @@ describe('Line Analysis', () => {
     const reference = 'Line 1\\nLine 2\\nLine 3'
     const submitted = 'Line 1\\nLine 2\\nLine 3'
     const stats = analyzeByLines(reference, submitted)
-    
+
     assert.strictEqual(stats.length, 3)
-    stats.forEach(stat => {
+    stats.forEach((stat) => {
       assert.strictEqual(stat.accuracy, 100)
       assert.strictEqual(stat.passed, true)
       assert.strictEqual(stat.errorCount, 0)
@@ -251,7 +254,7 @@ describe('Line Analysis', () => {
     const reference = 'Line 1\\nLine 2\\nLine 3'
     const submitted = 'Line 1\\nError 2\\nLine 3'
     const stats = analyzeByLines(reference, submitted)
-    
+
     assert.strictEqual(stats.length, 3)
     assert.strictEqual(stats[0].passed, true) // Line 1 correct
     assert.strictEqual(stats[1].passed, false) // Line 2 incorrect
@@ -262,7 +265,7 @@ describe('Line Analysis', () => {
     const reference = 'Line 1\\nLine 2\\nLine 3'
     const submitted = 'Line 1\\nLine 2'
     const stats = analyzeByLines(reference, submitted)
-    
+
     assert.strictEqual(stats.length, 3)
     assert.strictEqual(stats[2].submitted, '')
     assert.strictEqual(stats[2].passed, false)
@@ -272,7 +275,7 @@ describe('Line Analysis', () => {
     const reference = 'Line 1\\nLine 2'
     const submitted = 'Line 1\\nLine 2\\nExtra Line'
     const stats = analyzeByLines(reference, submitted)
-    
+
     assert.strictEqual(stats.length, 3)
     assert.strictEqual(stats[2].expected, '')
     assert.strictEqual(stats[2].submitted, 'Extra Line')
@@ -301,10 +304,12 @@ describe('Error Pattern Detection', () => {
         linePosition: 2,
       },
     ]
-    
+
     const patterns = detectErrorPatterns(differences)
-    const diacriticPattern = patterns.find(p => p.type === 'diacritic_missing')
-    
+    const diacriticPattern = patterns.find(
+      (p) => p.type === 'diacritic_missing'
+    )
+
     assert.ok(diacriticPattern)
     assert.strictEqual(diacriticPattern.count, 2)
     assert.ok(diacriticPattern.examples.includes('a → ā'))
@@ -322,10 +327,10 @@ describe('Error Pattern Detection', () => {
         linePosition: 1,
       },
     ]
-    
+
     const patterns = detectErrorPatterns(differences)
-    const casePattern = patterns.find(p => p.type === 'case_error')
-    
+    const casePattern = patterns.find((p) => p.type === 'case_error')
+
     assert.ok(casePattern)
     assert.strictEqual(casePattern.count, 1)
     assert.ok(casePattern.examples.includes('A → a'))
@@ -342,10 +347,10 @@ describe('Error Pattern Detection', () => {
         linePosition: 1,
       },
     ]
-    
+
     const patterns = detectErrorPatterns(differences)
-    const punctuationPattern = patterns.find(p => p.type === 'punctuation')
-    
+    const punctuationPattern = patterns.find((p) => p.type === 'punctuation')
+
     assert.ok(punctuationPattern)
     assert.strictEqual(punctuationPattern.count, 1)
     assert.ok(punctuationPattern.examples.includes('. → ,'))
@@ -362,10 +367,12 @@ describe('Error Pattern Detection', () => {
         linePosition: 1,
       },
     ]
-    
+
     const patterns = detectErrorPatterns(differences)
-    const diacriticPattern = patterns.find(p => p.type === 'diacritic_missing')
-    
+    const diacriticPattern = patterns.find(
+      (p) => p.type === 'diacritic_missing'
+    )
+
     assert.ok(diacriticPattern)
     assert.ok(diacriticPattern.suggestion)
     assert.ok(diacriticPattern.suggestion.includes('diakritisk'))
@@ -401,34 +408,40 @@ describe('Convenience Functions', () => {
 describe('Performance Requirements', () => {
   test('text processing meets performance requirements', () => {
     const startTime = performance.now()
-    
+
     // Process anthem-length text
     const normalized = normalizeLatvianText(NATIONAL_ANTHEM_TEXT)
     calculateAccuracy(normalized, NATIONAL_ANTHEM_TEXT)
     generateCharacterDifferences(NATIONAL_ANTHEM_TEXT, normalized)
-    
+
     const endTime = performance.now()
     const executionTime = endTime - startTime
-    
+
     // Should complete in under 10ms as per Issue #4 requirements
-    assert.ok(executionTime < 10, `Processing took ${executionTime}ms, should be under 10ms`)
+    assert.ok(
+      executionTime < 10,
+      `Processing took ${executionTime}ms, should be under 10ms`
+    )
   })
 
   test('large text batch processing performance', () => {
     const startTime = performance.now()
-    
+
     // Process multiple texts
     const texts = Array(10).fill(NATIONAL_ANTHEM_TEXT)
-    texts.forEach(text => {
+    texts.forEach((text) => {
       normalizeLatvianText(text)
       calculateAccuracy(text, NATIONAL_ANTHEM_TEXT)
     })
-    
+
     const endTime = performance.now()
     const executionTime = endTime - startTime
-    
+
     // Batch processing should scale reasonably
-    assert.ok(executionTime < 100, `Batch processing took ${executionTime}ms, should be under 100ms`)
+    assert.ok(
+      executionTime < 100,
+      `Batch processing took ${executionTime}ms, should be under 100ms`
+    )
   })
 })
 
@@ -462,7 +475,11 @@ describe('Edge Cases', () => {
   test('handles combining characters', () => {
     const combining = 'a\\u0304e\\u0304i\\u0304' // Base letters + combining macrons
     const normalized = normalizeLatvianText(combining)
-    assert.ok(normalized.includes('ā') || normalized.includes('ē') || normalized.includes('ī'))
+    assert.ok(
+      normalized.includes('ā') ||
+        normalized.includes('ē') ||
+        normalized.includes('ī')
+    )
   })
 })
 
@@ -481,16 +498,16 @@ Laid mums tur laimē diet,
 Mūs' Latvijā!`
 
     const result = compareAnthemText(userInput)
-    
+
     // Should pass with high accuracy
     assert.strictEqual(result.passed, true)
     assert.ok(result.accuracy >= SCORING_THRESHOLDS.ANTHEM_PASS_PERCENTAGE)
-    
+
     // Should have comprehensive analysis
     assert.ok(result.analysis)
     assert.ok(result.analysis.lineStats.length > 0)
     assert.ok(Array.isArray(result.analysis.errorPatterns))
-    
+
     // Should track all required metrics
     assert.ok(typeof result.totalCharacters === 'number')
     assert.ok(typeof result.correctCharacters === 'number')
@@ -505,18 +522,20 @@ Sveti jel Latviju,
 Ak, sveti jel to!`
 
     const result = compareAnthemText(userInputWithErrors)
-    
+
     // Should detect the missing diacritics
     assert.ok(result.characterDifferences.length > 0)
-    
+
     // Should identify diacritic missing patterns
-    const diacriticErrors = result.analysis.errorPatterns.find(p => p.type === 'diacritic_missing')
+    const diacriticErrors = result.analysis.errorPatterns.find(
+      (p) => p.type === 'diacritic_missing'
+    )
     assert.ok(diacriticErrors)
     assert.ok(diacriticErrors.count > 0)
-    
+
     // Should still provide accurate line-by-line analysis
     assert.ok(result.analysis.lineStats.length > 0)
-    result.analysis.lineStats.forEach(stat => {
+    result.analysis.lineStats.forEach((stat) => {
       assert.ok(typeof stat.accuracy === 'number')
       assert.ok(typeof stat.passed === 'boolean')
     })

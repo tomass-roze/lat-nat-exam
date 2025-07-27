@@ -1,16 +1,16 @@
 /**
  * @fileoverview Latvian Text Processing Utilities
- * 
+ *
  * Provides comprehensive text processing functions for evaluating Latvian national anthem
  * submissions with Unicode-compliant comparison, normalization, and detailed analysis.
- * 
+ *
  * Features:
  * - Character-by-character comparison with 75% accuracy threshold
  * - Case-insensitive and diacritic-aware text normalization
  * - Detailed difference reporting with line/column tracking
  * - Performance-optimized algorithms for real-time processing
  * - Complete support for Latvian diacritics (ā, č, ē, ģ, ī, ķ, ļ, ņ, š, ū, ž)
- * 
+ *
  * @author Latvian Citizenship Exam Development Team
  * @version 1.0.0
  */
@@ -25,25 +25,22 @@ import type {
   TextQualityMetrics,
 } from '@/types'
 
-import {
-  SCORING_THRESHOLDS,
-  NATIONAL_ANTHEM_TEXT,
-} from '@/types'
+import { SCORING_THRESHOLDS, NATIONAL_ANTHEM_TEXT } from '@/types'
 
 // ===== CORE TEXT PROCESSING FUNCTIONS =====
 
 /**
  * Normalize Latvian text for accurate comparison
- * 
+ *
  * Performs comprehensive text normalization including:
  * - Unicode NFC normalization for consistent character representation
  * - Case conversion to lowercase for case-insensitive comparison
  * - Whitespace normalization while preserving text structure
  * - Diacritic standardization for Latvian characters
- * 
+ *
  * @param text - Input text to normalize
  * @returns Normalized text ready for comparison
- * 
+ *
  * @example
  * ```typescript
  * const normalized = normalizeLatvianText("DIEVS, SVĒTĪ LATVIJU!");
@@ -72,27 +69,29 @@ export function normalizeLatvianText(text: string): string {
 
 /**
  * Normalize whitespace in text while preserving line structure
- * 
+ *
  * @param text - Input text with potentially irregular whitespace
  * @returns Text with normalized whitespace
  */
 export function normalizeWhitespace(text: string): string {
-  return text
-    // Replace multiple consecutive spaces with single space
-    .replace(/[ \t]+/g, ' ')
-    // Replace multiple consecutive line breaks with single line break
-    .replace(/\n{3,}/g, '\n\n')
-    // Trim leading and trailing whitespace from each line
-    .split('\n')
-    .map(line => line.trim())
-    .join('\n')
-    // Trim overall leading and trailing whitespace
-    .trim()
+  return (
+    text
+      // Replace multiple consecutive spaces with single space
+      .replace(/[ \t]+/g, ' ')
+      // Replace multiple consecutive line breaks with single line break
+      .replace(/\n{3,}/g, '\n\n')
+      // Trim leading and trailing whitespace from each line
+      .split('\n')
+      .map((line) => line.trim())
+      .join('\n')
+      // Trim overall leading and trailing whitespace
+      .trim()
+  )
 }
 
 /**
  * Normalize Latvian characters to handle typing variations
- * 
+ *
  * @param text - Input text with potentially non-standard Latvian characters
  * @returns Text with standardized Latvian character representation
  */
@@ -100,13 +99,28 @@ export function normalizeLatvianCharacters(text: string): string {
   // Handle common typing variations and autocorrect issues
   const characterMap = new Map([
     // Common autocorrect substitutions
-    ['â', 'ā'], ['ê', 'ē'], ['î', 'ī'], ['ô', 'ō'], ['û', 'ū'],
+    ['â', 'ā'],
+    ['ê', 'ē'],
+    ['î', 'ī'],
+    ['ô', 'ō'],
+    ['û', 'ū'],
     // Alternative input method variations
-    ['a:', 'ā'], ['e:', 'ē'], ['i:', 'ī'], ['u:', 'ū'],
-    ['c^', 'č'], ['g^', 'ģ'], ['k^', 'ķ'], ['l^', 'ļ'], 
-    ['n^', 'ņ'], ['s^', 'š'], ['z^', 'ž'],
+    ['a:', 'ā'],
+    ['e:', 'ē'],
+    ['i:', 'ī'],
+    ['u:', 'ū'],
+    ['c^', 'č'],
+    ['g^', 'ģ'],
+    ['k^', 'ķ'],
+    ['l^', 'ļ'],
+    ['n^', 'ņ'],
+    ['s^', 'š'],
+    ['z^', 'ž'],
     // Windows Baltic encoding variations
-    ['à', 'ā'], ['è', 'ē'], ['ì', 'ī'], ['ù', 'ū'],
+    ['à', 'ā'],
+    ['è', 'ē'],
+    ['ì', 'ī'],
+    ['ù', 'ū'],
   ])
 
   let normalized = text
@@ -121,14 +135,14 @@ export function normalizeLatvianCharacters(text: string): string {
 
 /**
  * Compare submitted text against the official Latvian national anthem
- * 
+ *
  * Performs comprehensive analysis including accuracy calculation,
  * character-by-character difference detection, and detailed feedback.
- * 
+ *
  * @param submittedText - User's submitted anthem text
  * @param referenceText - Official anthem text (optional, uses default if not provided)
  * @returns Complete anthem analysis results
- * 
+ *
  * @example
  * ```typescript
  * const result = compareAnthemText(userInput);
@@ -180,15 +194,18 @@ export function compareAnthemText(
 
 /**
  * Calculate accuracy percentage between two texts
- * 
+ *
  * Uses character-by-character comparison with normalized inputs.
  * Handles different text lengths gracefully.
- * 
+ *
  * @param submitted - Normalized submitted text
  * @param reference - Normalized reference text
  * @returns Accuracy percentage (0-100)
  */
-export function calculateAccuracy(submitted: string, reference: string): number {
+export function calculateAccuracy(
+  submitted: string,
+  reference: string
+): number {
   if (!reference || reference.length === 0) {
     return submitted.length === 0 ? 100 : 0
   }
@@ -217,7 +234,7 @@ export function calculateAccuracy(submitted: string, reference: string): number 
 
 /**
  * Generate detailed character-by-character differences
- * 
+ *
  * @param reference - Normalized reference text
  * @param submitted - Normalized submitted text
  * @returns Array of character differences with position tracking
@@ -278,7 +295,7 @@ export function generateCharacterDifferences(
 
 /**
  * Perform comprehensive analysis of anthem submission
- * 
+ *
  * @param reference - Normalized reference text
  * @param submitted - Normalized submitted text
  * @param differences - Character differences array
@@ -304,12 +321,15 @@ export function analyzeAnthemSubmission(
 
 /**
  * Analyze text submission line by line
- * 
+ *
  * @param reference - Reference text
  * @param submitted - Submitted text
  * @returns Statistics for each line
  */
-export function analyzeByLines(reference: string, submitted: string): AnthemLineStats[] {
+export function analyzeByLines(
+  reference: string,
+  submitted: string
+): AnthemLineStats[] {
   const referenceLines = reference.split('\n')
   const submittedLines = submitted.split('\n')
   const maxLines = Math.max(referenceLines.length, submittedLines.length)
@@ -322,7 +342,10 @@ export function analyzeByLines(reference: string, submitted: string): AnthemLine
 
     const lineAccuracy = calculateAccuracy(submittedLine, expectedLine)
     const linePassed = lineAccuracy >= SCORING_THRESHOLDS.ANTHEM_PASS_PERCENTAGE
-    const errorCount = generateCharacterDifferences(expectedLine, submittedLine).length
+    const errorCount = generateCharacterDifferences(
+      expectedLine,
+      submittedLine
+    ).length
 
     lineStats.push({
       lineNumber,
@@ -339,11 +362,13 @@ export function analyzeByLines(reference: string, submitted: string): AnthemLine
 
 /**
  * Detect common error patterns in text differences
- * 
+ *
  * @param differences - Array of character differences
  * @returns Detected error patterns with suggestions
  */
-export function detectErrorPatterns(differences: CharacterDiff[]): ErrorPattern[] {
+export function detectErrorPatterns(
+  differences: CharacterDiff[]
+): ErrorPattern[] {
   const patterns: Map<ErrorPattern['type'], Set<string>> = new Map([
     ['diacritic_missing', new Set()],
     ['case_error', new Set()],
@@ -392,7 +417,7 @@ export function detectErrorPatterns(differences: CharacterDiff[]): ErrorPattern[
 
 /**
  * Calculate typing metrics for performance analysis
- * 
+ *
  * @param text - Submitted text
  * @returns Typing performance metrics
  */
@@ -411,20 +436,25 @@ export function calculateTypingMetrics(text: string): AnthemTiming {
 
 /**
  * Assess text quality and detect potential issues
- * 
+ *
  * @param text - Text to assess
  * @returns Quality metrics and issue detection
  */
 export function assessTextQuality(text: string): TextQualityMetrics {
-  const encodingIssues = !/^[\u0000-\u007F\u0100-\u017F\u1E00-\u1EFF\s]*$/.test(text)
+  const encodingIssues = !/^[\u0000-\u007F\u0100-\u017F\u1E00-\u1EFF\s]*$/.test(
+    text
+  )
   const whitespaceIssues = /\s{3,}|\t/.test(text)
-  const nonStandardCharacters = Array.from(text.match(/[^\p{L}\p{N}\p{P}\p{Z}]/gu) || [])
+  const nonStandardCharacters = Array.from(
+    text.match(/[^\p{L}\p{N}\p{P}\p{Z}]/gu) || []
+  )
 
   // Calculate overall quality score
   let qualityScore = 100
   if (encodingIssues) qualityScore -= 20
   if (whitespaceIssues) qualityScore -= 10
-  if (nonStandardCharacters.length > 0) qualityScore -= nonStandardCharacters.length * 5
+  if (nonStandardCharacters.length > 0)
+    qualityScore -= nonStandardCharacters.length * 5
 
   return {
     encodingIssues,
@@ -440,14 +470,18 @@ export function assessTextQuality(text: string): TextQualityMetrics {
  * Check if character is a Latvian diacritic
  */
 function isLatvianDiacritic(char: string): boolean {
-  return ['ā', 'č', 'ē', 'ģ', 'ī', 'ķ', 'ļ', 'ņ', 'š', 'ū', 'ž'].includes(char.toLowerCase())
+  return ['ā', 'č', 'ē', 'ģ', 'ī', 'ķ', 'ļ', 'ņ', 'š', 'ū', 'ž'].includes(
+    char.toLowerCase()
+  )
 }
 
 /**
  * Check if character is a Latvian base letter (non-diacritic)
  */
 function isLatvianBaseLetter(char: string): boolean {
-  return ['a', 'c', 'e', 'g', 'i', 'k', 'l', 'n', 's', 'u', 'z'].includes(char.toLowerCase())
+  return ['a', 'c', 'e', 'g', 'i', 'k', 'l', 'n', 's', 'u', 'z'].includes(
+    char.toLowerCase()
+  )
 }
 
 /**
@@ -475,7 +509,7 @@ function getErrorSuggestion(errorType: ErrorPattern['type']): string {
 
 /**
  * Quick anthem comparison function for basic usage
- * 
+ *
  * @param submittedText - User's submitted text
  * @returns Simple boolean result indicating pass/fail
  */
@@ -486,7 +520,7 @@ export function isAnthemTextCorrect(submittedText: string): boolean {
 
 /**
  * Get accuracy percentage for submitted anthem text
- * 
+ *
  * @param submittedText - User's submitted text
  * @returns Accuracy percentage (0-100)
  */
@@ -497,7 +531,7 @@ export function getAnthemAccuracy(submittedText: string): number {
 
 /**
  * Validate anthem text and provide detailed feedback
- * 
+ *
  * @param submittedText - User's submitted text
  * @returns Complete validation result with suggestions
  */

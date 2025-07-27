@@ -1,15 +1,15 @@
 /**
  * @fileoverview Performance Optimization Utilities
- * 
+ *
  * Provides performance optimization functions for text processing operations
  * to ensure <10ms processing time for anthem-length text as required in Issue #4.
- * 
+ *
  * Features:
  * - Memoization for repeated text comparisons
  * - Optimized string algorithms for large text processing
  * - Performance monitoring and benchmarking utilities
  * - Memory-efficient character difference calculations
- * 
+ *
  * @author Latvian Citizenship Exam Development Team
  * @version 1.0.0
  */
@@ -24,13 +24,13 @@ import type { AnthemResult, CharacterDiff } from '@/types'
 export const PERFORMANCE_THRESHOLDS = {
   /** Maximum processing time for anthem text (10ms) */
   MAX_ANTHEM_PROCESSING_TIME: 10,
-  
+
   /** Maximum memory usage for text comparison (1MB) */
   MAX_MEMORY_USAGE: 1024 * 1024,
-  
+
   /** Cache size limit for memoization */
   MAX_CACHE_SIZE: 100,
-  
+
   /** Text length threshold for optimization selection */
   LARGE_TEXT_THRESHOLD: 1000,
 } as const
@@ -84,9 +84,15 @@ class LRUCache<K, V> {
 /**
  * Global cache instances for different operation types
  */
-const normalizationCache = new LRUCache<string, string>(PERFORMANCE_THRESHOLDS.MAX_CACHE_SIZE)
-const accuracyCache = new LRUCache<string, number>(PERFORMANCE_THRESHOLDS.MAX_CACHE_SIZE)
-const differencesCache = new LRUCache<string, CharacterDiff[]>(PERFORMANCE_THRESHOLDS.MAX_CACHE_SIZE / 2)
+const normalizationCache = new LRUCache<string, string>(
+  PERFORMANCE_THRESHOLDS.MAX_CACHE_SIZE
+)
+const accuracyCache = new LRUCache<string, number>(
+  PERFORMANCE_THRESHOLDS.MAX_CACHE_SIZE
+)
+const differencesCache = new LRUCache<string, CharacterDiff[]>(
+  PERFORMANCE_THRESHOLDS.MAX_CACHE_SIZE / 2
+)
 
 // ===== PERFORMANCE MONITORING =====
 
@@ -96,13 +102,13 @@ const differencesCache = new LRUCache<string, CharacterDiff[]>(PERFORMANCE_THRES
 export interface PerformanceMetrics {
   /** Function execution time in milliseconds */
   executionTime: number
-  
+
   /** Memory usage in bytes (estimated) */
   memoryUsage: number
-  
+
   /** Whether performance meets requirements */
   withinThreshold: boolean
-  
+
   /** Cache hit/miss statistics */
   cacheStats: {
     hits: number
@@ -129,7 +135,8 @@ export class PerformanceMonitor {
     return (): PerformanceMetrics => {
       const executionTime = performance.now() - startTime
       const memoryUsage = this.estimateMemoryUsage() - startMemory
-      const withinThreshold = executionTime <= PERFORMANCE_THRESHOLDS.MAX_ANTHEM_PROCESSING_TIME
+      const withinThreshold =
+        executionTime <= PERFORMANCE_THRESHOLDS.MAX_ANTHEM_PROCESSING_TIME
 
       const cacheStats = {
         hits: this.cacheHits,
@@ -169,9 +176,9 @@ export class PerformanceMonitor {
     const metrics = this.metrics.get(functionName)
     if (!metrics || metrics.length === 0) return null
 
-    const times = metrics.map(m => m.executionTime)
-    const memories = metrics.map(m => m.memoryUsage)
-    const successes = metrics.filter(m => m.withinThreshold).length
+    const times = metrics.map((m) => m.executionTime)
+    const memories = metrics.map((m) => m.memoryUsage)
+    const successes = metrics.filter((m) => m.withinThreshold).length
 
     return {
       averageTime: times.reduce((a, b) => a + b, 0) / times.length,
@@ -247,7 +254,7 @@ export function optimizedNormalizeText(text: string): string {
 
   // Full normalization for complex text
   let normalized = text.normalize('NFC').toLowerCase()
-  
+
   // Optimized whitespace normalization
   normalized = normalized
     .replace(/[ \t]+/g, ' ')
@@ -262,7 +269,10 @@ export function optimizedNormalizeText(text: string): string {
 /**
  * Optimized accuracy calculation with early termination
  */
-export function optimizedCalculateAccuracy(submitted: string, reference: string): number {
+export function optimizedCalculateAccuracy(
+  submitted: string,
+  reference: string
+): number {
   if (!reference) return submitted.length === 0 ? 100 : 0
   if (!submitted) return 0
 
@@ -283,9 +293,10 @@ export function optimizedCalculateAccuracy(submitted: string, reference: string)
   }
 
   // Use optimized comparison based on text length
-  const accuracy = reference.length > PERFORMANCE_THRESHOLDS.LARGE_TEXT_THRESHOLD
-    ? optimizedLargeTextAccuracy(submitted, reference)
-    : optimizedSmallTextAccuracy(submitted, reference)
+  const accuracy =
+    reference.length > PERFORMANCE_THRESHOLDS.LARGE_TEXT_THRESHOLD
+      ? optimizedLargeTextAccuracy(submitted, reference)
+      : optimizedSmallTextAccuracy(submitted, reference)
 
   accuracyCache.set(cacheKey, accuracy)
   return accuracy
@@ -294,7 +305,10 @@ export function optimizedCalculateAccuracy(submitted: string, reference: string)
 /**
  * Optimized accuracy calculation for small texts
  */
-function optimizedSmallTextAccuracy(submitted: string, reference: string): number {
+function optimizedSmallTextAccuracy(
+  submitted: string,
+  reference: string
+): number {
   let correctCharacters = 0
   const minLength = Math.min(submitted.length, reference.length)
 
@@ -311,10 +325,13 @@ function optimizedSmallTextAccuracy(submitted: string, reference: string): numbe
 /**
  * Optimized accuracy calculation for large texts using sampling
  */
-function optimizedLargeTextAccuracy(submitted: string, reference: string): number {
+function optimizedLargeTextAccuracy(
+  submitted: string,
+  reference: string
+): number {
   const sampleSize = Math.min(500, reference.length)
   const step = Math.floor(reference.length / sampleSize)
-  
+
   let correctSamples = 0
   let totalSamples = 0
 
@@ -346,9 +363,10 @@ export function optimizedGenerateCharacterDifferences(
   performanceMonitor.recordCacheMiss()
 
   // Use optimized algorithm based on text size
-  const differences = reference.length > PERFORMANCE_THRESHOLDS.LARGE_TEXT_THRESHOLD
-    ? generateDifferencesLarge(reference, submitted)
-    : generateDifferencesSmall(reference, submitted)
+  const differences =
+    reference.length > PERFORMANCE_THRESHOLDS.LARGE_TEXT_THRESHOLD
+      ? generateDifferencesLarge(reference, submitted)
+      : generateDifferencesSmall(reference, submitted)
 
   differencesCache.set(cacheKey, differences)
   return differences
@@ -357,7 +375,10 @@ export function optimizedGenerateCharacterDifferences(
 /**
  * Generate differences for small texts (complete analysis)
  */
-function generateDifferencesSmall(reference: string, submitted: string): CharacterDiff[] {
+function generateDifferencesSmall(
+  reference: string,
+  submitted: string
+): CharacterDiff[] {
   const differences: CharacterDiff[] = []
   const maxLength = Math.max(reference.length, submitted.length)
 
@@ -406,20 +427,32 @@ function generateDifferencesSmall(reference: string, submitted: string): Charact
 /**
  * Generate differences for large texts (sampled analysis)
  */
-function generateDifferencesLarge(reference: string, submitted: string): CharacterDiff[] {
+function generateDifferencesLarge(
+  reference: string,
+  submitted: string
+): CharacterDiff[] {
   const differences: CharacterDiff[] = []
   const sampleSize = 200 // Limit to 200 differences for performance
-  const step = Math.floor(Math.max(reference.length, submitted.length) / sampleSize)
+  const step = Math.floor(
+    Math.max(reference.length, submitted.length) / sampleSize
+  )
 
   let currentLine = 1
   let lineStartPosition = 0
 
-  for (let position = 0; position < Math.max(reference.length, submitted.length); position += step) {
+  for (
+    let position = 0;
+    position < Math.max(reference.length, submitted.length);
+    position += step
+  ) {
     const expectedChar = reference[position] || ''
     const actualChar = submitted[position] || ''
 
     // Update line tracking (simplified for large texts)
-    while (lineStartPosition <= position && reference.indexOf('\n', lineStartPosition) !== -1) {
+    while (
+      lineStartPosition <= position &&
+      reference.indexOf('\n', lineStartPosition) !== -1
+    ) {
       const nextNewline = reference.indexOf('\n', lineStartPosition)
       if (nextNewline <= position) {
         currentLine++
@@ -463,13 +496,16 @@ export function batchProcessTexts(
   reference: string
 ): AnthemResult[] {
   const monitor = performanceMonitor.startMeasurement()
-  
+
   // Pre-normalize reference once
   const normalizedReference = optimizedNormalizeText(reference)
-  
-  const results: AnthemResult[] = submissions.map(submitted => {
+
+  const results: AnthemResult[] = submissions.map((submitted) => {
     const normalizedSubmitted = optimizedNormalizeText(submitted)
-    const accuracy = optimizedCalculateAccuracy(normalizedSubmitted, normalizedReference)
+    const accuracy = optimizedCalculateAccuracy(
+      normalizedSubmitted,
+      normalizedReference
+    )
     const characterDifferences = optimizedGenerateCharacterDifferences(
       normalizedReference,
       normalizedSubmitted
@@ -482,7 +518,9 @@ export function batchProcessTexts(
       submittedText: submitted,
       referenceText: reference,
       totalCharacters: normalizedReference.length,
-      correctCharacters: Math.round((accuracy / 100) * normalizedReference.length),
+      correctCharacters: Math.round(
+        (accuracy / 100) * normalizedReference.length
+      ),
       analysis: {
         lineStats: [],
         errorPatterns: [],
@@ -585,8 +623,10 @@ export async function benchmarkPerformance(
   }
 
   const stats = performanceMonitor.getStats('benchmark')
-  const cacheEfficiency = stats?.averageTime ? 
-    (stats.averageTime / (times.reduce((a, b) => a + b, 0) / times.length)) * 100 : 0
+  const cacheEfficiency = stats?.averageTime
+    ? (stats.averageTime / (times.reduce((a, b) => a + b, 0) / times.length)) *
+      100
+    : 0
 
   return {
     averageTime: times.reduce((a, b) => a + b, 0) / times.length,
@@ -607,7 +647,7 @@ export function profileMemoryUsage(): {
 } {
   const estimatedUsage = performanceMonitor['estimateMemoryUsage']()
   const cacheStats = getCacheStatistics()
-  const totalCacheUsage = 
+  const totalCacheUsage =
     cacheStats.normalization.size * 100 +
     cacheStats.accuracy.size * 8 +
     cacheStats.differences.size * 500
@@ -627,23 +667,31 @@ export function profileMemoryUsage(): {
 export function getPerformanceRecommendations(): string[] {
   const recommendations: string[] = []
   const stats = getCacheStatistics()
-  
+
   if (stats.normalization.size >= stats.normalization.maxSize * 0.9) {
-    recommendations.push('Consider increasing normalization cache size for better performance')
+    recommendations.push(
+      'Consider increasing normalization cache size for better performance'
+    )
   }
-  
+
   if (stats.accuracy.size >= stats.accuracy.maxSize * 0.9) {
-    recommendations.push('Consider increasing accuracy cache size for repeated comparisons')
+    recommendations.push(
+      'Consider increasing accuracy cache size for repeated comparisons'
+    )
   }
-  
+
   const memoryProfile = profileMemoryUsage()
   if (!memoryProfile.withinLimits) {
-    recommendations.push('Memory usage exceeds limits - consider clearing caches periodically')
+    recommendations.push(
+      'Memory usage exceeds limits - consider clearing caches periodically'
+    )
   }
-  
+
   if (recommendations.length === 0) {
-    recommendations.push('Performance is optimized - no recommendations at this time')
+    recommendations.push(
+      'Performance is optimized - no recommendations at this time'
+    )
   }
-  
+
   return recommendations
 }

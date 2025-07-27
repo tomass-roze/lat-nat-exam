@@ -1,6 +1,6 @@
 /**
  * @fileoverview Unit tests for Latvian language support utilities
- * 
+ *
  * Comprehensive test suite for latvianLanguage.ts functions including:
  * - Alphabet definitions and character validation
  * - Character mapping and conversion functions
@@ -44,20 +44,69 @@ describe('Latvian Alphabet Definitions', () => {
 
   test('LATVIAN_ALPHABET contains correct consonants', () => {
     const expectedConsonants = [
-      'b', 'c', 'č', 'd', 'f', 'g', 'ģ', 'h', 'j', 'k', 'ķ', 
-      'l', 'ļ', 'm', 'n', 'ņ', 'p', 'r', 's', 'š', 't', 'v', 'z', 'ž'
+      'b',
+      'c',
+      'č',
+      'd',
+      'f',
+      'g',
+      'ģ',
+      'h',
+      'j',
+      'k',
+      'ķ',
+      'l',
+      'ļ',
+      'm',
+      'n',
+      'ņ',
+      'p',
+      'r',
+      's',
+      'š',
+      't',
+      'v',
+      'z',
+      'ž',
     ]
     assert.deepStrictEqual([...LATVIAN_ALPHABET.CONSONANTS], expectedConsonants)
   })
 
   test('LATVIAN_ALPHABET contains correct diacritics', () => {
-    const expectedDiacritics = ['ā', 'č', 'ē', 'ģ', 'ī', 'ķ', 'ļ', 'ņ', 'š', 'ū', 'ž']
+    const expectedDiacritics = [
+      'ā',
+      'č',
+      'ē',
+      'ģ',
+      'ī',
+      'ķ',
+      'ļ',
+      'ņ',
+      'š',
+      'ū',
+      'ž',
+    ]
     assert.deepStrictEqual([...LATVIAN_ALPHABET.DIACRITICS], expectedDiacritics)
   })
 
   test('LATVIAN_ALPHABET contains correct base letters', () => {
-    const expectedBaseLetters = ['a', 'c', 'e', 'g', 'i', 'k', 'l', 'n', 's', 'u', 'z']
-    assert.deepStrictEqual([...LATVIAN_ALPHABET.BASE_LETTERS], expectedBaseLetters)
+    const expectedBaseLetters = [
+      'a',
+      'c',
+      'e',
+      'g',
+      'i',
+      'k',
+      'l',
+      'n',
+      's',
+      'u',
+      'z',
+    ]
+    assert.deepStrictEqual(
+      [...LATVIAN_ALPHABET.BASE_LETTERS],
+      expectedBaseLetters
+    )
   })
 
   test('LATVIAN_ALPHABET ALL_LETTERS has 33 characters', () => {
@@ -66,13 +115,19 @@ describe('Latvian Alphabet Definitions', () => {
 
   test('LATVIAN_ALPHABET ALL_LETTERS contains all vowels and consonants', () => {
     const allLetters = [...LATVIAN_ALPHABET.ALL_LETTERS]
-    
-    LATVIAN_ALPHABET.VOWELS.forEach(vowel => {
-      assert.ok(allLetters.includes(vowel), `Vowel ${vowel} should be in ALL_LETTERS`)
+
+    LATVIAN_ALPHABET.VOWELS.forEach((vowel) => {
+      assert.ok(
+        allLetters.includes(vowel),
+        `Vowel ${vowel} should be in ALL_LETTERS`
+      )
     })
-    
-    LATVIAN_ALPHABET.CONSONANTS.forEach(consonant => {
-      assert.ok(allLetters.includes(consonant), `Consonant ${consonant} should be in ALL_LETTERS`)
+
+    LATVIAN_ALPHABET.CONSONANTS.forEach((consonant) => {
+      assert.ok(
+        allLetters.includes(consonant),
+        `Consonant ${consonant} should be in ALL_LETTERS`
+      )
     })
   })
 })
@@ -152,7 +207,7 @@ describe('Character Validation Functions', () => {
     assert.strictEqual(isLatvianLetter('ž'), true)
     assert.strictEqual(isLatvianLetter('A'), true)
     assert.strictEqual(isLatvianLetter('Ā'), true)
-    
+
     // Invalid characters
     assert.strictEqual(isLatvianLetter('x'), false)
     assert.strictEqual(isLatvianLetter('1'), false)
@@ -168,7 +223,7 @@ describe('Character Validation Functions', () => {
     assert.strictEqual(isLatvianDiacritic('ē'), true)
     assert.strictEqual(isLatvianDiacritic('ž'), true)
     assert.strictEqual(isLatvianDiacritic('Ā'), true)
-    
+
     // Non-diacritic letters
     assert.strictEqual(isLatvianDiacritic('a'), false)
     assert.strictEqual(isLatvianDiacritic('b'), false)
@@ -181,11 +236,11 @@ describe('Character Validation Functions', () => {
     assert.strictEqual(isLatvianBaseLetter('c'), true)
     assert.strictEqual(isLatvianBaseLetter('e'), true)
     assert.strictEqual(isLatvianBaseLetter('z'), true)
-    
+
     // Letters without diacritic variants
     assert.strictEqual(isLatvianBaseLetter('b'), false)
     assert.strictEqual(isLatvianBaseLetter('d'), false)
-    
+
     // Diacritic letters themselves
     assert.strictEqual(isLatvianBaseLetter('ā'), false)
     assert.strictEqual(isLatvianBaseLetter('č'), false)
@@ -200,7 +255,7 @@ describe('Character Validation Functions', () => {
     assert.strictEqual(isLatvianVowel('o'), true)
     assert.strictEqual(isLatvianVowel('u'), true)
     assert.strictEqual(isLatvianVowel('ū'), true)
-    
+
     // Consonants
     assert.strictEqual(isLatvianVowel('b'), false)
     assert.strictEqual(isLatvianVowel('č'), false)
@@ -213,7 +268,7 @@ describe('Character Validation Functions', () => {
     assert.strictEqual(isLatvianConsonant('c'), true)
     assert.strictEqual(isLatvianConsonant('č'), true)
     assert.strictEqual(isLatvianConsonant('ž'), true)
-    
+
     // Vowels
     assert.strictEqual(isLatvianConsonant('a'), false)
     assert.strictEqual(isLatvianConsonant('ā'), false)
@@ -252,7 +307,9 @@ describe('Text Validation', () => {
     const result = validateLatvianText(textWithErrors)
     assert.strictEqual(result.isValid, false)
     assert.ok(result.suggestions.length > 0)
-    assert.ok(result.suggestions.some(s => s.includes('â') && s.includes('ā')))
+    assert.ok(
+      result.suggestions.some((s) => s.includes('â') && s.includes('ā'))
+    )
   })
 
   test('validateLatvianText ignores whitespace and punctuation', () => {
@@ -338,7 +395,7 @@ describe('Counting and Analysis Functions', () => {
   test('countLatvianDiacritics counts correctly', () => {
     const text = 'āčēģīķļņšūž'
     const result = countLatvianDiacritics(text)
-    
+
     assert.strictEqual(result.total, 11)
     assert.strictEqual(result.byCharacter['ā'], 1)
     assert.strictEqual(result.byCharacter['č'], 1)
@@ -348,7 +405,7 @@ describe('Counting and Analysis Functions', () => {
   test('countLatvianDiacritics handles repeated characters', () => {
     const text = 'āāā čč'
     const result = countLatvianDiacritics(text)
-    
+
     assert.strictEqual(result.total, 5)
     assert.strictEqual(result.byCharacter['ā'], 3)
     assert.strictEqual(result.byCharacter['č'], 2)
@@ -357,7 +414,7 @@ describe('Counting and Analysis Functions', () => {
   test('countLatvianDiacritics ignores non-diacritics', () => {
     const text = 'abc āāā def'
     const result = countLatvianDiacritics(text)
-    
+
     assert.strictEqual(result.total, 3)
     assert.strictEqual(result.byCharacter['ā'], 3)
     assert.strictEqual(Object.keys(result.byCharacter).length, 1)
@@ -365,12 +422,12 @@ describe('Counting and Analysis Functions', () => {
 
   test('getInputVariations returns all variations', () => {
     const variations = getInputVariations('ā')
-    
+
     assert.ok(variations.includes('ā')) // Original
     assert.ok(variations.includes('Ā')) // Uppercase
     assert.ok(variations.includes('a:')) // Colon notation
     assert.ok(variations.includes('ax')) // X notation
-    
+
     // Should remove duplicates
     const uniqueVariations = [...new Set(variations)]
     assert.strictEqual(variations.length, uniqueVariations.length)
@@ -381,12 +438,12 @@ describe('Counting and Analysis Functions', () => {
     const latvianText = 'Dievs, svētī Latviju, mūs dārgo tēviju!'
     const latvianConfidence = getLatvianTextConfidence(latvianText)
     assert.ok(latvianConfidence > 0.8)
-    
+
     // Mixed text
     const mixedText = 'Hello Latvija x123'
     const mixedConfidence = getLatvianTextConfidence(mixedText)
     assert.ok(mixedConfidence < 0.8)
-    
+
     // Short text
     const shortText = 'abc'
     const shortConfidence = getLatvianTextConfidence(shortText)
@@ -396,10 +453,10 @@ describe('Counting and Analysis Functions', () => {
   test('getLatvianTextConfidence boosts for diacritics', () => {
     const withoutDiacritics = 'Dievs sveti Latviju'
     const withDiacritics = 'Dievs, svētī Latviju'
-    
+
     const confidenceWithout = getLatvianTextConfidence(withoutDiacritics)
     const confidenceWith = getLatvianTextConfidence(withDiacritics)
-    
+
     assert.ok(confidenceWith > confidenceWithout)
   })
 })
@@ -420,7 +477,7 @@ describe('Edge Cases', () => {
     assert.strictEqual(handleLatvianTypingVariations(''), '')
     assert.strictEqual(removeLatvianDiacritics(''), '')
     assert.strictEqual(getBaseLetter(''), '')
-    
+
     const validation = validateLatvianText('')
     assert.strictEqual(validation.isValid, true)
   })
@@ -441,10 +498,10 @@ describe('Edge Cases', () => {
 
   test('case mapping consistency', () => {
     // Test that all uppercase letters have lowercase mappings
-    LATVIAN_ALPHABET.ALL_LETTERS.forEach(letter => {
+    LATVIAN_ALPHABET.ALL_LETTERS.forEach((letter) => {
       const upper = letter.toUpperCase()
       const lower = letter.toLowerCase()
-      
+
       if (upper !== lower) {
         assert.ok(CASE_MAPPINGS.has(upper), `Missing case mapping for ${upper}`)
         assert.strictEqual(CASE_MAPPINGS.get(upper), lower)
@@ -458,32 +515,38 @@ describe('Edge Cases', () => {
 describe('Performance', () => {
   test('character validation is fast', () => {
     const startTime = performance.now()
-    
+
     // Test many character validations
     for (let i = 0; i < 1000; i++) {
       isLatvianLetter('ā')
       isLatvianDiacritic('ā')
       isLatvianVowel('ā')
     }
-    
+
     const endTime = performance.now()
     const executionTime = endTime - startTime
-    
-    assert.ok(executionTime < 10, `Character validation took ${executionTime}ms, should be under 10ms`)
+
+    assert.ok(
+      executionTime < 10,
+      `Character validation took ${executionTime}ms, should be under 10ms`
+    )
   })
 
   test('text processing is fast', () => {
     const startTime = performance.now()
     const longText = 'Dievs, svētī Latviju, mūs dārgo tēviju! '.repeat(100)
-    
+
     handleLatvianTypingVariations(longText)
     removeLatvianDiacritics(longText)
     validateLatvianText(longText)
-    
+
     const endTime = performance.now()
     const executionTime = endTime - startTime
-    
-    assert.ok(executionTime < 50, `Text processing took ${executionTime}ms, should be under 50ms`)
+
+    assert.ok(
+      executionTime < 50,
+      `Text processing took ${executionTime}ms, should be under 50ms`
+    )
   })
 })
 
@@ -499,11 +562,11 @@ Ak, svētī jel to!`
     // Should validate as valid Latvian text
     const validation = validateLatvianText(anthemText)
     assert.strictEqual(validation.isValid, true)
-    
+
     // Should have high confidence
     const confidence = getLatvianTextConfidence(anthemText)
     assert.ok(confidence > 0.9)
-    
+
     // Should count diacritics correctly
     const diacriticCount = countLatvianDiacritics(anthemText)
     assert.ok(diacriticCount.total > 0)
@@ -515,7 +578,7 @@ Ak, svētī jel to!`
   test('handles common user input errors', () => {
     const userInput = 'a: e: i: u: c^ s^ z^' // Alternative input method
     const processed = handleLatvianTypingVariations(userInput)
-    
+
     // Should convert to proper diacritics
     assert.ok(processed.includes('ā'))
     assert.ok(processed.includes('ē'))
