@@ -11,7 +11,10 @@
     "lint:fix": "eslint . --ext ts,tsx --fix",
     "format": "prettier --write src/",
     "format:check": "prettier --check src/",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "test": "node --test src/utils/__tests__/*.test.ts",
+    "test:watch": "node --test --watch src/utils/__tests__/*.test.ts",
+    "test:coverage": "node --test --experimental-test-coverage src/utils/__tests__/*.test.ts"
   },
   "repository": {
     "type": "git",
