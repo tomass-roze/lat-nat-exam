@@ -1,0 +1,258 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Initialize Project with Modern TypeScript React Stack",
+        "description": "Set up a new React TypeScript project using Vite with Tailwind CSS v4 and Shadcn/ui components for optimal 2025 development experience",
+        "details": "Create project using 'npm create vite@latest latvian-citizenship-exam -- --template react-ts'. Upgrade to React 19 with 'npm install react@latest react-dom@latest @types/react@latest @types/react-dom@latest'. Configure vite.config.ts with path aliases (@/ for src/). Install Tailwind CSS v4 using 'npm install tailwindcss@next @tailwindcss/vite@next'. Set up TypeScript paths in tsconfig.json and tsconfig.app.json with baseUrl and path mapping. Configure ESLint and Prettier for code quality.",
+        "testStrategy": "Verify project builds successfully with 'npm run build', development server starts with 'npm run dev', and all TypeScript compilation passes without errors. Test hot module replacement functionality.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 2,
+        "title": "Install and Configure Shadcn/ui Component System",
+        "description": "Set up Shadcn/ui component library with proper theming and accessibility features for consistent UI components",
+        "details": "Initialize Shadcn/ui with 'npx shadcn@latest init'. Configure components.json with Tailwind CSS v4 compatibility. Install required components: Card, Button, Input, Textarea, RadioGroup, Badge, Alert, Progress, FormMessage. Set up proper theme configuration with CSS variables for light/dark mode support. Configure Radix UI primitives for accessibility compliance.",
+        "testStrategy": "Verify all Shadcn components render correctly, theme switching works properly, and components meet WCAG 2.1 AA accessibility standards. Test keyboard navigation and screen reader compatibility.",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 3,
+        "title": "Create TypeScript Interfaces and Data Models",
+        "description": "Define strongly-typed interfaces for questions, test state, results, and session management following TypeScript best practices",
+        "details": "Create interfaces: Question (id: number, question: string, options: string[], correctAnswer: number), TestState (anthemText: string, historyAnswers: Record<number, number>, constitutionAnswers: Record<number, number>, startTime: number, lastSaved: number), TestResults (anthem: {passed: boolean, accuracy: number}, history: {passed: boolean, correct: number}, constitution: {passed: boolean, correct: number}, overall: boolean). Add validation schemas and type guards for runtime type safety.",
+        "testStrategy": "Validate interfaces compile without TypeScript errors, type guards correctly identify data types, and all data structures support proper serialization/deserialization for sessionStorage.",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 4,
+        "title": "Implement Latvian Text Processing Utilities",
+        "description": "Create UTF-8 compliant text processing utilities for Latvian diacritics normalization and comparison algorithms",
+        "details": "Implement normalizeLatvianText function using String.normalize('NFD') followed by diacritic removal with .replace(/[\\u0300-\\u036f]/g, ''). Create character-by-character comparison algorithm supporting Latvian characters (ā, č, ē, ģ, ī, ķ, ļ, ņ, š, ū, ž). Implement case-insensitive comparison with proper Unicode handling. Add whitespace normalization and common typing variation handling (apostrophes, double letters).",
+        "testStrategy": "Test with various Latvian text inputs including all diacritics, verify 75% accuracy threshold calculations work correctly, and ensure proper handling of edge cases like mixed case and extra whitespace.",
+        "priority": "high",
+        "dependencies": [
+          3
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 5,
+        "title": "Create Question Data Structure and Loading System",
+        "description": "Design and implement JSON-based question storage with randomization algorithms for history and constitution sections",
+        "details": "Create JSON files: history-questions.json (minimum 20 questions) and constitution-questions.json (minimum 16 questions). Implement Fisher-Yates shuffle algorithm for question randomization. Create anthem-text.json with official 8-line national anthem. Implement async question loading with error handling and fallback mechanisms. Add question validation to ensure data integrity.",
+        "testStrategy": "Verify JSON files load correctly, randomization produces different question orders each session, and all questions contain valid structure with correct answer indices. Test error handling for malformed data.",
+        "priority": "medium",
+        "dependencies": [
+          3
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 6,
+        "title": "Implement SessionStorage State Management",
+        "description": "Create robust client-side state persistence using sessionStorage with auto-save functionality and recovery mechanisms",
+        "details": "Implement useSessionStorage custom hook with TypeScript generics. Create auto-save mechanism triggering every 30 seconds using setInterval. Add state recovery logic for page refresh scenarios. Implement 2-hour session expiry with timestamp validation. Create cleanup functions for completed tests and expired sessions. Add compression for large state objects to optimize storage.",
+        "testStrategy": "Test auto-save triggers correctly, state recovers after page refresh within 2-hour window, expired sessions are properly cleaned up, and storage limits are respected. Verify data integrity during serialization/deserialization.",
+        "priority": "high",
+        "dependencies": [
+          3,
+          4
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 7,
+        "title": "Build National Anthem Assessment Component",
+        "description": "Create multi-line textarea component with real-time validation and character-by-character comparison against official text",
+        "details": "Build AnthemSection component using Shadcn Textarea with 8-line placeholder. Implement real-time character counting and validation. Create diff visualization showing character-level differences. Add 75% accuracy threshold calculation with visual feedback. Implement minimum 100-character validation. Use React.memo for performance optimization with large text inputs.",
+        "testStrategy": "Test textarea accepts Latvian characters correctly, accuracy calculation matches manual verification, diff visualization highlights differences accurately, and component performs well with real-time updates.",
+        "priority": "medium",
+        "dependencies": [
+          2,
+          4,
+          6
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 8,
+        "title": "Build History Knowledge Assessment Component",
+        "description": "Create randomized multiple-choice question component for Latvian history with 10 questions and 70% passing threshold",
+        "details": "Build HistorySection component using Shadcn RadioGroup components. Implement question randomization selecting 10 from minimum 20 questions. Create answer option shuffling while maintaining correct answer tracking. Add visual feedback for selected answers. Implement 70% passing threshold (7 correct answers). Add progress indicator showing completion status.",
+        "testStrategy": "Verify 10 random questions load each session, answer options are properly shuffled, correct answers are tracked accurately, and 70% threshold calculation is correct. Test with various question pools.",
+        "priority": "medium",
+        "dependencies": [
+          2,
+          5,
+          6
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 9,
+        "title": "Build Constitution Knowledge Assessment Component",
+        "description": "Create randomized multiple-choice question component for constitutional knowledge with 8 questions and 62.5% passing threshold",
+        "details": "Build ConstitutionSection component using Shadcn RadioGroup components. Implement question randomization selecting 8 from minimum 16 questions. Create answer option shuffling with correct answer preservation. Add visual selection feedback and validation. Implement 62.5% passing threshold (5 correct answers). Include question numbering and progress tracking.",
+        "testStrategy": "Verify 8 random questions load correctly, answer shuffling maintains integrity, 62.5% threshold calculation is accurate, and component handles edge cases like incomplete selections properly.",
+        "priority": "medium",
+        "dependencies": [
+          2,
+          5,
+          6
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 10,
+        "title": "Create Main Layout and Navigation Structure",
+        "description": "Build responsive single-page layout with Tailwind CSS Grid/Flexbox and sticky progress indicators",
+        "details": "Create MainLayout component with CSS Grid for desktop (3-column) and mobile (single-column) layouts. Implement responsive breakpoints (sm: 640px, md: 768px, lg: 1024px). Add sticky header with application title in Latvian. Create progress indicator component showing section completion status. Implement smooth scrolling navigation between sections.",
+        "testStrategy": "Test responsive behavior across all breakpoints, verify sticky elements remain positioned correctly, and ensure smooth scrolling works on all devices. Validate layout integrity with varying content lengths.",
+        "priority": "medium",
+        "dependencies": [
+          2
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 11,
+        "title": "Implement Form Validation and Submission Logic",
+        "description": "Create comprehensive form validation with confirmation dialog and submission prevention for incomplete sections",
+        "details": "Build FormValidation utility checking all sections completion. Implement Shadcn AlertDialog for submission confirmation. Create validation messages using Shadcn FormMessage components. Add loading states during submission processing. Implement form reset functionality post-submission. Create validation state management with useReducer for complex state transitions.",
+        "testStrategy": "Test validation prevents submission with incomplete sections, confirmation dialog displays correctly, validation messages show appropriate feedback, and form resets properly after successful submission.",
+        "priority": "high",
+        "dependencies": [
+          7,
+          8,
+          9
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 12,
+        "title": "Create Results Display and Feedback System",
+        "description": "Build comprehensive results visualization with pass/fail indicators, detailed feedback, and performance analysis",
+        "details": "Create ResultsDisplay component using Shadcn Badge components for pass/fail status. Implement detailed feedback showing accuracy percentages and missed questions. Add visual icons (CheckCircle, XCircle) for answer feedback. Create diff viewer for anthem section showing character-level mistakes. Use Shadcn Alert components for missed question explanations. Add overall pass/fail calculation requiring all sections to pass.",
+        "testStrategy": "Verify results display accurate calculations, visual feedback is clear and accessible, diff viewer highlights mistakes correctly, and overall pass/fail logic requires all three sections to pass.",
+        "priority": "medium",
+        "dependencies": [
+          2,
+          11
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 13,
+        "title": "Implement Responsive Design and Mobile Optimization",
+        "description": "Optimize application for mobile devices with touch-friendly controls and adaptive layouts",
+        "details": "Implement touch-friendly controls with minimum 44px touch targets. Create collapsible sections for mobile using Shadcn Collapsible components. Add sticky submission controls for easy mobile access. Optimize textarea and radio button sizing for touch interaction. Implement swipe gestures for section navigation. Add viewport meta tag and proper mobile scaling.",
+        "testStrategy": "Test on various mobile devices and screen sizes, verify touch targets are appropriately sized, collapsible sections function correctly, and sticky controls remain accessible during scrolling.",
+        "priority": "medium",
+        "dependencies": [
+          10,
+          12
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 14,
+        "title": "Add Accessibility Features and WCAG Compliance",
+        "description": "Implement comprehensive accessibility features including ARIA labels, keyboard navigation, and screen reader support",
+        "details": "Add semantic HTML structure with proper heading hierarchy (h1-h6). Implement ARIA labels and descriptions for all interactive elements. Create keyboard navigation support with Tab, Enter, and Space key handling. Add focus management and visible focus indicators. Implement screen reader announcements for dynamic content updates. Ensure color contrast ratios meet WCAG 2.1 AA standards.",
+        "testStrategy": "Test with screen readers (NVDA, JAWS), verify keyboard-only navigation works completely, validate color contrast ratios with accessibility tools, and ensure all interactive elements have proper ARIA attributes.",
+        "priority": "high",
+        "dependencies": [
+          2,
+          12
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 15,
+        "title": "Create Comprehensive Error Handling and Edge Cases",
+        "description": "Implement robust error handling for network issues, browser compatibility, and data corruption scenarios",
+        "details": "Create ErrorBoundary component using React error boundaries. Implement graceful degradation for JavaScript disabled scenarios. Add error handling for JSON parsing failures and corrupt sessionStorage data. Create fallback mechanisms for unsupported browsers. Implement retry logic for failed operations. Add user-friendly error messages in Latvian with recovery suggestions.",
+        "testStrategy": "Test error scenarios including corrupt sessionStorage, malformed JSON data, network failures, and JavaScript errors. Verify error boundaries catch and display appropriate messages, and fallback mechanisms work correctly.",
+        "priority": "medium",
+        "dependencies": [
+          6,
+          11
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 16,
+        "title": "Implement Performance Optimizations",
+        "description": "Add performance optimizations including code splitting, lazy loading, and memory management for optimal user experience",
+        "details": "Implement React.lazy and Suspense for code splitting of large components. Add useCallback and useMemo hooks for expensive computations. Optimize bundle size with tree shaking and dead code elimination. Implement lazy loading for question data using dynamic imports. Add service worker for offline functionality. Create performance monitoring with Web Vitals metrics.",
+        "testStrategy": "Measure page load times (<2 seconds), verify code splitting reduces initial bundle size, test offline functionality works correctly, and validate memory usage remains stable during extended use.",
+        "priority": "medium",
+        "dependencies": [
+          5,
+          13
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 17,
+        "title": "Create Testing Suite and Quality Assurance",
+        "description": "Implement comprehensive testing including unit tests, integration tests, and end-to-end testing for all application functionality",
+        "details": "Set up Vitest for unit testing with React Testing Library. Create component tests for all major components (AnthemSection, HistorySection, ConstitutionSection, ResultsDisplay). Implement integration tests for complete user workflows. Add end-to-end tests using Playwright for cross-browser compatibility. Create test data fixtures and mock sessionStorage. Add coverage reporting with 90%+ target.",
+        "testStrategy": "Achieve 90%+ code coverage, verify all user workflows pass end-to-end tests, validate cross-browser compatibility in Chrome, Firefox, Safari, and Edge, and ensure all components render correctly in isolation.",
+        "priority": "high",
+        "dependencies": [
+          15,
+          16
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 18,
+        "title": "Deploy and Production Configuration",
+        "description": "Configure production build optimization, deployment setup, and monitoring for reliable application delivery",
+        "details": "Configure Vite production build with minification and compression. Set up static hosting deployment (Netlify, Vercel, or GitHub Pages). Implement proper caching headers for static assets. Add environment-specific configuration for development and production. Set up error monitoring with Sentry or similar service. Configure HTTPS deployment and security headers (CSP, HSTS).",
+        "testStrategy": "Verify production build generates optimized assets, deployment process works reliably, HTTPS configuration is correct, error monitoring captures issues properly, and application loads quickly in production environment.",
+        "priority": "high",
+        "dependencies": [
+          17
+        ],
+        "status": "pending",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "created": "2025-07-27T14:43:30.515Z",
+      "updated": "2025-07-27T15:25:29.211Z",
+      "description": "Tasks for master context"
+    }
+  }
+}
