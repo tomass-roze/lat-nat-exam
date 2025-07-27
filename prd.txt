@@ -1,0 +1,439 @@
+Product Requirements Document: Latvian Citizenship Naturalization Exam Web App
+1. Introduction
+This Product Requirements Document (PRD) outlines the development requirements for a web-based application designed to help individuals prepare for the Latvian citizenship naturalization exam. The application will provide a comprehensive practice environment that simulates the actual exam structure, featuring three distinct assessment components: national anthem recitation, Latvian history knowledge, and constitutional understanding.
+The primary purpose of this document is to establish clear functional and technical specifications for the development team, ensuring the delivery of a high-quality, user-friendly practice tool that accurately reflects the official examination format while providing immediate feedback to help users assess their readiness for the actual citizenship test.
+2. Product overview
+2.1 Purpose and vision
+The Latvian Citizenship Naturalization Exam Web App serves as a dedicated practice platform for individuals preparing for their Latvian citizenship naturalization examination. The application simulates the real exam environment through a three-part assessment system that evaluates users' knowledge of the national anthem, historical events, and constitutional principles.
+2.2 Problem statement
+Currently, individuals preparing for the Latvian citizenship naturalization exam lack access to a comprehensive, interactive practice tool that accurately simulates the actual exam format. Existing study materials are often fragmented, lack immediate feedback mechanisms, and do not provide the structured practice environment necessary for effective preparation.
+2.3 Solution overview
+This web application addresses the identified gap by providing a unified, interactive platform that combines all three examination components into a single, seamless testing experience. The solution features randomized question selection, immediate scoring feedback, and detailed performance analysis to help users identify areas requiring additional study.
+3. Goals and objectives
+3.1 Primary goals
+
+Exam simulation accuracy: Provide a practice environment that precisely mirrors the structure, format, and scoring criteria of the official Latvian citizenship naturalization exam
+User preparation effectiveness: Enable users to assess their readiness and identify knowledge gaps across all three examination areas
+Accessibility and usability: Deliver an intuitive, responsive web application that requires no technical expertise to operate
+
+3.2 Success metrics
+
+Functional completeness: 100% of core examination features implemented and operational
+Performance standards: Page load times under 2 seconds with immediate response to user interactions
+Accuracy verification: Scoring algorithms validated against official examination criteria with 99%+ accuracy
+User experience quality: Zero critical usability issues preventing exam completion
+
+3.3 Business objectives
+
+Provide a comprehensive preparation tool for citizenship applicants
+Reduce preparation time through focused practice and immediate feedback
+Support educational institutions and private tutors in citizenship preparation programs
+Maintain compliance with official examination standards and requirements
+
+4. Target audience
+4.1 Primary users
+Citizenship applicants: Individuals actively preparing for the Latvian citizenship naturalization exam who require comprehensive practice across all examination components. These users typically have intermediate to advanced Latvian language skills and are seeking to validate their knowledge before taking the official examination.
+4.2 Secondary users
+Educational institutions: Schools, language centers, and civic organizations that provide citizenship preparation courses and require supplementary practice tools for their students.
+Private tutors and instructors: Individual educators who assist citizenship applicants in their preparation and need standardized assessment tools to evaluate student progress.
+4.3 User characteristics
+
+Language proficiency: Intermediate to advanced Latvian language comprehension
+Technical skills: Basic web browser navigation capabilities
+Motivation level: High commitment to citizenship acquisition
+Device access: Desktop, tablet, or mobile device with modern web browser
+Time availability: Flexible scheduling for practice sessions
+
+5. Features and requirements
+5.1 Core functionality
+5.1.1 National anthem assessment
+
+Input method: Multi-line textarea for 8 lines of the Latvian national anthem
+Evaluation algorithm: Character-by-character comparison with official text
+Scoring criteria: 75% accuracy threshold for passing
+Text normalization: Case-insensitive comparison with diacritic normalization
+Character support: Full UTF-8 support for Latvian-specific characters (ā, č, ē, ģ, ī, ķ, ļ, ņ, š, ū, ž)
+
+5.1.2 History knowledge assessment
+
+Question format: 10 multiple-choice questions with 3 options each
+Question pool: Minimum 20 questions with randomized selection
+Passing threshold: 7 correct answers (70% accuracy)
+Randomization: Question order and answer option sequence randomized per session
+
+5.1.3 Constitutional knowledge assessment
+
+Question format: 8 multiple-choice questions with 3 options each
+Question pool: Minimum 16 questions with randomized selection
+Passing threshold: 5 correct answers (62.5% accuracy)
+Randomization: Question order and answer option sequence randomized per session
+
+5.2 User interface features
+5.2.1 Navigation and layout
+
+Single-page design: All three examination sections displayed on one scrollable page
+Visual organization: Clear section separation using Shadcn Card components
+Progress tracking: Sticky progress indicator showing completion status
+Responsive design: Adaptive layout for desktop, tablet, and mobile devices
+
+5.2.2 Interaction elements
+
+Form controls: Shadcn UI components for all input elements
+Validation feedback: Real-time form validation with inline error messages
+Submission controls: Single submission button with confirmation dialog
+Results display: Comprehensive feedback with pass/fail indicators
+
+5.3 Data management
+5.3.1 Question storage
+
+Storage format: JSON file structure for questions and correct answers
+Content organization: Separate arrays for history and constitution questions
+Anthem reference: Official text stored as array of lines
+Data loading: Questions loaded at application initialization
+
+5.3.2 Session persistence
+
+Auto-save functionality: Progress saved to sessionStorage every 30 seconds
+State recovery: Ability to restore incomplete sessions on page reload
+Session expiry: Automatic cleanup of sessions older than 2 hours
+Data clearing: Session data removed after successful test completion
+
+6. User stories and acceptance criteria
+6.1 Core examination functionality
+ST-101: Complete full practice examination
+
+As a citizenship applicant
+I want to take a complete practice exam covering all three components
+So that I can assess my overall readiness for the official examination
+
+Acceptance criteria:
+
+All three examination sections (anthem, history, constitution) are displayed on a single page
+User can complete all sections without page navigation
+Progress is auto-saved every 30 seconds to sessionStorage
+Form validation prevents submission until all sections are completed
+Confirmation dialog appears before final submission
+
+ST-102: Practice national anthem recitation
+
+As a citizenship applicant
+I want to enter the complete Latvian national anthem text
+So that I can verify my memorization accuracy
+
+Acceptance criteria:
+
+Multi-line textarea accepts 8 lines of anthem text
+Character-by-character comparison with official text
+75% accuracy threshold determines pass/fail status
+Detailed feedback shows character-level differences
+Full UTF-8 support for Latvian diacritics
+Case-insensitive and whitespace-normalized comparison
+
+ST-103: Answer randomized history questions
+
+As a citizenship applicant
+I want to answer randomly selected history questions
+So that I can test my knowledge across different historical topics
+
+Acceptance criteria:
+
+10 questions randomly selected from pool of minimum 20 questions
+Each question presents 3 multiple-choice options
+Question and answer order randomized for each session
+70% passing threshold (7 correct answers)
+Immediate feedback showing correct/incorrect answers
+
+ST-104: Answer randomized constitution questions
+
+As a citizenship applicant
+I want to answer randomly selected constitutional questions
+So that I can verify my understanding of Latvian constitutional principles
+
+Acceptance criteria:
+
+8 questions randomly selected from pool of minimum 16 questions
+Each question presents 3 multiple-choice options
+Question and answer order randomized for each session
+62.5% passing threshold (5 correct answers)
+Immediate feedback showing correct/incorrect answers
+
+6.2 Results and feedback functionality
+ST-105: View comprehensive test results
+
+As a citizenship applicant
+I want to see detailed results for each examination section
+So that I can identify areas requiring additional study
+
+Acceptance criteria:
+
+Pass/fail status displayed for each section using Shadcn Badge components
+Overall examination pass/fail status with prominent visual indicator
+Anthem section shows accuracy percentage with character diff view
+Multiple choice sections show correct/incorrect answers with visual icons
+Missed questions display correct answers in Shadcn Alert components
+
+ST-106: Receive immediate scoring feedback
+
+As a citizenship applicant
+I want to see my scores immediately after submission
+So that I can quickly assess my performance
+
+Acceptance criteria:
+
+Results displayed immediately upon test submission
+No server communication delays
+Accurate scoring calculations based on defined criteria
+Clear visual distinction between passed and failed sections
+Overall pass requires passing all three individual sections
+
+6.3 User experience and accessibility
+ST-107: Navigate intuitive user interface
+
+As a citizenship applicant
+I want to use a clear and intuitive interface
+So that I can focus on exam content rather than navigation
+
+Acceptance criteria:
+
+All interface text displayed in Latvian language
+Consistent use of Shadcn UI components throughout
+Responsive design works on desktop, tablet, and mobile devices
+Tailwind CSS provides consistent styling and spacing
+Clear visual hierarchy with proper contrast ratios
+
+ST-108: Access application without authentication
+
+As a citizenship applicant
+I want to start the practice exam immediately
+So that I can begin preparation without registration barriers
+
+Acceptance criteria:
+
+No login or registration required
+Direct access to examination from landing page
+"Sākt testu" (Start Test) button immediately available
+No user account creation or management features
+Privacy maintained through client-side only operation
+
+6.4 Technical functionality and data management
+ST-109: Maintain session state during interruptions
+
+As a citizenship applicant
+I want to recover my progress if the browser is accidentally closed
+So that I don't lose my work during long practice sessions
+
+Acceptance criteria:
+
+Progress automatically saved to sessionStorage every 30 seconds
+State restoration available on page reload within 2-hour window
+Timestamp-based session expiry prevents stale data recovery
+Session data cleared after successful test completion
+No partial submission recovery (must complete full exam)
+
+ST-110: Experience consistent cross-browser functionality
+
+As a citizenship applicant
+I want to use the application on my preferred browser
+So that I can practice on my familiar device and software
+
+Acceptance criteria:
+
+Full functionality in Chrome, Firefox, Safari, and Edge (latest versions)
+Consistent rendering across all supported browsers
+Proper UTF-8 character display for Latvian text
+Responsive design behavior consistent across browsers
+Form validation and submission work identically
+
+6.5 Data accuracy and question management
+ST-111: Receive questions from validated question pool
+
+As a citizenship applicant
+I want to practice with accurate, relevant questions
+So that my preparation reflects actual examination content
+
+Acceptance criteria:
+
+History questions loaded from pool of minimum 20 validated questions
+Constitution questions loaded from pool of minimum 16 validated questions
+Official national anthem text stored as reference
+JSON data structure properly formatted and loaded
+Question randomization algorithm ensures fair distribution
+
+ST-112: Handle edge cases and error conditions
+
+As a citizenship applicant
+I want to receive appropriate feedback for incomplete or invalid inputs
+So that I understand what corrections are needed
+
+Acceptance criteria:
+
+Form validation prevents submission with empty anthem text (minimum 100 characters)
+All multiple-choice questions must be answered before submission
+Clear error messages displayed for validation failures
+Graceful handling of browser refresh during test
+Proper error handling for malformed question data
+
+7. Technical requirements / Stack
+7.1 Frontend technology stack
+7.1.1 Core technologies
+
+TypeScript: Primary programming language for type safety and development efficiency
+HTML5: Semantic markup with proper UTF-8 encoding for Latvian character support
+CSS3: Modern styling capabilities with Flexbox and Grid layout systems
+
+7.1.2 UI framework and styling
+
+Shadcn/ui: Complete component library providing consistent, accessible UI elements
+Tailwind CSS: Utility-first CSS framework for responsive design and consistent spacing
+Component architecture: Modular design using Shadcn components (Card, Button, Input, Alert, Badge, RadioGroup, Progress)
+
+7.1.3 State management and storage
+
+SessionStorage: Client-side state persistence for progress recovery
+JSON data files: Static question storage with client-side loading
+TypeScript interfaces: Strongly typed data structures for questions, test state, and results
+
+7.2 Browser compatibility requirements
+7.2.1 Supported browsers
+
+Chrome: Latest stable version with full ES2020+ support
+Firefox: Latest stable version with modern JavaScript features
+Safari: Latest stable version with WebKit compatibility
+Microsoft Edge: Latest stable version with Chromium engine
+
+7.2.2 Technical standards
+
+Character encoding: UTF-8 throughout application for Latvian language support
+Responsive breakpoints: Tailwind CSS standard breakpoints (sm: 640px, md: 768px, lg: 1024px)
+Performance targets: <2 second initial load time, <100ms interaction response
+
+7.3 Development architecture
+7.3.1 Application structure
+
+Client-side only: No backend server or database dependencies
+Single-page application: All functionality contained within one HTML page
+Modular TypeScript: Separated modules for exam logic, UI components, and data management
+Build system: Modern bundling with TypeScript compilation and asset optimization
+
+7.3.2 Data structures
+typescriptCopyinterface Question {
+  id: number;
+  question: string;
+  options: string[];
+  correctAnswer: number;
+}
+
+interface TestState {
+  anthemText: string;
+  historyAnswers: Record<number, number>;
+  constitutionAnswers: Record<number, number>;
+  startTime: number;
+  lastSaved: number;
+}
+
+interface TestResults {
+  anthem: { passed: boolean; accuracy: number; };
+  history: { passed: boolean; correct: number; };
+  constitution: { passed: boolean; correct: number; };
+  overall: boolean;
+}
+7.4 Performance and security considerations
+7.4.1 Performance optimization
+
+Asset bundling: Optimized JavaScript and CSS delivery
+Lazy loading: Deferred loading of non-critical resources
+Memory management: Efficient DOM manipulation and event handling
+Caching strategy: Browser caching for static assets with appropriate headers
+
+7.4.2 Security and privacy
+
+Client-side only: No server communication eliminates data transmission risks
+Local storage only: All user data remains on user's device
+No authentication: Eliminates user credential security concerns
+HTTPS deployment: Secure connection when deployed to web server
+
+8. Design and user interface
+8.1 Visual design system
+8.1.1 Color scheme and branding
+
+Primary colors: Shadcn default theme with Latvian flag accent colors (maroon: #9E3039, white)
+Typography: Inter font family with system font fallbacks for optimal Latvian character rendering
+Theme support: Light and dark mode compatibility through Tailwind CSS and Shadcn theming
+Visual hierarchy: Consistent use of Tailwind spacing scale (4px base unit)
+
+8.1.2 Component consistency
+
+UI framework: Exclusive use of Shadcn/ui components for consistent behavior
+Button styles: Shadcn Button component with primary, secondary, and outline variants
+Form elements: Shadcn Input, Textarea, and RadioGroup components with built-in validation styling
+Feedback elements: Shadcn Alert, Badge, and Progress components for status communication
+
+8.2 Layout and responsive design
+8.2.1 Desktop layout (1024px+)
+
+Three-column structure: Optimal space utilization for large screens
+Fixed header: Application title and navigation elements
+Section cards: Each exam section in dedicated Shadcn Card component
+Sidebar space: Progress indicator and submission controls
+
+8.2.2 Tablet layout (768px - 1023px)
+
+Two-column layout: Balanced content distribution
+Stacked sections: Logical grouping of related exam components
+Touch-friendly controls: Appropriately sized interactive elements
+Scrollable content: Smooth vertical scrolling for longer sections
+
+8.2.3 Mobile layout (320px - 767px)
+
+Single column: Full-width components for optimal mobile experience
+Collapsible sections: Expandable cards to manage screen real estate
+Touch optimization: Minimum 44px touch targets for all interactive elements
+Sticky navigation: Fixed submission controls for easy access
+
+8.3 User experience patterns
+8.3.1 Navigation flow
+
+Landing page: Brief instructions in Latvian with prominent "Sākt testu" button
+Exam interface: Single-page layout with all three sections visible
+Progress tracking: Visual indicators showing completion status
+Submission process: Confirmation dialog before final submission
+Results display: Comprehensive feedback with detailed performance analysis
+
+8.3.2 Interaction feedback
+
+Form validation: Inline error messages using Shadcn FormMessage components
+Loading states: Progress indicators during question randomization
+Success indicators: Green CheckCircle icons for correct answers
+Error indicators: Red XCircle icons for incorrect answers
+Status badges: Clear pass/fail indicators using Shadcn Badge components
+
+8.4 Accessibility and localization
+8.4.1 Accessibility features
+
+Semantic HTML: Proper heading hierarchy and landmark elements
+ARIA labels: Screen reader support for all interactive elements
+Keyboard navigation: Full functionality without mouse interaction
+Color contrast: WCAG 2.1 AA compliance for all text and background combinations
+Focus management: Clear visual focus indicators for all interactive elements
+
+8.4.2 Latvian language support
+
+Complete localization: All interface text displayed in Latvian
+Character encoding: Proper UTF-8 rendering for all Latvian diacritics
+Text normalization: Fuzzy matching for common typing variations in anthem section
+Cultural appropriateness: Interface design respectful of Latvian cultural context
+
+8.5 Error states and edge cases
+8.5.1 Validation states
+
+Empty form submission: Clear messaging requiring completion of all sections
+Incomplete sections: Visual indicators showing which sections need attention
+Invalid input: Specific error messages for formatting or content issues
+Session expiry: Graceful handling of expired sessionStorage data
+
+8.5.2 Error recovery
+
+Browser refresh: Attempt to restore progress from sessionStorage
+Network issues: Graceful degradation for offline usage
+JavaScript errors: Fallback behavior with basic form functionality
+Unsupported browsers: Clear messaging about minimum requirements
