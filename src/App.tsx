@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { useKeyboardNavigation } from '@/hooks/useKeyboardNavigation'
 import { MainLayout } from '@/components/layout/MainLayout'
 import { ExamHeader } from '@/components/layout/ExamHeader'
@@ -66,39 +66,51 @@ function ExamContent() {
     loadQuestions()
   }, [])
 
-  // Create test state for validation
-  const testState: TestState = {
-    anthemText,
-    historyAnswers,
-    constitutionAnswers,
-    startTime: Date.now(), // In a real app, this would be set when exam starts
-    lastSaved: Date.now(),
-    isCompleted: false,
-    currentSection: 'anthem', // This would be dynamic in a real app
-    selectedQuestions: selectedQuestions || {
-      history: [],
-      constitution: [],
-      selectionMetadata: {
-        randomSeed: Date.now(),
-        selectedAt: Date.now(),
-        selectedIds: {
-          history: [],
-          constitution: [],
+  // Stabilize selectedQuestions to prevent unnecessary re-renders
+  const stableSelectedQuestions = useMemo(() => {
+    return (
+      selectedQuestions || {
+        history: [],
+        constitution: [],
+        selectionMetadata: {
+          randomSeed: Date.now(),
+          selectedAt: Date.now(),
+          selectedIds: {
+            history: [],
+            constitution: [],
+          },
         },
-      },
-    },
-    metadata: {
-      sessionId: 'demo-session',
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      attemptNumber: 1,
-      darkMode: false,
-    },
-  }
+      }
+    )
+  }, [selectedQuestions?.selectionMetadata?.randomSeed])
 
-  // Trigger validation when test state changes
+  // Create test state for validation (memoized to prevent infinite re-renders)
+  const testState: TestState = useMemo(
+    () => ({
+      anthemText,
+      historyAnswers,
+      constitutionAnswers,
+      startTime: Date.now(), // In a real app, this would be set when exam starts
+      lastSaved: Date.now(),
+      isCompleted: false,
+      currentSection: 'anthem', // This would be dynamic in a real app
+      selectedQuestions: stableSelectedQuestions,
+      metadata: {
+        sessionId: 'demo-session',
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        attemptNumber: 1,
+        darkMode: false,
+      },
+    }),
+    [anthemText, historyAnswers, constitutionAnswers, stableSelectedQuestions]
+  )
+
+  // Trigger validation when test state changes (only when questions are loaded)
   useEffect(() => {
-    validateAll(testState, 'onChange')
-  }, [anthemText, historyAnswers, constitutionAnswers, validateAll])
+    if (selectedQuestions && !questionLoadingError) {
+      validateAll(testState, 'onChange')
+    }
+  }, [testState, validateAll, selectedQuestions, questionLoadingError])
 
   // Calculate progress
   const getAnthemProgress = () => {

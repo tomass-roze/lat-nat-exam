@@ -12,6 +12,7 @@ import React, {
   useEffect,
   useMemo,
   useReducer,
+  useRef,
 } from 'react'
 import type {
   ValidationResult,
@@ -45,8 +46,6 @@ const DEFAULT_VALIDATION_CONFIG: RealTimeValidationConfig = {
 interface ValidationContextState extends ValidationState {
   /** Whether validation is currently in progress */
   isValidating: boolean
-  /** Debounced validation timeout ID */
-  validationTimeoutId: number | null
   /** Whether errors should be shown to user */
   showErrors: boolean
 }
@@ -57,7 +56,6 @@ interface ValidationContextState extends ValidationState {
 type ValidationAction =
   | { type: 'SET_VALIDATING'; payload: boolean }
   | { type: 'SET_VALIDATION_RESULT'; payload: ValidationResult }
-  | { type: 'SET_TIMEOUT_ID'; payload: number | null }
   | { type: 'SET_SHOW_ERRORS'; payload: boolean }
   | { type: 'UPDATE_CONFIG'; payload: Partial<RealTimeValidationConfig> }
   | {
@@ -98,7 +96,6 @@ const initialState: ValidationContextState = {
   lastValidated: 0,
   config: DEFAULT_VALIDATION_CONFIG,
   history: [],
-  validationTimeoutId: null,
   showErrors: false,
 }
 
@@ -120,9 +117,6 @@ function validationReducer(
         lastValidated: Date.now(),
         isValidating: false,
       }
-
-    case 'SET_TIMEOUT_ID':
-      return { ...state, validationTimeoutId: action.payload }
 
     case 'SET_SHOW_ERRORS':
       return { ...state, showErrors: action.payload }
@@ -205,8 +199,17 @@ export function ValidationProvider({
     config: { ...DEFAULT_VALIDATION_CONFIG, ...config },
   })
 
+  // Use refs for frequently changing values to prevent callback recreation
+  const validationTimeoutRef = useRef<number | null>(null)
+  const configRef = useRef(state.config)
+
+  // Update config ref when it changes
+  useEffect(() => {
+    configRef.current = state.config
+  }, [state.config])
+
   /**
-   * Debounced validation function
+   * Debounced validation function with stable dependencies
    */
   const performValidation = useCallback(
     (
@@ -214,12 +217,12 @@ export function ValidationProvider({
       trigger: ValidationTrigger = 'onChange',
       field?: string
     ) => {
-      if (!state.config.enabled) return
+      if (!configRef.current.enabled) return
 
       // Clear existing timeout
-      if (state.validationTimeoutId) {
-        clearTimeout(state.validationTimeoutId)
-        dispatch({ type: 'SET_TIMEOUT_ID', payload: null })
+      if (validationTimeoutRef.current) {
+        clearTimeout(validationTimeoutRef.current)
+        validationTimeoutRef.current = null
       }
 
       // Set validating state
@@ -237,18 +240,18 @@ export function ValidationProvider({
           })
 
           // Show errors immediately if configured or after blur event
-          if (state.config.showErrorsImmediately || trigger === 'onBlur') {
+          if (configRef.current.showErrorsImmediately || trigger === 'onBlur') {
             dispatch({ type: 'SET_SHOW_ERRORS', payload: true })
           }
         } catch (error) {
           console.error('Validation error:', error)
           dispatch({ type: 'SET_VALIDATING', payload: false })
         }
-      }, state.config.debounceDelay)
+      }, configRef.current.debounceDelay)
 
-      dispatch({ type: 'SET_TIMEOUT_ID', payload: timeoutId })
+      validationTimeoutRef.current = timeoutId
     },
-    [state.config, state.validationTimeoutId]
+    [] // Empty dependencies - all values come from refs
   )
 
   /**
@@ -323,11 +326,11 @@ export function ValidationProvider({
   // Clean up timeout on unmount
   useEffect(() => {
     return () => {
-      if (state.validationTimeoutId) {
-        clearTimeout(state.validationTimeoutId)
+      if (validationTimeoutRef.current) {
+        clearTimeout(validationTimeoutRef.current)
       }
     }
-  }, [state.validationTimeoutId])
+  }, [])
 
   const contextValue = useMemo(
     (): ValidationContextValue => ({
@@ -341,7 +344,12 @@ export function ValidationProvider({
       clearValidation,
     }),
     [
-      state,
+      // Only depend on essential state properties that actually change
+      state.results,
+      state.isValidating,
+      state.showErrors,
+      state.lastValidated,
+      // All callbacks are stable due to useCallback with stable deps
       validateAll,
       validateSection,
       checkSectionValid,
