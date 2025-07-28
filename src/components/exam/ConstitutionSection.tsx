@@ -4,31 +4,24 @@ import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Info, CheckCircle } from 'lucide-react'
+import { Info, CheckCircle, AlertTriangle } from 'lucide-react'
 import { SCORING_THRESHOLDS } from '@/types/constants'
-
-// Mock constitution questions - in real app, these would come from the questions data
-const mockConstitutionQuestions = Array.from({ length: 8 }, (_, i) => ({
-  id: i + 1,
-  question: `Konstitūcijas jautājums Nr. ${i + 1}. Kurš no šiem apgalvojumiem ir pareizs par Latvijas Satversmi?`,
-  options: [
-    `Pirmā atbilde par Satversmi ${i + 1}`,
-    `Otrā atbilde par Satversmi ${i + 1}`,
-    `Trešā atbilde par Satversmi ${i + 1}`,
-  ],
-  correctAnswer: 0,
-}))
+import type { Question } from '@/types/questions'
 
 interface ConstitutionSectionProps {
   answers: Record<number, 0 | 1 | 2>
   onChange: (questionId: number, answer: 0 | 1 | 2) => void
   onComplete?: () => void
+  questions?: Question[]
+  error?: string
 }
 
 export function ConstitutionSection({
   answers,
   onChange,
   onComplete,
+  questions = [],
+  error,
 }: ConstitutionSectionProps) {
   const getProgress = () => {
     const answered = Object.keys(answers).length
@@ -50,6 +43,56 @@ export function ConstitutionSection({
     : progress.current > 0
       ? 'in-progress'
       : 'pending'
+
+  // Show error state if there's an error loading questions
+  if (error) {
+    return (
+      <ExamSection
+        id="constitution"
+        title="Konstitūcijas jautājumi"
+        description="Kļūda ielādējot jautājumus"
+        status="pending"
+        progress={{
+          current: 0,
+          total: SCORING_THRESHOLDS.CONSTITUTION_TOTAL_QUESTIONS,
+          percentage: 0,
+        }}
+      >
+        <Alert variant="destructive" role="alert">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            <strong>Kļūda ielādējot konstitūcijas jautājumus:</strong> {error}
+            <br />
+            Lūdzu, pārlādējiet lapu vai sazinieties ar atbalsta dienestu.
+          </AlertDescription>
+        </Alert>
+      </ExamSection>
+    )
+  }
+
+  // Show loading state if questions haven't loaded yet
+  if (questions.length === 0) {
+    return (
+      <ExamSection
+        id="constitution"
+        title="Konstitūcijas jautājumi"
+        description="Ielādē jautājumus..."
+        status="pending"
+        progress={{
+          current: 0,
+          total: SCORING_THRESHOLDS.CONSTITUTION_TOTAL_QUESTIONS,
+          percentage: 0,
+        }}
+      >
+        <Alert role="status" aria-live="polite">
+          <Info className="h-4 w-4" />
+          <AlertDescription>
+            Ielādē konstitūcijas jautājumus. Lūdzu, uzgaidiet...
+          </AlertDescription>
+        </Alert>
+      </ExamSection>
+    )
+  }
 
   return (
     <ExamSection
@@ -74,7 +117,7 @@ export function ConstitutionSection({
         </Alert>
 
         <div className="space-y-6">
-          {mockConstitutionQuestions.map((question, index) => (
+          {questions.map((question, index) => (
             <Card
               key={question.id}
               className="transition-all duration-200 hover:shadow-sm"

@@ -1,0 +1,393 @@
+/**
+ * @fileoverview Question Loading and Randomization Utilities
+ *
+ * Provides functions for loading, selecting, and randomizing questions for the
+ * Latvian citizenship exam. Handles both history and constitution question pools
+ * with proper randomization and validation.
+ */
+
+import type {
+  Question,
+  SelectedQuestions,
+  SelectionMetadata,
+} from '@/types/questions'
+import {
+  CONSTITUTION_QUESTIONS,
+  validateConstitutionQuestionPool,
+} from '@/data/constitutionQuestions'
+import { SCORING_THRESHOLDS } from '@/types/constants'
+
+/**
+ * Error thrown when question loading fails
+ */
+export class QuestionLoadingError extends Error {
+  constructor(
+    message: string,
+    public cause?: Error
+  ) {
+    super(message)
+    this.name = 'QuestionLoadingError'
+  }
+}
+
+/**
+ * Seeded random number generator for reproducible randomization
+ * Uses a simple Linear Congruential Generator (LCG) algorithm
+ */
+class SeededRandom {
+  private seed: number
+
+  constructor(seed: number) {
+    this.seed = seed
+  }
+
+  /**
+   * Generate next random number between 0 and 1
+   */
+  next(): number {
+    this.seed = (this.seed * 9301 + 49297) % 233280
+    return this.seed / 233280
+  }
+
+  /**
+   * Generate random integer between min (inclusive) and max (exclusive)
+   */
+  nextInt(min: number, max: number): number {
+    return Math.floor(this.next() * (max - min)) + min
+  }
+}
+
+/**
+ * Shuffle an array using Fisher-Yates algorithm with seeded randomization
+ */
+function shuffleArray<T>(array: T[], random: SeededRandom): T[] {
+  const shuffled = [...array]
+
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = random.nextInt(0, i + 1)
+    ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+  }
+
+  return shuffled
+}
+
+/**
+ * Shuffle answer options within a question while maintaining correct answer tracking
+ */
+function shuffleQuestionOptions(
+  question: Question,
+  random: SeededRandom
+): Question {
+  const originalOptions = [...question.options]
+  const indices = [0, 1, 2]
+  const shuffledIndices = shuffleArray(indices, random)
+
+  // Create new options array in shuffled order
+  const shuffledOptions: [string, string, string] = [
+    originalOptions[shuffledIndices[0]],
+    originalOptions[shuffledIndices[1]],
+    originalOptions[shuffledIndices[2]],
+  ]
+
+  // Find where the original correct answer ended up
+  const newCorrectAnswer = shuffledIndices.indexOf(question.correctAnswer) as
+    | 0
+    | 1
+    | 2
+
+  return {
+    ...question,
+    options: shuffledOptions,
+    correctAnswer: newCorrectAnswer,
+  }
+}
+
+/**
+ * Validate question pool before selection
+ */
+function validateQuestionPool(
+  questions: Question[],
+  category: 'constitution',
+  minSize: number
+): void {
+  if (!Array.isArray(questions)) {
+    throw new QuestionLoadingError(`Invalid question pool: not an array`)
+  }
+
+  if (questions.length < minSize) {
+    throw new QuestionLoadingError(
+      `Insufficient ${category} questions: ${questions.length} (minimum ${minSize} required)`
+    )
+  }
+
+  // Validate each question
+  questions.forEach((question, index) => {
+    if (!question.id || typeof question.id !== 'number') {
+      throw new QuestionLoadingError(
+        `Question ${index + 1}: Invalid or missing ID`
+      )
+    }
+
+    if (!question.question?.trim()) {
+      throw new QuestionLoadingError(
+        `Question ${index + 1}: Missing question text`
+      )
+    }
+
+    if (!Array.isArray(question.options) || question.options.length !== 3) {
+      throw new QuestionLoadingError(
+        `Question ${index + 1}: Must have exactly 3 options`
+      )
+    }
+
+    if (
+      typeof question.correctAnswer !== 'number' ||
+      question.correctAnswer < 0 ||
+      question.correctAnswer > 2
+    ) {
+      throw new QuestionLoadingError(
+        `Question ${index + 1}: Invalid correct answer index`
+      )
+    }
+
+    if (question.category !== category) {
+      throw new QuestionLoadingError(
+        `Question ${index + 1}: Expected category '${category}', got '${question.category}'`
+      )
+    }
+  })
+}
+
+/**
+ * Select random questions from a pool
+ */
+function selectRandomQuestions(
+  questions: Question[],
+  count: number,
+  random: SeededRandom
+): Question[] {
+  if (questions.length < count) {
+    throw new QuestionLoadingError(
+      `Cannot select ${count} questions from pool of ${questions.length}`
+    )
+  }
+
+  // Shuffle the entire pool and take the first 'count' questions
+  const shuffledQuestions = shuffleArray(questions, random)
+  return shuffledQuestions.slice(0, count)
+}
+
+/**
+ * Load and select constitution questions for an exam session
+ */
+export function loadConstitutionQuestions(randomSeed?: number): {
+  questions: Question[]
+  selectionMetadata: Partial<SelectionMetadata>
+} {
+  // Validate question pool first
+  const validation = validateConstitutionQuestionPool()
+  if (!validation.isValid) {
+    throw new QuestionLoadingError(
+      `Constitution question pool validation failed: ${validation.errors.join(', ')}`
+    )
+  }
+
+  // Additional runtime validation
+  validateQuestionPool(
+    CONSTITUTION_QUESTIONS,
+    'constitution',
+    SCORING_THRESHOLDS.MIN_CONSTITUTION_POOL_SIZE
+  )
+
+  // Use provided seed or generate one
+  const seed = randomSeed ?? Date.now()
+  const random = new SeededRandom(seed)
+
+  // Select random questions
+  const selectedQuestions = selectRandomQuestions(
+    CONSTITUTION_QUESTIONS,
+    SCORING_THRESHOLDS.CONSTITUTION_TOTAL_QUESTIONS,
+    random
+  )
+
+  // Shuffle answer options for each selected question
+  const questionsWithShuffledOptions = selectedQuestions.map((question) =>
+    shuffleQuestionOptions(question, random)
+  )
+
+  // Create selection metadata
+  const selectionMetadata: Partial<SelectionMetadata> = {
+    selectedAt: Date.now(),
+    randomSeed: seed,
+    selectedIds: {
+      history: [],
+      constitution: questionsWithShuffledOptions.map((q) => q.id),
+    },
+  }
+
+  return {
+    questions: questionsWithShuffledOptions,
+    selectionMetadata,
+  }
+}
+
+/**
+ * Load history questions (placeholder - to be implemented in history component task)
+ */
+export function loadHistoryQuestions(randomSeed?: number): {
+  questions: Question[]
+  selectionMetadata: Partial<SelectionMetadata>
+} {
+  // Placeholder implementation - will be completed in history section task
+  const seed = randomSeed ?? Date.now()
+
+  return {
+    questions: [], // Will be populated when history questions are implemented
+    selectionMetadata: {
+      selectedAt: Date.now(),
+      randomSeed: seed,
+      selectedIds: {
+        history: [],
+        constitution: [],
+      },
+    },
+  }
+}
+
+/**
+ * Load all questions for an exam session
+ */
+export function loadExamQuestions(randomSeed?: number): SelectedQuestions {
+  const seed = randomSeed ?? Date.now()
+
+  try {
+    // Load constitution questions
+    const constitutionResult = loadConstitutionQuestions(seed)
+
+    // Load history questions (placeholder)
+    const historyResult = loadHistoryQuestions(seed + 1) // Different seed for history
+
+    // Combine selection metadata
+    const combinedMetadata: SelectionMetadata = {
+      selectedAt: Date.now(),
+      randomSeed: seed,
+      selectedIds: {
+        history: historyResult.selectionMetadata.selectedIds?.history || [],
+        constitution:
+          constitutionResult.selectionMetadata.selectedIds?.constitution || [],
+      },
+    }
+
+    return {
+      history: historyResult.questions,
+      constitution: constitutionResult.questions,
+      selectionMetadata: combinedMetadata,
+    }
+  } catch (error) {
+    if (error instanceof QuestionLoadingError) {
+      throw error
+    }
+
+    throw new QuestionLoadingError(
+      `Failed to load exam questions: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      error instanceof Error ? error : undefined
+    )
+  }
+}
+
+/**
+ * Validate selected questions meet exam requirements
+ */
+export function validateSelectedQuestions(
+  selectedQuestions: SelectedQuestions
+): {
+  isValid: boolean
+  errors: string[]
+} {
+  const errors: string[] = []
+
+  // Check constitution questions
+  if (
+    selectedQuestions.constitution.length !==
+    SCORING_THRESHOLDS.CONSTITUTION_TOTAL_QUESTIONS
+  ) {
+    errors.push(
+      `Constitution questions: expected ${SCORING_THRESHOLDS.CONSTITUTION_TOTAL_QUESTIONS}, got ${selectedQuestions.constitution.length}`
+    )
+  }
+
+  // Check history questions (when implemented)
+  if (
+    selectedQuestions.history.length !==
+      SCORING_THRESHOLDS.HISTORY_TOTAL_QUESTIONS &&
+    selectedQuestions.history.length !== 0
+  ) {
+    // Allow 0 for placeholder
+    errors.push(
+      `History questions: expected ${SCORING_THRESHOLDS.HISTORY_TOTAL_QUESTIONS}, got ${selectedQuestions.history.length}`
+    )
+  }
+
+  // Validate question structure
+  const allQuestions = [
+    ...selectedQuestions.constitution,
+    ...selectedQuestions.history,
+  ]
+  allQuestions.forEach((question, index) => {
+    if (!question.id || typeof question.id !== 'number') {
+      errors.push(`Question ${index + 1}: Invalid or missing ID`)
+    }
+
+    if (!question.question?.trim()) {
+      errors.push(`Question ${index + 1}: Missing question text`)
+    }
+
+    if (!Array.isArray(question.options) || question.options.length !== 3) {
+      errors.push(`Question ${index + 1}: Must have exactly 3 options`)
+    }
+
+    if (
+      typeof question.correctAnswer !== 'number' ||
+      question.correctAnswer < 0 ||
+      question.correctAnswer > 2
+    ) {
+      errors.push(`Question ${index + 1}: Invalid correct answer index`)
+    }
+  })
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+  }
+}
+
+/**
+ * Get question statistics for debugging/monitoring
+ */
+export function getQuestionPoolStats(): {
+  constitution: {
+    total: number
+    minRequired: number
+    isValid: boolean
+  }
+  history: {
+    total: number
+    minRequired: number
+    isValid: boolean
+  }
+} {
+  const constitutionValidation = validateConstitutionQuestionPool()
+
+  return {
+    constitution: {
+      total: CONSTITUTION_QUESTIONS.length,
+      minRequired: SCORING_THRESHOLDS.MIN_CONSTITUTION_POOL_SIZE,
+      isValid: constitutionValidation.isValid,
+    },
+    history: {
+      total: 0, // Will be updated when history questions are implemented
+      minRequired: SCORING_THRESHOLDS.MIN_HISTORY_POOL_SIZE,
+      isValid: false, // Will be true when history questions are implemented
+    },
+  }
+}
