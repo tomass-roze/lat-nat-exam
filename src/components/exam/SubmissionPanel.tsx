@@ -9,10 +9,11 @@ import {
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
-import { CheckCircle, AlertTriangle, Clock, Send, Info } from 'lucide-react'
+import { CheckCircle, AlertTriangle, Clock, Send, Info, X } from 'lucide-react'
 import { SCORING_THRESHOLDS } from '@/types/constants'
 import { ConfirmationDialog } from './ConfirmationDialog'
 import { useValidationStatus } from '@/contexts/ValidationContext'
+import { compareAnthemText } from '@/utils/textProcessing'
 import type { TestState } from '@/types/exam'
 
 interface SubmissionPanelProps {
@@ -37,6 +38,81 @@ export function SubmissionPanel({
 
   const validationStatus = useValidationStatus()
 
+  // Get detailed validation status for each section
+  const getDetailedValidationStatus = () => {
+    const { anthemText, historyAnswers, constitutionAnswers } = testState
+
+    // Anthem validation
+    const anthemIssues: string[] = []
+    let anthemAccuracy = 0
+
+    if (!anthemText || anthemText.trim().length === 0) {
+      anthemIssues.push('Himnas teksts nav ievadīts')
+    } else if (anthemText.length < SCORING_THRESHOLDS.ANTHEM_MIN_CHARACTERS) {
+      anthemIssues.push(
+        `Nepieciešams vismaz ${SCORING_THRESHOLDS.ANTHEM_MIN_CHARACTERS} simboli (pašlaik: ${anthemText.length})`
+      )
+    } else {
+      try {
+        const anthemResult = compareAnthemText(anthemText)
+        anthemAccuracy = anthemResult.accuracy
+        if (anthemResult.accuracy < SCORING_THRESHOLDS.ANTHEM_PASS_PERCENTAGE) {
+          anthemIssues.push(
+            `Precizitāte pārāk zema: ${anthemResult.accuracy.toFixed(1)}% (nepieciešams: ${SCORING_THRESHOLDS.ANTHEM_PASS_PERCENTAGE}%)`
+          )
+        }
+      } catch {
+        anthemIssues.push('Neizdevās analizēt himnas tekstu')
+      }
+    }
+
+    // History validation
+    const historyIssues: string[] = []
+    const historyCount = Object.keys(historyAnswers).length
+    if (historyCount < SCORING_THRESHOLDS.HISTORY_TOTAL_QUESTIONS) {
+      historyIssues.push(
+        `Trūkst ${SCORING_THRESHOLDS.HISTORY_TOTAL_QUESTIONS - historyCount} atbilžu`
+      )
+    } else {
+      // Check for invalid answers
+      const invalidAnswers = Object.entries(historyAnswers).filter(
+        ([, answer]) => ![0, 1, 2].includes(answer)
+      )
+      if (invalidAnswers.length > 0) {
+        historyIssues.push(`${invalidAnswers.length} nepareizas atbildes`)
+      }
+    }
+
+    // Constitution validation
+    const constitutionIssues: string[] = []
+    const constitutionCount = Object.keys(constitutionAnswers).length
+    if (constitutionCount < SCORING_THRESHOLDS.CONSTITUTION_TOTAL_QUESTIONS) {
+      constitutionIssues.push(
+        `Trūkst ${SCORING_THRESHOLDS.CONSTITUTION_TOTAL_QUESTIONS - constitutionCount} atbilžu`
+      )
+    } else {
+      // Check for invalid answers
+      const invalidAnswers = Object.entries(constitutionAnswers).filter(
+        ([, answer]) => ![0, 1, 2].includes(answer)
+      )
+      if (invalidAnswers.length > 0) {
+        constitutionIssues.push(`${invalidAnswers.length} nepareizas atbildes`)
+      }
+    }
+
+    return {
+      anthem: { issues: anthemIssues, accuracy: anthemAccuracy },
+      history: { issues: historyIssues },
+      constitution: { issues: constitutionIssues },
+      isValid:
+        anthemIssues.length === 0 &&
+        historyIssues.length === 0 &&
+        constitutionIssues.length === 0,
+    }
+  }
+
+  const detailedStatus = getDetailedValidationStatus()
+
   const handleSubmitClick = () => {
     setShowConfirmDialog(true)
   }
@@ -51,37 +127,24 @@ export function SubmissionPanel({
     }
   }
 
-  const getSectionStatus = (
-    current: number,
-    required: number,
-    type: 'count' | 'percentage' = 'count'
-  ) => {
-    if (type === 'percentage') {
-      return current >= required
-        ? 'completed'
-        : current > 0
-          ? 'in-progress'
-          : 'pending'
-    }
-    return current >= required
-      ? 'completed'
-      : current > 0
-        ? 'in-progress'
-        : 'pending'
+  // Updated section status based on detailed validation
+  const getSectionStatus = (hasIssues: boolean, hasProgress: boolean) => {
+    if (!hasIssues) return 'completed'
+    if (hasProgress) return 'in-progress'
+    return 'pending'
   }
 
   const anthemStatus = getSectionStatus(
-    anthemProgress,
-    SCORING_THRESHOLDS.ANTHEM_PASS_PERCENTAGE,
-    'percentage'
+    detailedStatus.anthem.issues.length > 0,
+    anthemProgress > 0
   )
   const historyStatus = getSectionStatus(
-    historyAnswered,
-    SCORING_THRESHOLDS.HISTORY_TOTAL_QUESTIONS
+    detailedStatus.history.issues.length > 0,
+    historyAnswered > 0
   )
   const constitutionStatus = getSectionStatus(
-    constitutionAnswered,
-    SCORING_THRESHOLDS.CONSTITUTION_TOTAL_QUESTIONS
+    detailedStatus.constitution.issues.length > 0,
+    constitutionAnswered > 0
   )
 
   const getStatusIcon = (status: string) => {
@@ -168,14 +231,65 @@ export function SubmissionPanel({
           </div>
         </div>
 
-        {/* Submission Status */}
-        {!validationStatus.isSubmissionReady ? (
+        {/* Detailed Validation Status */}
+        {!detailedStatus.isValid ? (
           <Alert>
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
               <strong>Eksāmens nav gatavs iesniegšanai.</strong>
               <br />
-              Lūdzu, pabeidziet visas sekcijas pirms eksāmena iesniegšanas.
+              Lūdzu, novērsiet šādas problēmas:
+              {/* Anthem issues */}
+              {detailedStatus.anthem.issues.length > 0 && (
+                <div className="mt-3">
+                  <div className="flex items-center gap-2 font-medium">
+                    <X className="h-3 w-3 text-red-500" />
+                    Valsts himna:
+                  </div>
+                  <ul className="ml-5 mt-1 text-sm space-y-1">
+                    {detailedStatus.anthem.issues.map((issue, index) => (
+                      <li key={index} className="flex items-start gap-2">
+                        <span className="text-red-500 mt-0.5">•</span>
+                        {issue}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {/* History issues */}
+              {detailedStatus.history.issues.length > 0 && (
+                <div className="mt-3">
+                  <div className="flex items-center gap-2 font-medium">
+                    <X className="h-3 w-3 text-red-500" />
+                    Vēstures jautājumi:
+                  </div>
+                  <ul className="ml-5 mt-1 text-sm space-y-1">
+                    {detailedStatus.history.issues.map((issue, index) => (
+                      <li key={index} className="flex items-start gap-2">
+                        <span className="text-red-500 mt-0.5">•</span>
+                        {issue}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {/* Constitution issues */}
+              {detailedStatus.constitution.issues.length > 0 && (
+                <div className="mt-3">
+                  <div className="flex items-center gap-2 font-medium">
+                    <X className="h-3 w-3 text-red-500" />
+                    Konstitūcijas jautājumi:
+                  </div>
+                  <ul className="ml-5 mt-1 text-sm space-y-1">
+                    {detailedStatus.constitution.issues.map((issue, index) => (
+                      <li key={index} className="flex items-start gap-2">
+                        <span className="text-red-500 mt-0.5">•</span>
+                        {issue}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </AlertDescription>
           </Alert>
         ) : (
@@ -184,7 +298,13 @@ export function SubmissionPanel({
             <AlertDescription>
               <strong>Eksāmens ir gatavs iesniegšanai!</strong>
               <br />
-              Visas sekcijas ir pabeigtas.
+              Visas sekcijas ir pareizi pabeigtas un atbilst prasībām.
+              {detailedStatus.anthem.accuracy > 0 && (
+                <div className="mt-2 text-sm">
+                  Himnas precizitāte:{' '}
+                  {detailedStatus.anthem.accuracy.toFixed(1)}%
+                </div>
+              )}
             </AlertDescription>
           </Alert>
         )}
@@ -202,7 +322,7 @@ export function SubmissionPanel({
           <Button
             onClick={handleSubmitClick}
             disabled={
-              !validationStatus.isSubmissionReady ||
+              !detailedStatus.isValid ||
               isSubmitting ||
               validationStatus.isValidating
             }
