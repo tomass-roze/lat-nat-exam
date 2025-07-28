@@ -52,7 +52,9 @@ export function AccessibleLiveRegion({
 // Hook for managing live region announcements
 export function useAccessibleAnnouncements() {
   const announceRef =
-    useRef<(message: string, level?: 'polite' | 'assertive') => void | null>(null)
+    useRef<(message: string, level?: 'polite' | 'assertive') => void | null>(
+      null
+    )
 
   const announce = (
     message: string,

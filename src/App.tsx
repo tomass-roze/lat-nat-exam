@@ -13,6 +13,8 @@ import { SubmissionPanel } from '@/components/exam/SubmissionPanel'
 import { ValidationProvider, useValidation } from '@/contexts/ValidationContext'
 import { SCORING_THRESHOLDS } from '@/types/constants'
 import type { TestState } from '@/types/exam'
+import type { SelectedQuestions } from '@/types/questions'
+import { loadExamQuestions, QuestionLoadingError } from '@/utils/questionLoader'
 
 function ExamContent() {
   // Exam state
@@ -23,6 +25,13 @@ function ExamContent() {
   const [constitutionAnswers, setConstitutionAnswers] = useState<
     Record<number, 0 | 1 | 2>
   >({})
+
+  // Question loading state
+  const [selectedQuestions, setSelectedQuestions] =
+    useState<SelectedQuestions | null>(null)
+  const [questionLoadingError, setQuestionLoadingError] = useState<
+    string | null
+  >(null)
 
   // Refs for smooth scrolling
   const historyRef = useRef<HTMLDivElement>(null)
@@ -37,6 +46,26 @@ function ExamContent() {
     enableGlobalShortcuts: true,
   })
 
+  // Load questions on component mount
+  useEffect(() => {
+    const loadQuestions = async () => {
+      try {
+        setQuestionLoadingError(null)
+        const questions = loadExamQuestions()
+        setSelectedQuestions(questions)
+      } catch (error) {
+        if (error instanceof QuestionLoadingError) {
+          setQuestionLoadingError(error.message)
+        } else {
+          setQuestionLoadingError('Nezināma kļūda ielādējot jautājumus')
+        }
+        console.error('Question loading failed:', error)
+      }
+    }
+
+    loadQuestions()
+  }, [])
+
   // Create test state for validation
   const testState: TestState = {
     anthemText,
@@ -46,7 +75,7 @@ function ExamContent() {
     lastSaved: Date.now(),
     isCompleted: false,
     currentSection: 'anthem', // This would be dynamic in a real app
-    selectedQuestions: {
+    selectedQuestions: selectedQuestions || {
       history: [],
       constitution: [],
       selectionMetadata: {
@@ -203,6 +232,8 @@ function ExamContent() {
           <ConstitutionSection
             answers={constitutionAnswers}
             onChange={handleConstitutionAnswer}
+            questions={selectedQuestions?.constitution || []}
+            error={questionLoadingError || undefined}
           />
         </section>
 
