@@ -9,14 +9,20 @@ import {
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
-import { CheckCircle, AlertTriangle, Clock } from 'lucide-react'
+import { CheckCircle, AlertTriangle, Clock, Send, Info } from 'lucide-react'
 import { SCORING_THRESHOLDS } from '@/types/constants'
+import { ConfirmationDialog } from './ConfirmationDialog'
+import {
+  useValidation,
+  useValidationStatus,
+} from '@/contexts/ValidationContext'
+import type { TestState } from '@/types/exam'
 
 interface SubmissionPanelProps {
   anthemProgress: number
   historyAnswered: number
   constitutionAnswered: number
-  isReadyForSubmission: boolean
+  testState: TestState
   onSubmit: () => void
   className?: string
 }
@@ -25,26 +31,42 @@ export function SubmissionPanel({
   anthemProgress,
   historyAnswered,
   constitutionAnswered,
-  isReadyForSubmission,
+  testState,
   onSubmit,
   className,
 }: SubmissionPanelProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false)
 
-  const handleSubmit = async () => {
+  const { getSectionErrors } = useValidation()
+  const validationStatus = useValidationStatus()
+
+  const handleSubmitClick = () => {
+    setShowConfirmDialog(true)
+  }
+
+  const handleConfirmSubmit = async () => {
     setIsSubmitting(true)
     try {
       await onSubmit()
     } finally {
       setIsSubmitting(false)
+      setShowConfirmDialog(false)
     }
   }
 
   const getSectionStatus = (
     current: number,
     required: number,
+    section: 'anthem' | 'history' | 'constitution',
     type: 'count' | 'percentage' = 'count'
   ) => {
+    // Check for validation errors first
+    const sectionErrors = getSectionErrors(section)
+    if (sectionErrors.length > 0) {
+      return 'error'
+    }
+
     if (type === 'percentage') {
       return current >= required
         ? 'completed'
@@ -62,15 +84,18 @@ export function SubmissionPanel({
   const anthemStatus = getSectionStatus(
     anthemProgress,
     SCORING_THRESHOLDS.ANTHEM_PASS_PERCENTAGE,
+    'anthem',
     'percentage'
   )
   const historyStatus = getSectionStatus(
     historyAnswered,
-    SCORING_THRESHOLDS.HISTORY_TOTAL_QUESTIONS
+    SCORING_THRESHOLDS.HISTORY_TOTAL_QUESTIONS,
+    'history'
   )
   const constitutionStatus = getSectionStatus(
     constitutionAnswered,
-    SCORING_THRESHOLDS.CONSTITUTION_TOTAL_QUESTIONS
+    SCORING_THRESHOLDS.CONSTITUTION_TOTAL_QUESTIONS,
+    'constitution'
   )
 
   const getStatusIcon = (status: string) => {
@@ -79,6 +104,8 @@ export function SubmissionPanel({
         return <CheckCircle className="h-4 w-4 text-green-500" />
       case 'in-progress':
         return <Clock className="h-4 w-4 text-primary" />
+      case 'error':
+        return <AlertTriangle className="h-4 w-4 text-destructive" />
       default:
         return <AlertTriangle className="h-4 w-4 text-muted-foreground" />
     }
@@ -92,9 +119,19 @@ export function SubmissionPanel({
         )
       case 'in-progress':
         return <Badge>Daļēji</Badge>
+      case 'error':
+        return <Badge variant="destructive">Kļūda</Badge>
       default:
         return <Badge variant="outline">Nav sākts</Badge>
     }
+  }
+
+  // Get detailed section errors for display
+  const getSectionErrorDetails = (
+    section: 'anthem' | 'history' | 'constitution'
+  ) => {
+    const errors = getSectionErrors(section)
+    return errors.map((error) => error.message)
   }
 
   return (
@@ -157,30 +194,83 @@ export function SubmissionPanel({
           </div>
         </div>
 
+        {/* Section Error Details */}
+        {validationStatus.showErrors && validationStatus.errorCount > 0 && (
+          <div className="space-y-3">
+            <h4 className="font-medium text-destructive">
+              Problēmas, kas jānovērš:
+            </h4>
+
+            {getSectionErrorDetails('anthem').length > 0 && (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  <strong>Himnas sekcija:</strong>
+                  <ul className="mt-1 space-y-1">
+                    {getSectionErrorDetails('anthem').map((error, index) => (
+                      <li key={index}>• {error}</li>
+                    ))}
+                  </ul>
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {getSectionErrorDetails('history').length > 0 && (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  <strong>Vēstures sekcija:</strong>
+                  <ul className="mt-1 space-y-1">
+                    {getSectionErrorDetails('history').map((error, index) => (
+                      <li key={index}>• {error}</li>
+                    ))}
+                  </ul>
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {getSectionErrorDetails('constitution').length > 0 && (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  <strong>Konstitūcijas sekcija:</strong>
+                  <ul className="mt-1 space-y-1">
+                    {getSectionErrorDetails('constitution').map(
+                      (error, index) => (
+                        <li key={index}>• {error}</li>
+                      )
+                    )}
+                  </ul>
+                </AlertDescription>
+              </Alert>
+            )}
+          </div>
+        )}
+
         {/* Submission Status */}
-        {!isReadyForSubmission ? (
+        {!validationStatus.isSubmissionReady ? (
           <Alert>
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
               <strong>Eksāmens nav gatavs iesniegšanai.</strong>
               <br />
-              Lūdzu, pabeidziet visas sekcijas pirms eksāmena iesniegšanas:
-              <ul className="mt-2 ml-4 space-y-1">
-                {anthemProgress < SCORING_THRESHOLDS.ANTHEM_PASS_PERCENTAGE && (
-                  <li>
-                    • Pabeigtu valsts himnas sekciju (vismaz{' '}
-                    {SCORING_THRESHOLDS.ANTHEM_PASS_PERCENTAGE}% precizitāte)
-                  </li>
-                )}
-                {historyAnswered <
-                  SCORING_THRESHOLDS.HISTORY_TOTAL_QUESTIONS && (
-                  <li>• Atbildētu uz visiem vēstures jautājumiem</li>
-                )}
-                {constitutionAnswered <
-                  SCORING_THRESHOLDS.CONSTITUTION_TOTAL_QUESTIONS && (
-                  <li>• Atbildētu uz visiem konstitūcijas jautājumiem</li>
-                )}
-              </ul>
+              {validationStatus.errorCount > 0 ? (
+                <>
+                  Nepieciešams novērst {validationStatus.errorCount} problēmu
+                  pirms iesniegšanas.
+                  {!validationStatus.showErrors && (
+                    <Button
+                      variant="link"
+                      className="p-0 h-auto font-normal underline"
+                      onClick={() => validationStatus.setShowErrors?.(true)}
+                    >
+                      Rādīt detaļas
+                    </Button>
+                  )}
+                </>
+              ) : (
+                'Lūdzu, pabeidziet visas sekcijas pirms eksāmena iesniegšanas.'
+              )}
             </AlertDescription>
           </Alert>
         ) : (
@@ -189,34 +279,64 @@ export function SubmissionPanel({
             <AlertDescription>
               <strong>Eksāmens ir gatavs iesniegšanai!</strong>
               <br />
-              Jūs esat pabeiguši visas nepieciešamās sekcijas. Varat iesniegt
-              eksāmenu vērtēšanai.
+              Visas sekcijas ir pareizi aizpildītas un atbilst prasībām.
             </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Validation Status Info */}
+        {validationStatus.isValidating && (
+          <Alert>
+            <Clock className="h-4 w-4 animate-spin" />
+            <AlertDescription>Notiek formas validācija...</AlertDescription>
           </Alert>
         )}
 
         {/* Submit Button */}
         <div className="flex justify-end">
           <Button
-            onClick={handleSubmit}
-            disabled={!isReadyForSubmission || isSubmitting}
+            onClick={handleSubmitClick}
+            disabled={
+              !validationStatus.isSubmissionReady ||
+              isSubmitting ||
+              validationStatus.isValidating
+            }
             size="lg"
             className="min-w-32"
           >
-            {isSubmitting ? 'Iesniedz...' : 'Iesniegt eksāmenu'}
+            {isSubmitting ? (
+              <>
+                <Clock className="h-4 w-4 mr-2 animate-spin" />
+                Iesniedz...
+              </>
+            ) : (
+              <>
+                <Send className="h-4 w-4 mr-2" />
+                Iesniegt eksāmenu
+              </>
+            )}
           </Button>
         </div>
 
         {/* Important Notice */}
-        <Alert variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
+        <Alert>
+          <Info className="h-4 w-4" />
           <AlertDescription>
-            <strong>Uzmanību!</strong> Pēc eksāmena iesniegšanas jūs nevarēsiet
-            veikt izmaiņas atbildēs. Lūdzu, pārbaudiet visas atbildes pirms
-            iesniegšanas.
+            <strong>Svarīga informācija:</strong> Pēc eksāmena iesniegšanas jūs
+            nevarēsiet veikt izmaiņas atbildēs. Lūdzu, rūpīgi pārbaudiet visas
+            atbildes pirms iesniegšanas.
           </AlertDescription>
         </Alert>
       </CardContent>
+
+      {/* Confirmation Dialog */}
+      <ConfirmationDialog
+        open={showConfirmDialog}
+        onClose={() => setShowConfirmDialog(false)}
+        onSubmit={handleConfirmSubmit}
+        testState={testState}
+        isSubmitting={isSubmitting}
+      />
     </Card>
   )
 }

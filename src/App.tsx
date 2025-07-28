@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { MainLayout } from '@/components/layout/MainLayout'
 import { ExamHeader } from '@/components/layout/ExamHeader'
 import {
@@ -9,9 +9,11 @@ import { AnthemSection } from '@/components/exam/AnthemSection'
 import { HistorySection } from '@/components/exam/HistorySection'
 import { ConstitutionSection } from '@/components/exam/ConstitutionSection'
 import { SubmissionPanel } from '@/components/exam/SubmissionPanel'
+import { ValidationProvider, useValidation } from '@/contexts/ValidationContext'
 import { SCORING_THRESHOLDS } from '@/types/constants'
+import type { TestState } from '@/types/exam'
 
-function App() {
+function ExamContent() {
   // Exam state
   const [anthemText, setAnthemText] = useState('')
   const [historyAnswers, setHistoryAnswers] = useState<
@@ -24,6 +26,43 @@ function App() {
   // Refs for smooth scrolling
   const historyRef = useRef<HTMLDivElement>(null)
   const constitutionRef = useRef<HTMLDivElement>(null)
+
+  // Validation context
+  const { validateAll } = useValidation()
+
+  // Create test state for validation
+  const testState: TestState = {
+    anthemText,
+    historyAnswers,
+    constitutionAnswers,
+    startTime: Date.now(), // In a real app, this would be set when exam starts
+    lastSaved: Date.now(),
+    isCompleted: false,
+    currentSection: 'anthem', // This would be dynamic in a real app
+    selectedQuestions: {
+      history: [],
+      constitution: [],
+      selectionMetadata: {
+        randomSeed: Date.now(),
+        selectedAt: Date.now(),
+        selectedIds: {
+          history: [],
+          constitution: [],
+        },
+      },
+    },
+    metadata: {
+      sessionId: 'demo-session',
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      attemptNumber: 1,
+      darkMode: false,
+    },
+  }
+
+  // Trigger validation when test state changes
+  useEffect(() => {
+    validateAll(testState, 'onChange')
+  }, [anthemText, historyAnswers, constitutionAnswers, validateAll])
 
   // Calculate progress
   const getAnthemProgress = () => {
@@ -90,13 +129,8 @@ function App() {
     },
   ]
 
-  // Check if ready for submission
-  const isReadyForSubmission =
-    anthemProgress >= SCORING_THRESHOLDS.ANTHEM_PASS_PERCENTAGE &&
-    Object.keys(historyAnswers).length ===
-      SCORING_THRESHOLDS.HISTORY_TOTAL_QUESTIONS &&
-    Object.keys(constitutionAnswers).length ===
-      SCORING_THRESHOLDS.CONSTITUTION_TOTAL_QUESTIONS
+  // Legacy submission check (now handled by validation context)
+  // const isReadyForSubmission = ...
 
   // Event handlers
   const handleHistoryAnswer = (questionId: number, answer: 0 | 1 | 2) => {
@@ -160,11 +194,19 @@ function App() {
           anthemProgress={anthemProgress}
           historyAnswered={Object.keys(historyAnswers).length}
           constitutionAnswered={Object.keys(constitutionAnswers).length}
-          isReadyForSubmission={isReadyForSubmission}
+          testState={testState}
           onSubmit={handleSubmit}
         />
       </main>
     </MainLayout>
+  )
+}
+
+function App() {
+  return (
+    <ValidationProvider>
+      <ExamContent />
+    </ValidationProvider>
   )
 }
 
