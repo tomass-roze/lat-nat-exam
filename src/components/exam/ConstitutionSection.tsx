@@ -154,45 +154,6 @@ export function ConstitutionSection({
               </span>
             </div>
           </div>
-
-          {/* Question Navigation */}
-          <div className="pt-2 border-t border-slate-200 dark:border-slate-700">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
-                Pāriet uz jautājumu:
-              </span>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {questions.map((question, index) => {
-                const isAnswered = answers[question.id] !== undefined
-                const scrollToQuestion = () => {
-                  document
-                    .getElementById(`constitution-question-${question.id}`)
-                    ?.scrollIntoView({
-                      behavior: 'smooth',
-                      block: 'center',
-                    })
-                }
-
-                return (
-                  <Button
-                    key={question.id}
-                    variant="outline"
-                    size="sm"
-                    onClick={scrollToQuestion}
-                    className={`w-8 h-8 p-0 text-xs transition-all duration-200 ${
-                      isAnswered
-                        ? 'bg-slate-100 border-slate-300 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-300'
-                        : 'hover:bg-slate-100 dark:hover:bg-slate-800'
-                    }`}
-                    aria-label={`Pāriet uz jautājumu ${index + 1}${isAnswered ? ' (atbildēts)' : ''}`}
-                  >
-                    {index + 1}
-                  </Button>
-                )
-              })}
-            </div>
-          </div>
         </div>
 
         <div className="space-y-8">
