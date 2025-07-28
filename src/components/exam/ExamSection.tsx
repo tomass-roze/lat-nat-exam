@@ -35,7 +35,7 @@ export function ExamSection({
   const getStatusColor = () => {
     switch (status) {
       case 'completed':
-        return 'bg-green-500 hover:bg-green-600 text-white'
+        return 'bg-muted text-muted-foreground'
       case 'in-progress':
         return 'bg-primary hover:bg-primary/90 text-primary-foreground'
       default:
@@ -58,7 +58,7 @@ export function ExamSection({
     <section
       id={id}
       className={cn(
-        'scroll-mt-24', // Account for sticky header
+        'scroll-mt-4', // Account for non-sticky header
         className
       )}
       aria-labelledby={`${id}-title`}
@@ -67,8 +67,7 @@ export function ExamSection({
       <Card
         className={cn(
           'transition-all duration-200',
-          status === 'in-progress' && 'border-primary shadow-md',
-          status === 'completed' && 'border-green-500'
+          status === 'in-progress' && 'border-primary shadow-md'
         )}
       >
         <CardHeader>

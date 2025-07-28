@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react'
 import { ExamSection } from './ExamSection'
-import { Textarea } from '@/components/ui/textarea'
+import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -8,7 +8,7 @@ import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
 import { Info, CheckCircle, AlertTriangle, TrendingUp } from 'lucide-react'
 import {
-  NATIONAL_ANTHEM_TEXT,
+  NATIONAL_ANTHEM_REFERENCE,
   SCORING_THRESHOLDS,
   type AnthemResult,
   type ErrorPattern,
@@ -28,9 +28,50 @@ interface AnthemSectionProps {
 }
 
 export function AnthemSection({ value, onChange, onNext }: AnthemSectionProps) {
-  const [showReference, setShowReference] = useState(false)
   const [anthemResult, setAnthemResult] = useState<AnthemResult | null>(null)
   const [isValidating, setIsValidating] = useState(false)
+
+  // Individual line inputs - filter out empty line
+  const anthemLines = NATIONAL_ANTHEM_REFERENCE.filter((line) => line !== '')
+  const [anthemInputs, setAnthemInputs] = useState<string[]>(() => {
+    // Initialize from existing value if available
+    if (value) {
+      const lines = value.split('\n')
+      const inputs = Array(8).fill('')
+      let inputIndex = 0
+
+      for (let i = 0; i < lines.length && inputIndex < 8; i++) {
+        const line = lines[i].trim()
+        if (line !== '') {
+          inputs[inputIndex] = line
+          inputIndex++
+        }
+      }
+      return inputs
+    }
+    return Array(8).fill('')
+  })
+
+  // Update the main value when individual inputs change
+  const updateAnthemLine = (index: number, lineValue: string) => {
+    const newInputs = [...anthemInputs]
+    newInputs[index] = lineValue
+    setAnthemInputs(newInputs)
+
+    // Join non-empty lines with newlines, maintaining the original structure
+    const joinedText = newInputs
+      .map((line, i) => {
+        // Add empty line after 4th line to match original structure
+        if (i === 3) {
+          return line + '\n'
+        }
+        return line
+      })
+      .join('\n')
+      .trim()
+
+    onChange(joinedText)
+  }
 
   // Validation context for real-time feedback
   const sectionValidation = useSectionValidation('anthem')
@@ -126,33 +167,47 @@ export function AnthemSection({ value, onChange, onNext }: AnthemSectionProps) {
           </AlertDescription>
         </Alert>
 
-        <div className="space-y-2">
-          <Label htmlFor="anthem-text" className="text-base font-medium">
-            Himnas teksts
+        <div className="space-y-4">
+          <Label className="text-base font-medium">
+            Himnas teksts (8 rindas)
           </Label>
-          <Textarea
-            id="anthem-text"
-            placeholder="Sāciet rakstīt himnas tekstu šeit..."
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            rows={12}
-            className={`font-serif text-base leading-relaxed resize-none ${
-              sectionValidation.showErrors &&
-              sectionValidation.errors.length > 0
-                ? 'border-destructive focus:border-destructive'
-                : sectionValidation.showErrors && sectionValidation.isValid
-                  ? 'border-green-500 focus:border-green-500'
-                  : ''
-            }`}
-            aria-describedby="anthem-feedback anthem-instructions anthem-validation"
-            aria-label="Latvijas valsts himnas teksta ievades lauks"
-            aria-required="true"
-            aria-invalid={
-              sectionValidation.showErrors && !sectionValidation.isValid
-                ? 'true'
-                : 'false'
-            }
-          />
+
+          <div className="grid gap-3">
+            {anthemLines.map((_, index) => (
+              <div key={index} className="space-y-1">
+                <Label
+                  htmlFor={`anthem-line-${index}`}
+                  className="text-sm font-medium"
+                >
+                  {index + 1}. rinda
+                </Label>
+                <Input
+                  id={`anthem-line-${index}`}
+                  value={anthemInputs[index] || ''}
+                  onChange={(e) => updateAnthemLine(index, e.target.value)}
+                  placeholder={`Ierakstiet ${index + 1}. rindu...`}
+                  className={`font-serif text-base ${
+                    sectionValidation.showErrors &&
+                    sectionValidation.errors.length > 0
+                      ? 'border-destructive focus:border-destructive'
+                      : sectionValidation.showErrors &&
+                          sectionValidation.isValid
+                        ? 'border-green-500 focus:border-green-500'
+                        : ''
+                  }`}
+                  aria-describedby="anthem-feedback anthem-instructions anthem-validation"
+                  aria-label={`Latvijas valsts himnas ${index + 1}. rindas ievades lauks`}
+                  aria-required="true"
+                  aria-invalid={
+                    sectionValidation.showErrors && !sectionValidation.isValid
+                      ? 'true'
+                      : 'false'
+                  }
+                />
+              </div>
+            ))}
+          </div>
+
           <div className="flex justify-between text-sm text-muted-foreground">
             <span>{value.length} simboli</span>
             <span>
@@ -221,8 +276,9 @@ export function AnthemSection({ value, onChange, onNext }: AnthemSectionProps) {
               )}
             </div>
 
-            {/* Error Pattern Feedback */}
-            {anthemResult?.analysis?.errorPatterns &&
+            {/* Error Pattern Feedback - Only show when completed to reduce visual noise */}
+            {anthemResult?.passed &&
+              anthemResult?.analysis?.errorPatterns &&
               anthemResult.analysis.errorPatterns.length > 0 && (
                 <Alert role="region" aria-labelledby="error-patterns-title">
                   <AlertTriangle className="h-4 w-4" />
@@ -243,8 +299,9 @@ export function AnthemSection({ value, onChange, onNext }: AnthemSectionProps) {
                 </Alert>
               )}
 
-            {/* Line-by-line Analysis */}
-            {anthemResult?.analysis?.lineStats &&
+            {/* Line-by-line Analysis - Only show when completed to reduce visual noise */}
+            {anthemResult?.passed &&
+              anthemResult?.analysis?.lineStats &&
               anthemResult.analysis.lineStats.length > 0 && (
                 <div
                   className="space-y-2"
@@ -317,31 +374,12 @@ export function AnthemSection({ value, onChange, onNext }: AnthemSectionProps) {
           </Alert>
         )}
 
-        <div className="flex flex-col sm:flex-row gap-3">
-          <Button
-            variant="outline"
-            onClick={() => setShowReference(!showReference)}
-            className="flex-1"
-          >
-            {showReference ? 'Paslēpt' : 'Rādīt'} etalona tekstu
-          </Button>
-          {isCompleted && sectionValidation.isValid && onNext && (
-            <Button onClick={onNext} className="flex-1">
+        {isCompleted && sectionValidation.isValid && onNext && (
+          <div className="flex justify-center">
+            <Button onClick={onNext} className="min-w-[200px]">
               Turpināt uz vēstures jautājumiem
             </Button>
-          )}
-        </div>
-
-        {showReference && (
-          <Alert>
-            <Info className="h-4 w-4" />
-            <AlertDescription>
-              <strong>Etalona teksts (tikai atsaucei):</strong>
-              <pre className="mt-2 font-serif text-sm whitespace-pre-wrap leading-relaxed">
-                {NATIONAL_ANTHEM_TEXT}
-              </pre>
-            </AlertDescription>
-          </Alert>
+          </div>
         )}
       </div>
     </ExamSection>
