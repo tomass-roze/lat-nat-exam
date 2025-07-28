@@ -6,6 +6,7 @@ import {
   ProgressIndicator,
   type SectionStatus,
 } from '@/components/layout/ProgressIndicator'
+import { BottomProgressBar } from '@/components/layout/BottomProgressBar'
 import { AnthemSection } from '@/components/exam/AnthemSection'
 import { HistorySection } from '@/components/exam/HistorySection'
 import { ConstitutionSection } from '@/components/exam/ConstitutionSection'
@@ -18,7 +19,6 @@ import {
   useSessionStatus,
 } from '@/contexts/SessionContext'
 import { SessionRecoveryDialog } from '@/components/session/SessionRecoveryDialog'
-import { SessionStatusIndicator } from '@/components/session/SessionStatusIndicator'
 import { SCORING_THRESHOLDS } from '@/types/constants'
 import type { TestState } from '@/types/exam'
 import type { TestResults } from '@/types/scoring'
@@ -35,12 +35,9 @@ function ExamContent() {
     saveSession,
     clearSession,
     recoverSession,
-    extendSessionExpiry,
-    isAutoSaveWorking,
   } = useSession()
 
-  const { status, isInitialized, hasStorage, lastError, recovery, autoSave } =
-    useSessionStatus()
+  const { isInitialized, lastError, recovery } = useSessionStatus()
 
   const { validateAll } = useValidation()
 
@@ -278,27 +275,7 @@ function ExamContent() {
   return (
     <MainLayout>
       <ExamHeader>
-        <div className="flex items-center justify-between">
-          <ProgressIndicator
-            sections={sections}
-            overallProgress={overallProgress}
-            className="flex-1"
-          />
-          <SessionStatusIndicator
-            status={status}
-            autoSave={autoSave}
-            hasStorage={hasStorage}
-            isAutoSaveWorking={isAutoSaveWorking()}
-            onManualSave={async () => {
-              await saveSession()
-            }}
-            onExtendSession={async () => {
-              await extendSessionExpiry()
-            }}
-            onClearSession={clearSession}
-            showDetails={true}
-          />
-        </div>
+        <ProgressIndicator sections={sections} className="w-full" />
       </ExamHeader>
 
       <SessionRecoveryDialog
@@ -309,7 +286,7 @@ function ExamContent() {
         onDismiss={handleRecoveryDialogDismiss}
       />
 
-      <div className="space-y-12 py-8">
+      <div className="space-y-12 py-8 pb-32">
         {/* Anthem Section */}
         <section id="anthem-section" aria-labelledby="anthem-title">
           <AnthemSection
@@ -357,6 +334,12 @@ function ExamContent() {
           />
         </section>
       </div>
+
+      {/* Bottom Progress Bar */}
+      <BottomProgressBar
+        sections={sections}
+        overallProgress={overallProgress}
+      />
     </MainLayout>
   )
 }
