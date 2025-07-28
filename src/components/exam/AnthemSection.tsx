@@ -15,6 +15,11 @@ import {
   type AnthemLineStats,
 } from '@/types'
 import { compareAnthemText } from '@/utils/textProcessing'
+import {
+  ValidationErrorDisplay,
+  ValidationFieldStatus,
+} from './ValidationErrorDisplay'
+import { useSectionValidation } from '@/contexts/ValidationContext'
 
 interface AnthemSectionProps {
   value: string
@@ -26,6 +31,9 @@ export function AnthemSection({ value, onChange, onNext }: AnthemSectionProps) {
   const [showReference, setShowReference] = useState(false)
   const [anthemResult, setAnthemResult] = useState<AnthemResult | null>(null)
   const [isValidating, setIsValidating] = useState(false)
+
+  // Validation context for real-time feedback
+  const sectionValidation = useSectionValidation('anthem')
 
   // Debounced validation function
   const validateText = useCallback((text: string) => {
@@ -128,12 +136,21 @@ export function AnthemSection({ value, onChange, onNext }: AnthemSectionProps) {
             value={value}
             onChange={(e) => onChange(e.target.value)}
             rows={12}
-            className="font-serif text-base leading-relaxed resize-none"
-            aria-describedby="anthem-feedback anthem-instructions"
+            className={`font-serif text-base leading-relaxed resize-none ${
+              sectionValidation.showErrors &&
+              sectionValidation.errors.length > 0
+                ? 'border-destructive focus:border-destructive'
+                : sectionValidation.showErrors && sectionValidation.isValid
+                  ? 'border-green-500 focus:border-green-500'
+                  : ''
+            }`}
+            aria-describedby="anthem-feedback anthem-instructions anthem-validation"
             aria-label="Latvijas valsts himnas teksta ievades lauks"
             aria-required="true"
             aria-invalid={
-              anthemResult && !anthemResult.passed ? 'true' : 'false'
+              sectionValidation.showErrors && !sectionValidation.isValid
+                ? 'true'
+                : 'false'
             }
           />
           <div className="flex justify-between text-sm text-muted-foreground">
@@ -142,6 +159,15 @@ export function AnthemSection({ value, onChange, onNext }: AnthemSectionProps) {
               Nepieciešams: {SCORING_THRESHOLDS.ANTHEM_MIN_CHARACTERS}+ simboli
             </span>
           </div>
+
+          {/* Real-time validation feedback */}
+          <ValidationFieldStatus
+            section="anthem"
+            field="anthemText"
+            errors={sectionValidation.errors}
+            isValidating={sectionValidation.isValidating}
+            showErrors={sectionValidation.showErrors}
+          />
         </div>
 
         {/* Real-time Accuracy Feedback */}
@@ -267,7 +293,16 @@ export function AnthemSection({ value, onChange, onNext }: AnthemSectionProps) {
           </div>
         )}
 
-        {isCompleted && (
+        {/* Comprehensive validation feedback */}
+        <ValidationErrorDisplay
+          section="anthem"
+          errors={sectionValidation.errors}
+          showErrors={sectionValidation.showErrors}
+          isValidating={sectionValidation.isValidating}
+          className="mt-4"
+        />
+
+        {isCompleted && sectionValidation.isValid && (
           <Alert
             className="border-green-200 bg-green-50 text-green-800 dark:bg-green-950 dark:text-green-100"
             role="alert"
@@ -290,7 +325,7 @@ export function AnthemSection({ value, onChange, onNext }: AnthemSectionProps) {
           >
             {showReference ? 'Paslēpt' : 'Rādīt'} etalona tekstu
           </Button>
-          {isCompleted && onNext && (
+          {isCompleted && sectionValidation.isValid && onNext && (
             <Button onClick={onNext} className="flex-1">
               Turpināt uz vēstures jautājumiem
             </Button>
