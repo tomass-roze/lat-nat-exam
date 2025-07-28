@@ -14,6 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { FocusTrap } from '@/components/accessibility/FocusTrap'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
@@ -218,171 +219,196 @@ export function ConfirmationDialog({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Send className="h-5 w-5" />
-            Eksāmena iesniegšana
-          </DialogTitle>
-          <DialogDescription>
-            Pārbaudiet savu progresu un apstipriniet eksāmena iesniegšanu. Pēc
-            iesniegšanas nevarēsiet veikt izmaiņas.
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent
+        className="max-w-2xl max-h-[90vh] overflow-y-auto"
+        aria-describedby="dialog-description"
+      >
+        <FocusTrap
+          active={open}
+          onDeactivate={onClose}
+          focusTrapOptions={{
+            initialFocus: '[data-focus-first]',
+            escapeDeactivates: true,
+          }}
+        >
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Send className="h-5 w-5" />
+              Eksāmena iesniegšana
+            </DialogTitle>
+            <DialogDescription id="dialog-description">
+              Pārbaudiet savu progresu un apstipriniet eksāmena iesniegšanu. Pēc
+              iesniegšanas nevarēsiet veikt izmaiņas.
+            </DialogDescription>
+          </DialogHeader>
 
-        <div className="space-y-6">
-          {/* Overall Progress */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h4 className="font-medium">Kopējais progress</h4>
-              <span className="text-sm text-muted-foreground">
-                {Math.round(overallProgress)}%
-              </span>
+          <div className="space-y-6">
+            {/* Overall Progress */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="font-medium">Kopējais progress</h4>
+                <span className="text-sm text-muted-foreground">
+                  {Math.round(overallProgress)}%
+                </span>
+              </div>
+              <Progress value={overallProgress} className="h-3" />
+
+              {validationResult && (
+                <p className="text-sm text-muted-foreground">
+                  {getValidationStatusMessage(validationResult)}
+                </p>
+              )}
             </div>
-            <Progress value={overallProgress} className="h-3" />
 
-            {validationResult && (
-              <p className="text-sm text-muted-foreground">
-                {getValidationStatusMessage(validationResult)}
-              </p>
-            )}
-          </div>
+            {/* Section Status */}
+            <div className="space-y-4">
+              <h4 className="font-medium">Sekciju statuss</h4>
 
-          {/* Section Status */}
-          <div className="space-y-4">
-            <h4 className="font-medium">Sekciju statuss</h4>
-
-            {isValidating ? (
-              <div className="flex items-center gap-2 p-4 rounded-lg border">
-                <Clock className="h-4 w-4 animate-spin" />
-                <span>Veic galīgo validāciju...</span>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {sectionSummaries.map((section) => (
-                  <div
-                    key={section.id}
-                    className="p-4 rounded-lg border space-y-3"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        {getStatusIcon(section.status)}
-                        {section.icon}
-                        <span className="font-medium">{section.title}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {getStatusBadge(section.status)}
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">
-                          {section.details}
-                        </span>
-                        <span className="text-muted-foreground">
-                          {Math.round(section.progress)}%
-                        </span>
-                      </div>
-                      <Progress value={section.progress} className="h-2" />
-                    </div>
-
-                    {/* Section errors */}
-                    {section.errors.length > 0 && (
-                      <Alert variant="destructive">
-                        <AlertTriangle className="h-4 w-4" />
-                        <AlertDescription>
-                          <ul className="space-y-1">
-                            {section.errors.map((error, index) => (
-                              <li key={index}>• {error}</li>
-                            ))}
-                          </ul>
-                        </AlertDescription>
-                      </Alert>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Global validation errors */}
-          {validationResult?.globalErrors &&
-            validationResult.globalErrors.length > 0 && (
-              <Alert variant="destructive">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>
-                  <strong>Globālas kļūdas:</strong>
-                  <ul className="mt-2 space-y-1">
-                    {validationResult.globalErrors.map((error, index) => (
-                      <li key={index}>• {error.message}</li>
-                    ))}
-                  </ul>
-                </AlertDescription>
-              </Alert>
-            )}
-
-          {/* Submission status */}
-          {!isValidating && (
-            <>
-              {canSubmit ? (
-                <Alert className="border-green-200 bg-green-50 text-green-800 dark:bg-green-950 dark:text-green-100">
-                  <CheckCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    <strong>Eksāmens ir gatavs iesniegšanai!</strong>
-                    <br />
-                    Visas sekcijas ir pareizi aizpildītas un atbilst prasībām.
-                  </AlertDescription>
-                </Alert>
+              {isValidating ? (
+                <div className="flex items-center gap-2 p-4 rounded-lg border">
+                  <Clock className="h-4 w-4 animate-spin" />
+                  <span>Veic galīgo validāciju...</span>
+                </div>
               ) : (
+                <div className="space-y-3">
+                  {sectionSummaries.map((section) => (
+                    <div
+                      key={section.id}
+                      className="p-4 rounded-lg border space-y-3"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          {getStatusIcon(section.status)}
+                          {section.icon}
+                          <span className="font-medium">{section.title}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {getStatusBadge(section.status)}
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">
+                            {section.details}
+                          </span>
+                          <span className="text-muted-foreground">
+                            {Math.round(section.progress)}%
+                          </span>
+                        </div>
+                        <Progress value={section.progress} className="h-2" />
+                      </div>
+
+                      {/* Section errors */}
+                      {section.errors.length > 0 && (
+                        <Alert variant="destructive">
+                          <AlertTriangle className="h-4 w-4" />
+                          <AlertDescription>
+                            <ul className="space-y-1">
+                              {section.errors.map((error, index) => (
+                                <li key={index}>• {error}</li>
+                              ))}
+                            </ul>
+                          </AlertDescription>
+                        </Alert>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Global validation errors */}
+            {validationResult?.globalErrors &&
+              validationResult.globalErrors.length > 0 && (
                 <Alert variant="destructive">
                   <AlertTriangle className="h-4 w-4" />
                   <AlertDescription>
-                    <strong>Eksāmens nav gatavs iesniegšanai.</strong>
-                    <br />
-                    Lūdzu, novērsiet visas problēmas pirms eksāmena
-                    iesniegšanas.
+                    <strong>Globālas kļūdas:</strong>
+                    <ul className="mt-2 space-y-1">
+                      {validationResult.globalErrors.map((error, index) => (
+                        <li key={index}>• {error.message}</li>
+                      ))}
+                    </ul>
                   </AlertDescription>
                 </Alert>
               )}
-            </>
-          )}
 
-          {/* Important notice */}
-          <Alert>
-            <HelpCircle className="h-4 w-4" />
-            <AlertDescription>
-              <strong>Svarīga informācija:</strong>
-              <br />
-              Pēc eksāmena iesniegšanas nevarēsiet veikt izmaiņas atbildēs.
-              Lūdzu, rūpīgi pārbaudiet visas atbildes pirms iesniegšanas.
-            </AlertDescription>
-          </Alert>
-        </div>
-
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
-            <X className="h-4 w-4 mr-2" />
-            Atcelt
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={!canSubmit || isSubmitting || isValidating}
-            className="min-w-32"
-          >
-            {isSubmitting ? (
+            {/* Submission status */}
+            {!isValidating && (
               <>
-                <Clock className="h-4 w-4 mr-2 animate-spin" />
-                Iesniedz...
-              </>
-            ) : (
-              <>
-                <Send className="h-4 w-4 mr-2" />
-                Iesniegt eksāmenu
+                {canSubmit ? (
+                  <Alert className="border-green-200 bg-green-50 text-green-800 dark:bg-green-950 dark:text-green-100">
+                    <CheckCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      <strong>Eksāmens ir gatavs iesniegšanai!</strong>
+                      <br />
+                      Visas sekcijas ir pareizi aizpildītas un atbilst prasībām.
+                    </AlertDescription>
+                  </Alert>
+                ) : (
+                  <Alert variant="destructive">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription>
+                      <strong>Eksāmens nav gatavs iesniegšanai.</strong>
+                      <br />
+                      Lūdzu, novērsiet visas problēmas pirms eksāmena
+                      iesniegšanas.
+                    </AlertDescription>
+                  </Alert>
+                )}
               </>
             )}
-          </Button>
-        </DialogFooter>
+
+            {/* Important notice */}
+            <Alert>
+              <HelpCircle className="h-4 w-4" />
+              <AlertDescription>
+                <strong>Svarīga informācija:</strong>
+                <br />
+                Pēc eksāmena iesniegšanas nevarēsiet veikt izmaiņas atbildēs.
+                Lūdzu, rūpīgi pārbaudiet visas atbildes pirms iesniegšanas.
+              </AlertDescription>
+            </Alert>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={onClose}
+              disabled={isSubmitting}
+              data-focus-first
+            >
+              <X className="h-4 w-4 mr-2" />
+              Atcelt
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={!canSubmit || isSubmitting || isValidating}
+              className="min-w-32"
+              aria-describedby={
+                !canSubmit ? 'submit-disabled-reason' : undefined
+              }
+            >
+              {isSubmitting ? (
+                <>
+                  <Clock className="h-4 w-4 mr-2 animate-spin" />
+                  Iesniedz...
+                </>
+              ) : (
+                <>
+                  <Send className="h-4 w-4 mr-2" />
+                  Iesniegt eksāmenu
+                </>
+              )}
+            </Button>
+            {!canSubmit && (
+              <div id="submit-disabled-reason" className="sr-only">
+                Eksāmens nav gatavs iesniegšanai. Novērsiet visas problēmas.
+              </div>
+            )}
+          </DialogFooter>
+        </FocusTrap>
       </DialogContent>
     </Dialog>
   )

@@ -16,6 +16,7 @@ export function ExamHeader({
 }: ExamHeaderProps) {
   return (
     <header
+      role="banner"
       className={cn(
         'sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border',
         className
@@ -29,7 +30,15 @@ export function ExamHeader({
           <p className="text-base md:text-lg text-muted-foreground mb-4">
             {subtitle}
           </p>
-          {children && <div className="flex justify-center">{children}</div>}
+          {children && (
+            <div
+              className="flex justify-center"
+              role="region"
+              aria-label="Eksāmena progress"
+            >
+              {children}
+            </div>
+          )}
         </div>
       </div>
     </header>
