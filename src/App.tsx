@@ -10,6 +10,7 @@ import { AnthemSection } from '@/components/exam/AnthemSection'
 import { HistorySection } from '@/components/exam/HistorySection'
 import { ConstitutionSection } from '@/components/exam/ConstitutionSection'
 import { SubmissionPanel } from '@/components/exam/SubmissionPanel'
+import { ExamResults } from '@/components/exam/ExamResults'
 import { ValidationProvider, useValidation } from '@/contexts/ValidationContext'
 import {
   SessionProvider,
@@ -20,7 +21,9 @@ import { SessionRecoveryDialog } from '@/components/session/SessionRecoveryDialo
 import { SessionStatusIndicator } from '@/components/session/SessionStatusIndicator'
 import { SCORING_THRESHOLDS } from '@/types/constants'
 import type { TestState } from '@/types/exam'
+import type { TestResults } from '@/types/scoring'
 import { loadExamQuestions, QuestionLoadingError } from '@/utils/questionLoader'
+import { calculateTestResults } from '@/utils/scoring'
 
 function ExamContent() {
   // Session and validation contexts
@@ -46,6 +49,10 @@ function ExamContent() {
     string | null
   >(null)
   const [showRecoveryDialog, setShowRecoveryDialog] = useState(false)
+
+  // Results state
+  const [examResults, setExamResults] = useState<TestResults | null>(null)
+  const [showResults, setShowResults] = useState(false)
 
   // Refs for smooth scrolling
   const historyRef = useRef<HTMLDivElement>(null)
@@ -211,12 +218,19 @@ function ExamContent() {
   }
 
   const handleSubmit = async () => {
-    // Mark as completed and clear session data
-    updateTestState({ isCompleted: true })
-    await saveSession()
-    // In production, submit to backend here
-    alert('Eksāmens iesniegts! (Šī ir demo versija)')
-    clearSession()
+    try {
+      // Calculate exam results
+      const results = calculateTestResults(testState, selectedQuestions)
+      setExamResults(results)
+
+      // Mark as completed and show results
+      updateTestState({ isCompleted: true })
+      await saveSession()
+      setShowResults(true)
+    } catch (error) {
+      console.error('Error calculating results:', error)
+      alert('Kļūda aprēķinot rezultātus. Lūdzu, mēģinājiet vēlreiz.')
+    }
   }
 
   const handleRecoveryDialogDismiss = () => {
@@ -226,6 +240,16 @@ function ExamContent() {
   const handleSessionRecover = (optionId: string) => {
     recoverSession(optionId)
     setShowRecoveryDialog(false)
+  }
+
+  const handleRetakeExam = () => {
+    // Reset all state
+    setExamResults(null)
+    setShowResults(false)
+    setQuestionLoadingError(null)
+    clearSession()
+
+    // The useEffect will automatically reinitialize a new session
   }
 
   // Show loading state while session is initializing
@@ -238,6 +262,15 @@ function ExamContent() {
             <p>Ielādē eksāmena sesiju...</p>
           </div>
         </div>
+      </MainLayout>
+    )
+  }
+
+  // Show results view if exam is completed
+  if (showResults && examResults) {
+    return (
+      <MainLayout>
+        <ExamResults results={examResults} onRetakeExam={handleRetakeExam} />
       </MainLayout>
     )
   }
