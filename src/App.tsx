@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useKeyboardNavigation } from '@/hooks/useKeyboardNavigation'
 import { MainLayout } from '@/components/layout/MainLayout'
 import { ExamHeader } from '@/components/layout/ExamHeader'
@@ -11,34 +11,45 @@ import { HistorySection } from '@/components/exam/HistorySection'
 import { ConstitutionSection } from '@/components/exam/ConstitutionSection'
 import { SubmissionPanel } from '@/components/exam/SubmissionPanel'
 import { ValidationProvider, useValidation } from '@/contexts/ValidationContext'
+import {
+  SessionProvider,
+  useSession,
+  useSessionStatus,
+} from '@/contexts/SessionContext'
+import { SessionRecoveryDialog } from '@/components/session/SessionRecoveryDialog'
+import { SessionStatusIndicator } from '@/components/session/SessionStatusIndicator'
 import { SCORING_THRESHOLDS } from '@/types/constants'
 import type { TestState } from '@/types/exam'
-import type { SelectedQuestions } from '@/types/questions'
 import { loadExamQuestions, QuestionLoadingError } from '@/utils/questionLoader'
 
 function ExamContent() {
-  // Exam state
-  const [anthemText, setAnthemText] = useState('')
-  const [historyAnswers, setHistoryAnswers] = useState<
-    Record<number, 0 | 1 | 2>
-  >({})
-  const [constitutionAnswers, setConstitutionAnswers] = useState<
-    Record<number, 0 | 1 | 2>
-  >({})
+  // Session and validation contexts
+  const {
+    state: sessionState,
+    initializeSession,
+    loadSession,
+    updateTestState,
+    saveSession,
+    clearSession,
+    recoverSession,
+    extendSessionExpiry,
+    isAutoSaveWorking,
+  } = useSession()
+
+  const { status, isInitialized, hasStorage, lastError, recovery, autoSave } =
+    useSessionStatus()
+
+  const { validateAll } = useValidation()
 
   // Question loading state
-  const [selectedQuestions, setSelectedQuestions] =
-    useState<SelectedQuestions | null>(null)
   const [questionLoadingError, setQuestionLoadingError] = useState<
     string | null
   >(null)
+  const [showRecoveryDialog, setShowRecoveryDialog] = useState(false)
 
   // Refs for smooth scrolling
   const historyRef = useRef<HTMLDivElement>(null)
   const constitutionRef = useRef<HTMLDivElement>(null)
-
-  // Validation context
-  const { validateAll } = useValidation()
 
   // Keyboard navigation
   useKeyboardNavigation({
@@ -46,71 +57,70 @@ function ExamContent() {
     enableGlobalShortcuts: true,
   })
 
-  // Load questions on component mount
+  // Initialize session or load existing one
   useEffect(() => {
-    const loadQuestions = async () => {
+    const initializeOrLoadSession = async () => {
       try {
-        setQuestionLoadingError(null)
-        const questions = loadExamQuestions()
-        setSelectedQuestions(questions)
+        // Try to load existing session first
+        const sessionLoaded = await loadSession()
+
+        if (!sessionLoaded) {
+          // Load questions for new session
+          const questions = loadExamQuestions()
+
+          // Create initial test state
+          const initialTestState: TestState = {
+            anthemText: '',
+            historyAnswers: {},
+            constitutionAnswers: {},
+            startTime: Date.now(),
+            lastSaved: 0,
+            isCompleted: false,
+            currentSection: 'anthem',
+            selectedQuestions: questions,
+            metadata: {
+              sessionId: `session-${Date.now()}`,
+              timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+              attemptNumber: 1,
+              darkMode: false,
+            },
+          }
+
+          // Initialize new session
+          initializeSession(initialTestState, questions)
+        }
       } catch (error) {
         if (error instanceof QuestionLoadingError) {
           setQuestionLoadingError(error.message)
         } else {
           setQuestionLoadingError('Nezināma kļūda ielādējot jautājumus')
         }
-        console.error('Question loading failed:', error)
+        console.error('Session initialization failed:', error)
       }
     }
 
-    loadQuestions()
-  }, [])
+    if (!isInitialized) {
+      initializeOrLoadSession()
+    }
+  }, [isInitialized, loadSession, initializeSession])
 
-  // Stabilize selectedQuestions to prevent unnecessary re-renders
-  const stableSelectedQuestions = useMemo(() => {
-    return (
-      selectedQuestions || {
-        history: [],
-        constitution: [],
-        selectionMetadata: {
-          randomSeed: Date.now(),
-          selectedAt: Date.now(),
-          selectedIds: {
-            history: [],
-            constitution: [],
-          },
-        },
-      }
-    )
-  }, [selectedQuestions?.selectionMetadata?.randomSeed])
-
-  // Create test state for validation (memoized to prevent infinite re-renders)
-  const testState: TestState = useMemo(
-    () => ({
-      anthemText,
-      historyAnswers,
-      constitutionAnswers,
-      startTime: Date.now(), // In a real app, this would be set when exam starts
-      lastSaved: Date.now(),
-      isCompleted: false,
-      currentSection: 'anthem', // This would be dynamic in a real app
-      selectedQuestions: stableSelectedQuestions,
-      metadata: {
-        sessionId: 'demo-session',
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        attemptNumber: 1,
-        darkMode: false,
-      },
-    }),
-    [anthemText, historyAnswers, constitutionAnswers, stableSelectedQuestions]
-  )
-
-  // Trigger validation when test state changes (only when questions are loaded)
+  // Show recovery dialog when there are errors
   useEffect(() => {
-    if (selectedQuestions && !questionLoadingError) {
-      validateAll(testState, 'onChange')
+    if (lastError && recovery && !showRecoveryDialog) {
+      setShowRecoveryDialog(true)
     }
-  }, [testState, validateAll, selectedQuestions, questionLoadingError])
+  }, [lastError, recovery, showRecoveryDialog])
+
+  // Trigger validation when test state changes
+  useEffect(() => {
+    if (isInitialized && !questionLoadingError) {
+      validateAll(sessionState.testState, 'onChange')
+    }
+  }, [sessionState.testState, validateAll, isInitialized, questionLoadingError])
+
+  // Get current data from session state
+  const { testState, selectedQuestions } = sessionState
+  const { anthemText, historyAnswers, constitutionAnswers } = testState
 
   // Calculate progress
   const getAnthemProgress = () => {
@@ -177,16 +187,19 @@ function ExamContent() {
     },
   ]
 
-  // Legacy submission check (now handled by validation context)
-  // const isReadyForSubmission = ...
+  // Event handlers with session updates
+  const handleAnthemChange = (text: string) => {
+    updateTestState({ anthemText: text })
+  }
 
-  // Event handlers
   const handleHistoryAnswer = (questionId: number, answer: 0 | 1 | 2) => {
-    setHistoryAnswers((prev) => ({ ...prev, [questionId]: answer }))
+    const newAnswers = { ...historyAnswers, [questionId]: answer }
+    updateTestState({ historyAnswers: newAnswers })
   }
 
   const handleConstitutionAnswer = (questionId: number, answer: 0 | 1 | 2) => {
-    setConstitutionAnswers((prev) => ({ ...prev, [questionId]: answer }))
+    const newAnswers = { ...constitutionAnswers, [questionId]: answer }
+    updateTestState({ constitutionAnswers: newAnswers })
   }
 
   const scrollToHistory = () => {
@@ -197,27 +210,78 @@ function ExamContent() {
     constitutionRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
 
-  const handleSubmit = () => {
-    // In a real app, this would submit to a backend
+  const handleSubmit = async () => {
+    // Mark as completed and clear session data
+    updateTestState({ isCompleted: true })
+    await saveSession()
+    // In production, submit to backend here
     alert('Eksāmens iesniegts! (Šī ir demo versija)')
+    clearSession()
+  }
+
+  const handleRecoveryDialogDismiss = () => {
+    setShowRecoveryDialog(false)
+  }
+
+  const handleSessionRecover = (optionId: string) => {
+    recoverSession(optionId)
+    setShowRecoveryDialog(false)
+  }
+
+  // Show loading state while session is initializing
+  if (!isInitialized) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p>Ielādē eksāmena sesiju...</p>
+          </div>
+        </div>
+      </MainLayout>
+    )
   }
 
   return (
     <MainLayout>
       <ExamHeader>
-        <ProgressIndicator
-          sections={sections}
-          overallProgress={overallProgress}
-          className="mt-4"
-        />
+        <div className="flex items-center justify-between">
+          <ProgressIndicator
+            sections={sections}
+            overallProgress={overallProgress}
+            className="flex-1"
+          />
+          <SessionStatusIndicator
+            status={status}
+            autoSave={autoSave}
+            hasStorage={hasStorage}
+            isAutoSaveWorking={isAutoSaveWorking()}
+            onManualSave={async () => {
+              await saveSession()
+            }}
+            onExtendSession={async () => {
+              await extendSessionExpiry()
+            }}
+            onClearSession={clearSession}
+            showDetails={true}
+          />
+        </div>
       </ExamHeader>
+
+      <SessionRecoveryDialog
+        open={showRecoveryDialog}
+        error={lastError}
+        recovery={recovery}
+        onRecover={handleSessionRecover}
+        onDismiss={handleRecoveryDialogDismiss}
+      />
 
       <div className="space-y-12 py-8">
         {/* Anthem Section */}
         <section id="anthem-section" aria-labelledby="anthem-title">
           <AnthemSection
             value={anthemText}
-            onChange={setAnthemText}
+            onChange={handleAnthemChange}
             onNext={scrollToHistory}
           />
         </section>
@@ -266,9 +330,21 @@ function ExamContent() {
 
 function App() {
   return (
-    <ValidationProvider>
-      <ExamContent />
-    </ValidationProvider>
+    <SessionProvider
+      autoSaveInterval={30000} // 30 seconds
+      onSessionExpiry={() => {
+        console.log('Session expired')
+        alert('Jūsu eksāmena sesija ir beigusies. Lūdzu, sāciet no jauna.')
+      }}
+      onStorageError={(error) => {
+        console.error('Storage error:', error)
+        // Could show a toast notification here
+      }}
+    >
+      <ValidationProvider>
+        <ExamContent />
+      </ValidationProvider>
+    </SessionProvider>
   )
 }
 
