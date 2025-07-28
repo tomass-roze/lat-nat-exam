@@ -4,7 +4,15 @@ import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Info, CheckCircle, AlertTriangle } from 'lucide-react'
+import { Progress } from '@/components/ui/progress'
+import { Badge } from '@/components/ui/badge'
+import {
+  Info,
+  CheckCircle,
+  AlertTriangle,
+  Circle,
+  CheckCircle2,
+} from 'lucide-react'
 import { SCORING_THRESHOLDS } from '@/types/constants'
 import type { Question } from '@/types/questions'
 
@@ -116,58 +124,181 @@ export function ConstitutionSection({
           </AlertDescription>
         </Alert>
 
-        <div className="space-y-6">
-          {questions.map((question, index) => (
-            <Card
-              key={question.id}
-              className="transition-all duration-200 hover:shadow-sm"
-            >
-              <CardContent className="p-6">
-                <fieldset className="space-y-4">
-                  <legend className="font-medium text-lg">
-                    {index + 1}. {question.question}
-                  </legend>
+        {/* Enhanced Progress Section */}
+        <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-4 space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="font-medium">
+                Progress
+              </Badge>
+              <span className="text-sm text-slate-600 dark:text-slate-400">
+                {progress.current} no {progress.total} jautājumiem
+              </span>
+            </div>
+            <div className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              {Math.round(progress.percentage)}%
+            </div>
+          </div>
+          <Progress value={progress.percentage} className="h-2" />
+          <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
+            <div className="flex items-center gap-1">
+              <CheckCircle2 className="h-3 w-3 text-green-600" />
+              <span>
+                Nepieciešams: {SCORING_THRESHOLDS.CONSTITUTION_PASS_COUNT}
+              </span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Circle className="h-3 w-3" />
+              <span>
+                Kopā: {SCORING_THRESHOLDS.CONSTITUTION_TOTAL_QUESTIONS}
+              </span>
+            </div>
+          </div>
 
-                  <RadioGroup
-                    value={answers[question.id]?.toString()}
-                    onValueChange={(value) =>
-                      onChange(question.id, parseInt(value) as 0 | 1 | 2)
-                    }
-                    className="space-y-3"
-                    aria-describedby={`const-q${question.id}-description`}
-                    aria-required="true"
+          {/* Question Navigation */}
+          <div className="pt-2 border-t border-slate-200 dark:border-slate-700">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                Pāriet uz jautājumu:
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {questions.map((question, index) => {
+                const isAnswered = answers[question.id] !== undefined
+                const scrollToQuestion = () => {
+                  document
+                    .getElementById(`constitution-question-${question.id}`)
+                    ?.scrollIntoView({
+                      behavior: 'smooth',
+                      block: 'center',
+                    })
+                }
+
+                return (
+                  <Button
+                    key={question.id}
+                    variant="outline"
+                    size="sm"
+                    onClick={scrollToQuestion}
+                    className={`w-8 h-8 p-0 text-xs transition-all duration-200 ${
+                      isAnswered
+                        ? 'bg-green-100 border-green-300 text-green-700 hover:bg-green-200 dark:bg-green-900 dark:border-green-700 dark:text-green-300'
+                        : 'hover:bg-slate-100 dark:hover:bg-slate-800'
+                    }`}
+                    aria-label={`Pāriet uz jautājumu ${index + 1}${isAnswered ? ' (atbildēts)' : ''}`}
                   >
-                    <div
-                      id={`const-q${question.id}-description`}
-                      className="sr-only"
-                    >
-                      Izvēlieties vienu atbildi no piedāvātajām opcijām
-                    </div>
-                    {question.options.map((option, optionIndex) => (
-                      <div
-                        key={optionIndex}
-                        className="flex items-center space-x-3"
-                      >
-                        <RadioGroupItem
-                          value={optionIndex.toString()}
-                          id={`const-q${question.id}-${optionIndex}`}
-                          className="mt-0.5"
-                          aria-describedby={`const-q${question.id}-${optionIndex}-label`}
-                        />
-                        <Label
-                          id={`const-q${question.id}-${optionIndex}-label`}
-                          htmlFor={`const-q${question.id}-${optionIndex}`}
-                          className="text-sm leading-relaxed cursor-pointer flex-1"
+                    {isAnswered ? (
+                      <CheckCircle2 className="h-3 w-3" />
+                    ) : (
+                      index + 1
+                    )}
+                  </Button>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-8">
+          {questions.map((question, index) => {
+            const isAnswered = answers[question.id] !== undefined
+            const selectedAnswer = answers[question.id]
+
+            return (
+              <Card
+                key={question.id}
+                id={`constitution-question-${question.id}`}
+                className={`scroll-mt-24 transition-all duration-300 hover:shadow-md border-2 ${
+                  isAnswered
+                    ? 'border-green-200 bg-green-50/50 dark:border-green-800 dark:bg-green-950/50'
+                    : 'border-slate-200 hover:border-slate-300 dark:border-slate-800 dark:hover:border-slate-700'
+                }`}
+              >
+                <CardContent className="p-6">
+                  <fieldset className="space-y-4">
+                    <legend className="flex items-center gap-3 font-medium text-lg">
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition-colors ${
+                            isAnswered
+                              ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
+                              : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
+                          }`}
                         >
-                          {String.fromCharCode(65 + optionIndex)}. {option}
-                        </Label>
+                          {isAnswered ? (
+                            <CheckCircle2 className="h-4 w-4" />
+                          ) : (
+                            <span>{index + 1}</span>
+                          )}
+                        </div>
+                        <Badge
+                          variant={isAnswered ? 'default' : 'secondary'}
+                          className="text-xs"
+                        >
+                          {isAnswered ? 'Atbildēts' : 'Gaida atbildi'}
+                        </Badge>
                       </div>
-                    ))}
-                  </RadioGroup>
-                </fieldset>
-              </CardContent>
-            </Card>
-          ))}
+                      <span className="flex-1">{question.question}</span>
+                    </legend>
+
+                    <RadioGroup
+                      value={answers[question.id]?.toString()}
+                      onValueChange={(value) =>
+                        onChange(question.id, parseInt(value) as 0 | 1 | 2)
+                      }
+                      className="space-y-3 mt-4"
+                      aria-describedby={`const-q${question.id}-description`}
+                      aria-required="true"
+                    >
+                      <div
+                        id={`const-q${question.id}-description`}
+                        className="sr-only"
+                      >
+                        Izvēlieties vienu atbildi no piedāvātajām opcijām
+                      </div>
+                      {question.options.map((option, optionIndex) => {
+                        const isSelected = selectedAnswer === optionIndex
+
+                        return (
+                          <div
+                            key={optionIndex}
+                            className={`flex items-center space-x-3 p-3 rounded-lg border transition-all duration-200 ${
+                              isSelected
+                                ? 'border-primary bg-primary/5 shadow-sm'
+                                : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:hover:border-slate-600 dark:hover:bg-slate-800/50'
+                            }`}
+                          >
+                            <RadioGroupItem
+                              value={optionIndex.toString()}
+                              id={`const-q${question.id}-${optionIndex}`}
+                              className="mt-0.5"
+                              aria-describedby={`const-q${question.id}-${optionIndex}-label`}
+                            />
+                            <Label
+                              id={`const-q${question.id}-${optionIndex}-label`}
+                              htmlFor={`const-q${question.id}-${optionIndex}`}
+                              className={`text-sm leading-relaxed cursor-pointer flex-1 transition-colors ${
+                                isSelected ? 'font-medium text-primary' : ''
+                              }`}
+                            >
+                              <span
+                                className={`inline-block font-semibold mr-2 ${
+                                  isSelected ? 'text-primary' : 'text-slate-500'
+                                }`}
+                              >
+                                {String.fromCharCode(65 + optionIndex)}.
+                              </span>
+                              {option}
+                            </Label>
+                          </div>
+                        )
+                      })}
+                    </RadioGroup>
+                  </fieldset>
+                </CardContent>
+              </Card>
+            )
+          })}
         </div>
 
         {isCompleted && (
