@@ -60,9 +60,12 @@ export function HistorySection({
       progress={progress}
     >
       <div className="space-y-6">
-        <Alert>
+        <Alert role="region" aria-labelledby="history-instructions-title">
           <Info className="h-4 w-4" />
           <AlertDescription>
+            <span id="history-instructions-title" className="sr-only">
+              Vēstures jautājumu instrukcijas
+            </span>
             Izlasiet katru jautājumu uzmanīgi un izvēlieties pareizo atbildi.
             Jums ir jāatbild uz visiem{' '}
             {SCORING_THRESHOLDS.HISTORY_TOTAL_QUESTIONS} jautājumiem, lai
@@ -77,10 +80,10 @@ export function HistorySection({
               className="transition-all duration-200 hover:shadow-sm"
             >
               <CardContent className="p-6">
-                <div className="space-y-4">
-                  <h3 className="font-medium text-lg">
+                <fieldset className="space-y-4">
+                  <legend className="font-medium text-lg">
                     {index + 1}. {question.question}
-                  </h3>
+                  </legend>
 
                   <RadioGroup
                     value={answers[question.id]?.toString()}
@@ -88,7 +91,12 @@ export function HistorySection({
                       onChange(question.id, parseInt(value) as 0 | 1 | 2)
                     }
                     className="space-y-3"
+                    aria-describedby={`q${question.id}-description`}
+                    aria-required="true"
                   >
+                    <div id={`q${question.id}-description`} className="sr-only">
+                      Izvēlieties vienu atbildi no piedāvātajām opcijām
+                    </div>
                     {question.options.map((option, optionIndex) => (
                       <div
                         key={optionIndex}
@@ -98,8 +106,10 @@ export function HistorySection({
                           value={optionIndex.toString()}
                           id={`q${question.id}-${optionIndex}`}
                           className="mt-0.5"
+                          aria-describedby={`q${question.id}-${optionIndex}-label`}
                         />
                         <Label
+                          id={`q${question.id}-${optionIndex}-label`}
                           htmlFor={`q${question.id}-${optionIndex}`}
                           className="text-sm leading-relaxed cursor-pointer flex-1"
                         >
@@ -108,7 +118,7 @@ export function HistorySection({
                       </div>
                     ))}
                   </RadioGroup>
-                </div>
+                </fieldset>
               </CardContent>
             </Card>
           ))}

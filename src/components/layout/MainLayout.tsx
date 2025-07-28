@@ -1,5 +1,6 @@
 import { ReactNode } from 'react'
 import { cn } from '@/lib/utils'
+import { SkipNavigation } from './SkipNavigation'
 
 interface MainLayoutProps {
   children: ReactNode
@@ -9,7 +10,12 @@ interface MainLayoutProps {
 export function MainLayout({ children, className }: MainLayoutProps) {
   return (
     <div className={cn('min-h-screen bg-background', className)}>
-      <div className="container mx-auto px-4 py-8 max-w-6xl">{children}</div>
+      <SkipNavigation />
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
+        <main id="main-content" tabIndex={-1} className="outline-none">
+          {children}
+        </main>
+      </div>
     </div>
   )
 }

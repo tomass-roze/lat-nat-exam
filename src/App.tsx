@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { useKeyboardNavigation } from '@/hooks/useKeyboardNavigation'
 import { MainLayout } from '@/components/layout/MainLayout'
 import { ExamHeader } from '@/components/layout/ExamHeader'
 import {
@@ -29,6 +30,12 @@ function ExamContent() {
 
   // Validation context
   const { validateAll } = useValidation()
+
+  // Keyboard navigation
+  useKeyboardNavigation({
+    enableSectionNavigation: true,
+    enableGlobalShortcuts: true,
+  })
 
   // Create test state for validation
   const testState: TestState = {
@@ -164,40 +171,52 @@ function ExamContent() {
         />
       </ExamHeader>
 
-      <main className="space-y-12 py-8">
+      <div className="space-y-12 py-8">
         {/* Anthem Section */}
-        <AnthemSection
-          value={anthemText}
-          onChange={setAnthemText}
-          onNext={scrollToHistory}
-        />
+        <section id="anthem-section" aria-labelledby="anthem-title">
+          <AnthemSection
+            value={anthemText}
+            onChange={setAnthemText}
+            onNext={scrollToHistory}
+          />
+        </section>
 
         {/* History Section */}
-        <div ref={historyRef}>
+        <section
+          id="history-section"
+          aria-labelledby="history-title"
+          ref={historyRef}
+        >
           <HistorySection
             answers={historyAnswers}
             onChange={handleHistoryAnswer}
             onNext={scrollToConstitution}
           />
-        </div>
+        </section>
 
         {/* Constitution Section */}
-        <div ref={constitutionRef}>
+        <section
+          id="constitution-section"
+          aria-labelledby="constitution-title"
+          ref={constitutionRef}
+        >
           <ConstitutionSection
             answers={constitutionAnswers}
             onChange={handleConstitutionAnswer}
           />
-        </div>
+        </section>
 
         {/* Submission Panel */}
-        <SubmissionPanel
-          anthemProgress={anthemProgress}
-          historyAnswered={Object.keys(historyAnswers).length}
-          constitutionAnswered={Object.keys(constitutionAnswers).length}
-          testState={testState}
-          onSubmit={handleSubmit}
-        />
-      </main>
+        <section id="submission-section" aria-labelledby="submission-title">
+          <SubmissionPanel
+            anthemProgress={anthemProgress}
+            historyAnswered={Object.keys(historyAnswers).length}
+            constitutionAnswered={Object.keys(constitutionAnswers).length}
+            testState={testState}
+            onSubmit={handleSubmit}
+          />
+        </section>
+      </div>
     </MainLayout>
   )
 }

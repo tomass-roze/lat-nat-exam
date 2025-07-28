@@ -61,6 +61,8 @@ export function ExamSection({
         'scroll-mt-24', // Account for sticky header
         className
       )}
+      aria-labelledby={`${id}-title`}
+      aria-describedby={`${id}-description`}
     >
       <Card
         className={cn(
@@ -72,17 +74,28 @@ export function ExamSection({
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-xl md:text-2xl">{title}</CardTitle>
+              <CardTitle id={`${id}-title`} className="text-xl md:text-2xl">
+                {title}
+              </CardTitle>
               {description && (
-                <CardDescription className="mt-2">
+                <CardDescription id={`${id}-description`} className="mt-2">
                   {description}
                 </CardDescription>
               )}
             </div>
             <div className="flex flex-col items-end gap-2">
-              <Badge className={getStatusColor()}>{getStatusText()}</Badge>
+              <Badge
+                className={getStatusColor()}
+                aria-label={`Sekcijas statuss: ${getStatusText()}`}
+              >
+                {getStatusText()}
+              </Badge>
               {progress && (
-                <Badge variant="outline" className="text-xs">
+                <Badge
+                  variant="outline"
+                  className="text-xs"
+                  aria-label={`Progress: ${progress.current} no ${progress.total}, ${Math.round(progress.percentage)} procenti`}
+                >
                   {progress.current}/{progress.total} (
                   {Math.round(progress.percentage)}%)
                 </Badge>
