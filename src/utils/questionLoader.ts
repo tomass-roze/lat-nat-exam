@@ -15,6 +15,10 @@ import {
   CONSTITUTION_QUESTIONS,
   validateConstitutionQuestionPool,
 } from '@/data/constitutionQuestions'
+import {
+  HISTORY_QUESTIONS,
+  validateHistoryQuestionPool,
+} from '@/data/historyQuestions'
 import { SCORING_THRESHOLDS } from '@/types/constants'
 
 /**
@@ -107,7 +111,7 @@ function shuffleQuestionOptions(
  */
 function validateQuestionPool(
   questions: Question[],
-  category: 'constitution',
+  category: 'constitution' | 'history',
   minSize: number
 ): void {
   if (!Array.isArray(questions)) {
@@ -232,25 +236,56 @@ export function loadConstitutionQuestions(randomSeed?: number): {
 }
 
 /**
- * Load history questions (placeholder - to be implemented in history component task)
+ * Load and select history questions for an exam session
  */
 export function loadHistoryQuestions(randomSeed?: number): {
   questions: Question[]
   selectionMetadata: Partial<SelectionMetadata>
 } {
-  // Placeholder implementation - will be completed in history section task
+  // Validate question pool first
+  const validation = validateHistoryQuestionPool()
+  if (!validation.isValid) {
+    throw new QuestionLoadingError(
+      `History question pool validation failed: ${validation.errors.join(', ')}`
+    )
+  }
+
+  // Additional runtime validation
+  validateQuestionPool(
+    HISTORY_QUESTIONS,
+    'history',
+    SCORING_THRESHOLDS.MIN_HISTORY_POOL_SIZE
+  )
+
+  // Use provided seed or generate one
   const seed = randomSeed ?? Date.now()
+  const random = new SeededRandom(seed)
+
+  // Select random questions
+  const selectedQuestions = selectRandomQuestions(
+    HISTORY_QUESTIONS,
+    SCORING_THRESHOLDS.HISTORY_TOTAL_QUESTIONS,
+    random
+  )
+
+  // Shuffle answer options for each selected question
+  const questionsWithShuffledOptions = selectedQuestions.map((question) =>
+    shuffleQuestionOptions(question, random)
+  )
+
+  // Create selection metadata
+  const selectionMetadata: Partial<SelectionMetadata> = {
+    selectedAt: Date.now(),
+    randomSeed: seed,
+    selectedIds: {
+      history: questionsWithShuffledOptions.map((q) => q.id),
+      constitution: [],
+    },
+  }
 
   return {
-    questions: [], // Will be populated when history questions are implemented
-    selectionMetadata: {
-      selectedAt: Date.now(),
-      randomSeed: seed,
-      selectedIds: {
-        history: [],
-        constitution: [],
-      },
-    },
+    questions: questionsWithShuffledOptions,
+    selectionMetadata,
   }
 }
 
@@ -377,6 +412,7 @@ export function getQuestionPoolStats(): {
   }
 } {
   const constitutionValidation = validateConstitutionQuestionPool()
+  const historyValidation = validateHistoryQuestionPool()
 
   return {
     constitution: {
@@ -385,9 +421,9 @@ export function getQuestionPoolStats(): {
       isValid: constitutionValidation.isValid,
     },
     history: {
-      total: 0, // Will be updated when history questions are implemented
+      total: HISTORY_QUESTIONS.length,
       minRequired: SCORING_THRESHOLDS.MIN_HISTORY_POOL_SIZE,
-      isValid: false, // Will be true when history questions are implemented
+      isValid: historyValidation.isValid,
     },
   }
 }

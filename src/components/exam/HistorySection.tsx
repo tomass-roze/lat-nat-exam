@@ -1,23 +1,17 @@
+import { useState, useEffect } from 'react'
 import { ExamSection } from './ExamSection'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Info, CheckCircle } from 'lucide-react'
+import { Info, CheckCircle, AlertTriangle } from 'lucide-react'
 import { SCORING_THRESHOLDS } from '@/types/constants'
-
-// Mock history questions - in real app, these would come from the questions data
-const mockHistoryQuestions = Array.from({ length: 10 }, (_, i) => ({
-  id: i + 1,
-  question: `Vēstures jautājums Nr. ${i + 1}. Kurš no šiem notikumiem bija svarīgs Latvijas vēsturē?`,
-  options: [
-    `Pirmā atbilde jautājumam ${i + 1}`,
-    `Otrā atbilde jautājumam ${i + 1}`,
-    `Trešā atbilde jautājumam ${i + 1}`,
-  ],
-  correctAnswer: 0,
-}))
+import {
+  loadHistoryQuestions,
+  QuestionLoadingError,
+} from '@/utils/questionLoader'
+import type { Question } from '@/types/questions'
 
 interface HistorySectionProps {
   answers: Record<number, 0 | 1 | 2>
@@ -30,6 +24,42 @@ export function HistorySection({
   onChange,
   onNext,
 }: HistorySectionProps) {
+  const [questions, setQuestions] = useState<Question[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
+
+  // Load history questions on component mount
+  useEffect(() => {
+    const loadQuestions = async () => {
+      try {
+        setIsLoading(true)
+        setLoadError(null)
+
+        // Load questions with a consistent seed for this session
+        // Use a seed based on current date to ensure same questions during the day
+        const today = new Date().toDateString()
+        const sessionSeed = today
+          .split('')
+          .reduce((acc, char) => acc + char.charCodeAt(0), 0)
+
+        const result = loadHistoryQuestions(sessionSeed)
+        setQuestions(result.questions)
+      } catch (error) {
+        console.error('Failed to load history questions:', error)
+        if (error instanceof QuestionLoadingError) {
+          setLoadError(error.message)
+        } else {
+          setLoadError(
+            'Radās kļūda, ielādējot vēstures jautājumus. Lūdzu, atjaunojiet lapu.'
+          )
+        }
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadQuestions()
+  }, [])
   const getProgress = () => {
     const answered = Object.keys(answers).length
     const total = SCORING_THRESHOLDS.HISTORY_TOTAL_QUESTIONS
@@ -42,14 +72,72 @@ export function HistorySection({
     }
   }
 
+  const calculateScore = () => {
+    if (questions.length === 0) return { correct: 0, total: 0, percentage: 0 }
+
+    const correctAnswers = questions.filter(
+      (question) => answers[question.id] === question.correctAnswer
+    ).length
+
+    return {
+      correct: correctAnswers,
+      total: questions.length,
+      percentage: Math.round((correctAnswers / questions.length) * 100),
+    }
+  }
+
   const progress = getProgress()
+  const score = calculateScore()
   const isCompleted =
     progress.current === SCORING_THRESHOLDS.HISTORY_TOTAL_QUESTIONS
+  const passThreshold = SCORING_THRESHOLDS.HISTORY_PASS_COUNT
+  const hasPassedThreshold = score.correct >= passThreshold
+
   const status = isCompleted
     ? 'completed'
     : progress.current > 0
       ? 'in-progress'
       : 'pending'
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <ExamSection
+        id="history"
+        title="Vēstures jautājumi"
+        description="Ielādē jautājumus..."
+        status="pending"
+        progress={{ current: 0, total: 10, percentage: 0 }}
+      >
+        <div className="flex justify-center items-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <span className="ml-3 text-gray-600">
+            Ielādē vēstures jautājumus...
+          </span>
+        </div>
+      </ExamSection>
+    )
+  }
+
+  // Show error state
+  if (loadError) {
+    return (
+      <ExamSection
+        id="history"
+        title="Vēstures jautājumi"
+        description="Radās kļūda, ielādējot jautājumus"
+        status="pending"
+        progress={{ current: 0, total: 10, percentage: 0 }}
+      >
+        <Alert className="border-red-200 bg-red-50 text-red-800">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            <strong>Kļūda:</strong> {loadError}
+          </AlertDescription>
+        </Alert>
+      </ExamSection>
+    )
+  }
 
   return (
     <ExamSection
@@ -74,7 +162,7 @@ export function HistorySection({
         </Alert>
 
         <div className="space-y-6">
-          {mockHistoryQuestions.map((question, index) => (
+          {questions.map((question, index) => (
             <Card
               key={question.id}
               className="transition-all duration-200 hover:shadow-sm"
@@ -125,21 +213,57 @@ export function HistorySection({
         </div>
 
         {isCompleted && (
-          <Alert className="border-green-200 bg-green-50 text-green-800 dark:bg-green-950 dark:text-green-100">
+          <Alert
+            className={`${
+              hasPassedThreshold
+                ? 'border-green-200 bg-green-50 text-green-800 dark:bg-green-950 dark:text-green-100'
+                : 'border-amber-200 bg-amber-50 text-amber-800 dark:bg-amber-950 dark:text-amber-100'
+            }`}
+          >
             <CheckCircle className="h-4 w-4" />
             <AlertDescription>
-              <strong>Apsveicam!</strong> Jūs esat atbildējuši uz visiem
-              vēstures jautājumiem. Varat pāriet uz nākamo sekciju.
+              <strong>
+                {hasPassedThreshold ? 'Apsveicam!' : 'Sekcija pabeigta'}
+              </strong>{' '}
+              Jūs esat atbildējuši uz visiem vēstures jautājumiem. Rezultāts:{' '}
+              {score.correct} no {score.total} ({score.percentage}%).
+              {hasPassedThreshold
+                ? 'Jūs esat nokārtojuši vēstures sekciju! Varat pāriet uz nākamo sekciju.'
+                : `Nepieciešami vismaz ${passThreshold} pareizi atbildēti jautājumi (70%).`}
             </AlertDescription>
           </Alert>
         )}
 
         {isCompleted && onNext && (
           <div className="flex justify-end">
-            <Button onClick={onNext}>
+            <Button
+              onClick={onNext}
+              variant={hasPassedThreshold ? 'default' : 'secondary'}
+            >
               Turpināt uz konstitūcijas jautājumiem
             </Button>
           </div>
+        )}
+
+        {/* Progress summary for better user feedback */}
+        {progress.current > 0 && !isCompleted && (
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertDescription>
+              Progress: {progress.current} no {progress.total} jautājumiem
+              atbildēti
+              {progress.current > 0 && (
+                <>
+                  {' '}
+                  • Pašreizējais rezultāts: {score.correct} pareizi (
+                  {score.percentage}%)
+                  {score.correct >= passThreshold
+                    ? ' ✓ Nokārtots'
+                    : ` (nepieciešami ${passThreshold - score.correct} vēl)`}
+                </>
+              )}
+            </AlertDescription>
+          </Alert>
         )}
       </div>
     </ExamSection>
