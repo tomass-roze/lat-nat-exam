@@ -72,26 +72,9 @@ export function HistorySection({
     }
   }
 
-  const calculateScore = () => {
-    if (questions.length === 0) return { correct: 0, total: 0, percentage: 0 }
-
-    const correctAnswers = questions.filter(
-      (question) => answers[question.id] === question.correctAnswer
-    ).length
-
-    return {
-      correct: correctAnswers,
-      total: questions.length,
-      percentage: Math.round((correctAnswers / questions.length) * 100),
-    }
-  }
-
   const progress = getProgress()
-  const score = calculateScore()
   const isCompleted =
     progress.current === SCORING_THRESHOLDS.HISTORY_TOTAL_QUESTIONS
-  const passThreshold = SCORING_THRESHOLDS.HISTORY_PASS_COUNT
-  const hasPassedThreshold = score.correct >= passThreshold
 
   const status = isCompleted
     ? 'completed'
@@ -213,33 +196,18 @@ export function HistorySection({
         </div>
 
         {isCompleted && (
-          <Alert
-            className={`${
-              hasPassedThreshold
-                ? 'border-green-200 bg-green-50 text-green-800 dark:bg-green-950 dark:text-green-100'
-                : 'border-amber-200 bg-amber-50 text-amber-800 dark:bg-amber-950 dark:text-amber-100'
-            }`}
-          >
+          <Alert className="border-blue-200 bg-blue-50 text-blue-800 dark:bg-blue-950 dark:text-blue-100">
             <CheckCircle className="h-4 w-4" />
             <AlertDescription>
-              <strong>
-                {hasPassedThreshold ? 'Apsveicam!' : 'Sekcija pabeigta'}
-              </strong>{' '}
-              Jūs esat atbildējuši uz visiem vēstures jautājumiem. Rezultāts:{' '}
-              {score.correct} no {score.total} ({score.percentage}%).
-              {hasPassedThreshold
-                ? 'Jūs esat nokārtojuši vēstures sekciju! Varat pāriet uz nākamo sekciju.'
-                : `Nepieciešami vismaz ${passThreshold} pareizi atbildēti jautājumi (70%).`}
+              <strong>Sekcija pabeigta!</strong> Jūs esat atbildējuši uz visiem
+              vēstures jautājumiem. Varat pāriet uz nākamo sekciju.
             </AlertDescription>
           </Alert>
         )}
 
         {isCompleted && onNext && (
           <div className="flex justify-end">
-            <Button
-              onClick={onNext}
-              variant={hasPassedThreshold ? 'default' : 'secondary'}
-            >
+            <Button onClick={onNext}>
               Turpināt uz konstitūcijas jautājumiem
             </Button>
           </div>
@@ -252,16 +220,6 @@ export function HistorySection({
             <AlertDescription>
               Progress: {progress.current} no {progress.total} jautājumiem
               atbildēti
-              {progress.current > 0 && (
-                <>
-                  {' '}
-                  • Pašreizējais rezultāts: {score.correct} pareizi (
-                  {score.percentage}%)
-                  {score.correct >= passThreshold
-                    ? ' ✓ Nokārtots'
-                    : ` (nepieciešami ${passThreshold - score.correct} vēl)`}
-                </>
-              )}
             </AlertDescription>
           </Alert>
         )}

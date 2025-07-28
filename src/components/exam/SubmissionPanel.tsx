@@ -12,10 +12,7 @@ import { Badge } from '@/components/ui/badge'
 import { CheckCircle, AlertTriangle, Clock, Send, Info } from 'lucide-react'
 import { SCORING_THRESHOLDS } from '@/types/constants'
 import { ConfirmationDialog } from './ConfirmationDialog'
-import {
-  useValidation,
-  useValidationStatus,
-} from '@/contexts/ValidationContext'
+import { useValidationStatus } from '@/contexts/ValidationContext'
 import type { TestState } from '@/types/exam'
 
 interface SubmissionPanelProps {
@@ -38,7 +35,6 @@ export function SubmissionPanel({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
 
-  const { getSectionErrors } = useValidation()
   const validationStatus = useValidationStatus()
 
   const handleSubmitClick = () => {
@@ -58,15 +54,8 @@ export function SubmissionPanel({
   const getSectionStatus = (
     current: number,
     required: number,
-    section: 'anthem' | 'history' | 'constitution',
     type: 'count' | 'percentage' = 'count'
   ) => {
-    // Check for validation errors first
-    const sectionErrors = getSectionErrors(section)
-    if (sectionErrors.length > 0) {
-      return 'error'
-    }
-
     if (type === 'percentage') {
       return current >= required
         ? 'completed'
@@ -84,18 +73,15 @@ export function SubmissionPanel({
   const anthemStatus = getSectionStatus(
     anthemProgress,
     SCORING_THRESHOLDS.ANTHEM_PASS_PERCENTAGE,
-    'anthem',
     'percentage'
   )
   const historyStatus = getSectionStatus(
     historyAnswered,
-    SCORING_THRESHOLDS.HISTORY_TOTAL_QUESTIONS,
-    'history'
+    SCORING_THRESHOLDS.HISTORY_TOTAL_QUESTIONS
   )
   const constitutionStatus = getSectionStatus(
     constitutionAnswered,
-    SCORING_THRESHOLDS.CONSTITUTION_TOTAL_QUESTIONS,
-    'constitution'
+    SCORING_THRESHOLDS.CONSTITUTION_TOTAL_QUESTIONS
   )
 
   const getStatusIcon = (status: string) => {
@@ -104,8 +90,6 @@ export function SubmissionPanel({
         return <CheckCircle className="h-4 w-4 text-green-500" />
       case 'in-progress':
         return <Clock className="h-4 w-4 text-primary" />
-      case 'error':
-        return <AlertTriangle className="h-4 w-4 text-destructive" />
       default:
         return <AlertTriangle className="h-4 w-4 text-muted-foreground" />
     }
@@ -119,19 +103,9 @@ export function SubmissionPanel({
         )
       case 'in-progress':
         return <Badge>Daļēji</Badge>
-      case 'error':
-        return <Badge variant="destructive">Kļūda</Badge>
       default:
         return <Badge variant="outline">Nav sākts</Badge>
     }
-  }
-
-  // Get detailed section errors for display
-  const getSectionErrorDetails = (
-    section: 'anthem' | 'history' | 'constitution'
-  ) => {
-    const errors = getSectionErrors(section)
-    return errors.map((error) => error.message)
   }
 
   return (
@@ -194,59 +168,6 @@ export function SubmissionPanel({
           </div>
         </div>
 
-        {/* Section Error Details */}
-        {validationStatus.showErrors && validationStatus.errorCount > 0 && (
-          <div className="space-y-3">
-            <h4 className="font-medium text-destructive">
-              Problēmas, kas jānovērš:
-            </h4>
-
-            {getSectionErrorDetails('anthem').length > 0 && (
-              <Alert variant="destructive">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>
-                  <strong>Himnas sekcija:</strong>
-                  <ul className="mt-1 space-y-1">
-                    {getSectionErrorDetails('anthem').map((error, index) => (
-                      <li key={index}>• {error}</li>
-                    ))}
-                  </ul>
-                </AlertDescription>
-              </Alert>
-            )}
-
-            {getSectionErrorDetails('history').length > 0 && (
-              <Alert variant="destructive">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>
-                  <strong>Vēstures sekcija:</strong>
-                  <ul className="mt-1 space-y-1">
-                    {getSectionErrorDetails('history').map((error, index) => (
-                      <li key={index}>• {error}</li>
-                    ))}
-                  </ul>
-                </AlertDescription>
-              </Alert>
-            )}
-
-            {getSectionErrorDetails('constitution').length > 0 && (
-              <Alert variant="destructive">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>
-                  <strong>Konstitūcijas sekcija:</strong>
-                  <ul className="mt-1 space-y-1">
-                    {getSectionErrorDetails('constitution').map(
-                      (error, index) => (
-                        <li key={index}>• {error}</li>
-                      )
-                    )}
-                  </ul>
-                </AlertDescription>
-              </Alert>
-            )}
-          </div>
-        )}
-
         {/* Submission Status */}
         {!validationStatus.isSubmissionReady ? (
           <Alert>
@@ -254,23 +175,7 @@ export function SubmissionPanel({
             <AlertDescription>
               <strong>Eksāmens nav gatavs iesniegšanai.</strong>
               <br />
-              {validationStatus.errorCount > 0 ? (
-                <>
-                  Nepieciešams novērst {validationStatus.errorCount} problēmu
-                  pirms iesniegšanas.
-                  {!validationStatus.showErrors && (
-                    <Button
-                      variant="link"
-                      className="p-0 h-auto font-normal underline"
-                      onClick={() => validationStatus.setShowErrors?.(true)}
-                    >
-                      Rādīt detaļas
-                    </Button>
-                  )}
-                </>
-              ) : (
-                'Lūdzu, pabeidziet visas sekcijas pirms eksāmena iesniegšanas.'
-              )}
+              Lūdzu, pabeidziet visas sekcijas pirms eksāmena iesniegšanas.
             </AlertDescription>
           </Alert>
         ) : (
@@ -279,7 +184,7 @@ export function SubmissionPanel({
             <AlertDescription>
               <strong>Eksāmens ir gatavs iesniegšanai!</strong>
               <br />
-              Visas sekcijas ir pareizi aizpildītas un atbilst prasībām.
+              Visas sekcijas ir pabeigtas.
             </AlertDescription>
           </Alert>
         )}

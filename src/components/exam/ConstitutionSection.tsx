@@ -182,16 +182,12 @@ export function ConstitutionSection({
                     onClick={scrollToQuestion}
                     className={`w-8 h-8 p-0 text-xs transition-all duration-200 ${
                       isAnswered
-                        ? 'bg-green-100 border-green-300 text-green-700 hover:bg-green-200 dark:bg-green-900 dark:border-green-700 dark:text-green-300'
+                        ? 'bg-slate-100 border-slate-300 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-300'
                         : 'hover:bg-slate-100 dark:hover:bg-slate-800'
                     }`}
                     aria-label={`Pāriet uz jautājumu ${index + 1}${isAnswered ? ' (atbildēts)' : ''}`}
                   >
-                    {isAnswered ? (
-                      <CheckCircle2 className="h-3 w-3" />
-                    ) : (
-                      index + 1
-                    )}
+                    {index + 1}
                   </Button>
                 )
               })}
@@ -210,7 +206,7 @@ export function ConstitutionSection({
                 id={`constitution-question-${question.id}`}
                 className={`scroll-mt-24 transition-all duration-300 hover:shadow-md border-2 ${
                   isAnswered
-                    ? 'border-green-200 bg-green-50/50 dark:border-green-800 dark:bg-green-950/50'
+                    ? 'border-slate-300 bg-slate-50/50 dark:border-slate-700 dark:bg-slate-900/50'
                     : 'border-slate-200 hover:border-slate-300 dark:border-slate-800 dark:hover:border-slate-700'
                 }`}
               >
@@ -221,20 +217,13 @@ export function ConstitutionSection({
                         <div
                           className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition-colors ${
                             isAnswered
-                              ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
+                              ? 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300'
                               : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
                           }`}
                         >
-                          {isAnswered ? (
-                            <CheckCircle2 className="h-4 w-4" />
-                          ) : (
-                            <span>{index + 1}</span>
-                          )}
+                          <span>{index + 1}</span>
                         </div>
-                        <Badge
-                          variant={isAnswered ? 'default' : 'secondary'}
-                          className="text-xs"
-                        >
+                        <Badge variant="outline" className="text-xs">
                           {isAnswered ? 'Atbildēts' : 'Gaida atbildi'}
                         </Badge>
                       </div>
