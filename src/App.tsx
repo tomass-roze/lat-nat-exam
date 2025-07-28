@@ -24,6 +24,7 @@ import type { TestState } from '@/types/exam'
 import type { TestResults } from '@/types/scoring'
 import { loadExamQuestions, QuestionLoadingError } from '@/utils/questionLoader'
 import { calculateTestResults } from '@/utils/scoring'
+import { compareAnthemText } from '@/utils/textProcessing'
 
 function ExamContent() {
   // Session and validation contexts
@@ -128,8 +129,31 @@ function ExamContent() {
 
   // Calculate progress
   const getAnthemProgress = () => {
+    // Return 0 if no text entered
+    if (!anthemText || anthemText.trim().length === 0) {
+      return 0
+    }
+
+    // Check minimum length first
     const minLength = SCORING_THRESHOLDS.ANTHEM_MIN_CHARACTERS
-    return Math.min((anthemText.length / minLength) * 100, 100)
+    if (anthemText.length < minLength) {
+      // Show character progress up to minimum requirement
+      return Math.min((anthemText.length / minLength) * 50, 50)
+    }
+
+    // For text meeting minimum length, check actual accuracy
+    try {
+      const anthemResult = compareAnthemText(anthemText)
+      const passThreshold = SCORING_THRESHOLDS.ANTHEM_PASS_PERCENTAGE
+
+      // Progress starts at 50% once minimum length is met, then accuracy determines final percentage
+      const accuracyProgress = (anthemResult.accuracy / passThreshold) * 50
+      return Math.min(50 + accuracyProgress, 100)
+    } catch (error) {
+      console.error('Error calculating anthem accuracy:', error)
+      // Fall back to character-based progress if accuracy calculation fails
+      return Math.min((anthemText.length / minLength) * 100, 100)
+    }
   }
 
   const getHistoryProgress = () => {
@@ -148,16 +172,51 @@ function ExamContent() {
   const overallProgress =
     (anthemProgress + historyProgress + constitutionProgress) / 3
 
-  // Section statuses
+  // Helper function to check if anthem meets validation requirements
+  const isAnthemValid = () => {
+    if (!anthemText || anthemText.trim().length === 0) return false
+    if (anthemText.length < SCORING_THRESHOLDS.ANTHEM_MIN_CHARACTERS)
+      return false
+
+    try {
+      const anthemResult = compareAnthemText(anthemText)
+      return anthemResult.accuracy >= SCORING_THRESHOLDS.ANTHEM_PASS_PERCENTAGE
+    } catch {
+      return false
+    }
+  }
+
+  // Helper function to check if history answers are valid
+  const isHistoryValid = () => {
+    const answerCount = Object.keys(historyAnswers).length
+    if (answerCount !== SCORING_THRESHOLDS.HISTORY_TOTAL_QUESTIONS) return false
+
+    // Check that all answers are valid (0, 1, or 2)
+    return Object.values(historyAnswers).every((answer) =>
+      [0, 1, 2].includes(answer)
+    )
+  }
+
+  // Helper function to check if constitution answers are valid
+  const isConstitutionValid = () => {
+    const answerCount = Object.keys(constitutionAnswers).length
+    if (answerCount !== SCORING_THRESHOLDS.CONSTITUTION_TOTAL_QUESTIONS)
+      return false
+
+    // Check that all answers are valid (0, 1, or 2)
+    return Object.values(constitutionAnswers).every((answer) =>
+      [0, 1, 2].includes(answer)
+    )
+  }
+
+  // Section statuses based on actual validation
   const sections: SectionStatus[] = [
     {
       id: 'anthem',
       title: 'Valsts himna',
       progress: anthemProgress,
-      isCompleted: anthemProgress >= SCORING_THRESHOLDS.ANTHEM_PASS_PERCENTAGE,
-      isActive:
-        anthemProgress > 0 &&
-        anthemProgress < SCORING_THRESHOLDS.ANTHEM_PASS_PERCENTAGE,
+      isCompleted: isAnthemValid(),
+      isActive: anthemProgress > 0 && !isAnthemValid(),
       itemsCompleted: anthemText.length,
       totalItems: SCORING_THRESHOLDS.ANTHEM_MIN_CHARACTERS,
     },
@@ -165,13 +224,8 @@ function ExamContent() {
       id: 'history',
       title: 'Vēstures jautājumi',
       progress: historyProgress,
-      isCompleted:
-        Object.keys(historyAnswers).length ===
-        SCORING_THRESHOLDS.HISTORY_TOTAL_QUESTIONS,
-      isActive:
-        Object.keys(historyAnswers).length > 0 &&
-        Object.keys(historyAnswers).length <
-          SCORING_THRESHOLDS.HISTORY_TOTAL_QUESTIONS,
+      isCompleted: isHistoryValid(),
+      isActive: Object.keys(historyAnswers).length > 0 && !isHistoryValid(),
       itemsCompleted: Object.keys(historyAnswers).length,
       totalItems: SCORING_THRESHOLDS.HISTORY_TOTAL_QUESTIONS,
     },
@@ -179,13 +233,9 @@ function ExamContent() {
       id: 'constitution',
       title: 'Konstitūcijas jautājumi',
       progress: constitutionProgress,
-      isCompleted:
-        Object.keys(constitutionAnswers).length ===
-        SCORING_THRESHOLDS.CONSTITUTION_TOTAL_QUESTIONS,
+      isCompleted: isConstitutionValid(),
       isActive:
-        Object.keys(constitutionAnswers).length > 0 &&
-        Object.keys(constitutionAnswers).length <
-          SCORING_THRESHOLDS.CONSTITUTION_TOTAL_QUESTIONS,
+        Object.keys(constitutionAnswers).length > 0 && !isConstitutionValid(),
       itemsCompleted: Object.keys(constitutionAnswers).length,
       totalItems: SCORING_THRESHOLDS.CONSTITUTION_TOTAL_QUESTIONS,
     },
