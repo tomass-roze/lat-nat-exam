@@ -42,27 +42,44 @@ export function SubmissionPanel({
   const getDetailedValidationStatus = () => {
     const { anthemText, historyAnswers, constitutionAnswers } = testState
 
-    // Anthem validation
+    // Anthem validation - simplified line-based check for submission
     const anthemIssues: string[] = []
     let anthemAccuracy = 0
 
     if (!anthemText || anthemText.trim().length === 0) {
       anthemIssues.push('Himnas teksts nav ievadīts')
-    } else if (anthemText.length < SCORING_THRESHOLDS.ANTHEM_MIN_CHARACTERS) {
-      anthemIssues.push(
-        `Nepieciešams vismaz ${SCORING_THRESHOLDS.ANTHEM_MIN_CHARACTERS} simboli (pašlaik: ${anthemText.length})`
-      )
     } else {
-      try {
-        const anthemResult = compareAnthemText(anthemText)
-        anthemAccuracy = anthemResult.accuracy
-        if (anthemResult.accuracy < SCORING_THRESHOLDS.ANTHEM_PASS_PERCENTAGE) {
-          anthemIssues.push(
-            `Precizitāte pārāk zema: ${anthemResult.accuracy.toFixed(1)}% (nepieciešams: ${SCORING_THRESHOLDS.ANTHEM_PASS_PERCENTAGE}%)`
-          )
+      // Check if all 8 lines have content (at least one letter each)
+      const lines = anthemText.split('\n')
+      const requiredLines = 8
+      let emptyLineCount = 0
+
+      for (let i = 0; i < requiredLines; i++) {
+        const line = lines[i] || ''
+        if (!/[a-zA-ZāčēģīķļņšūžĀČĒĢĪĶĻŅŠŪŽ]/.test(line)) {
+          emptyLineCount++
         }
-      } catch {
-        anthemIssues.push('Neizdevās analizēt himnas tekstu')
+      }
+
+      if (emptyLineCount > 0) {
+        anthemIssues.push(
+          `${emptyLineCount} rinda${emptyLineCount > 1 ? 's' : ''} nav aizpildīta${emptyLineCount > 1 ? 's' : ''}`
+        )
+      } else {
+        // Only check accuracy when all lines are completed
+        try {
+          const anthemResult = compareAnthemText(anthemText)
+          anthemAccuracy = anthemResult.accuracy
+          if (
+            anthemResult.accuracy < SCORING_THRESHOLDS.ANTHEM_PASS_PERCENTAGE
+          ) {
+            anthemIssues.push(
+              `Precizitāte pārāk zema: ${anthemResult.accuracy.toFixed(1)}% (nepieciešams: ${SCORING_THRESHOLDS.ANTHEM_PASS_PERCENTAGE}%)`
+            )
+          }
+        } catch {
+          anthemIssues.push('Neizdevās analizēt himnas tekstu')
+        }
       }
     }
 
