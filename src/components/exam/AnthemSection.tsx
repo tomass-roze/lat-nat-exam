@@ -6,11 +6,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Info, CheckCircle } from 'lucide-react'
 import { NATIONAL_ANTHEM_REFERENCE } from '@/types'
-import {
-  ValidationErrorDisplay,
-  ValidationFieldStatus,
-} from './ValidationErrorDisplay'
-import { useSectionValidation } from '@/contexts/ValidationContext'
+// Validation imports removed for blind test approach
 
 interface AnthemSectionProps {
   value: string
@@ -61,8 +57,8 @@ export function AnthemSection({ value, onChange, onNext }: AnthemSectionProps) {
     onChange(joinedText)
   }
 
-  // Validation context for real-time feedback
-  const sectionValidation = useSectionValidation('anthem')
+  // Validation context removed for blind test approach
+  // No real-time validation feedback during input
 
   const getProgress = () => {
     // Count completed lines (lines with at least one letter)
@@ -135,48 +131,22 @@ export function AnthemSection({ value, onChange, onNext }: AnthemSectionProps) {
                   value={anthemInputs[index] || ''}
                   onChange={(e) => updateAnthemLine(index, e.target.value)}
                   placeholder={`Ierakstiet ${index + 1}. rindu...`}
-                  className={`font-serif text-base ${
-                    sectionValidation.showErrors &&
-                    sectionValidation.errors.length > 0
-                      ? 'border-destructive focus:border-destructive'
-                      : sectionValidation.showErrors &&
-                          sectionValidation.isValid
-                        ? 'border-green-500 focus:border-green-500'
-                        : ''
-                  }`}
+                  className="font-serif text-base"
                   aria-describedby="anthem-feedback anthem-instructions anthem-validation"
                   aria-label={`Latvijas valsts himnas ${index + 1}. rindas ievades lauks`}
                   aria-required="true"
-                  aria-invalid={
-                    sectionValidation.showErrors && !sectionValidation.isValid
-                      ? 'true'
-                      : 'false'
-                  }
+                  aria-invalid="false"
                 />
               </div>
             ))}
           </div>
 
-          {/* Real-time validation feedback */}
-          <ValidationFieldStatus
-            section="anthem"
-            field="anthemText"
-            errors={sectionValidation.errors}
-            isValidating={sectionValidation.isValidating}
-            showErrors={sectionValidation.showErrors}
-          />
+          {/* Real-time validation feedback removed for blind test approach */}
         </div>
 
-        {/* Comprehensive validation feedback */}
-        <ValidationErrorDisplay
-          section="anthem"
-          errors={sectionValidation.errors}
-          showErrors={sectionValidation.showErrors}
-          isValidating={sectionValidation.isValidating}
-          className="mt-4"
-        />
+        {/* Comprehensive validation feedback removed for blind test approach */}
 
-        {isCompleted && sectionValidation.isValid && (
+        {isCompleted && (
           <Alert
             className="border-green-200 bg-green-50 text-green-800 dark:bg-green-950 dark:text-green-100"
             role="alert"
@@ -186,12 +156,12 @@ export function AnthemSection({ value, onChange, onNext }: AnthemSectionProps) {
             <CheckCircle className="h-4 w-4" />
             <AlertDescription>
               <strong id="completion-message">Apsveicam!</strong> Jūs esat
-              nokārtojuši himnas sekciju. Varat pāriet uz nākamo sekciju.
+              aizpildījuši visas himnas rindas. Varat pāriet uz nākamo sekciju.
             </AlertDescription>
           </Alert>
         )}
 
-        {isCompleted && sectionValidation.isValid && onNext && (
+        {isCompleted && onNext && (
           <div className="flex justify-center">
             <Button onClick={onNext} className="min-w-[200px]">
               Turpināt uz vēstures jautājumiem
