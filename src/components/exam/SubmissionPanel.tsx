@@ -50,10 +50,12 @@ export function SubmissionPanel({
       anthemIssues.push('Himnas teksts nav ievadīts')
     } else {
       // Check if all 8 lines have content (at least one letter each)
-      const lines = anthemText.split('\n')
+      // Filter out empty lines to handle the extra newline after 4th line
+      const lines = anthemText.split('\n').filter(line => line.trim() !== '')
       const requiredLines = 8
       let emptyLineCount = 0
 
+      // Count how many of the 8 expected lines are missing or empty
       for (let i = 0; i < requiredLines; i++) {
         const line = lines[i] || ''
         if (!/[a-zA-ZāčēģīķļņšūžĀČĒĢĪĶĻŅŠŪŽ]/.test(line)) {

@@ -136,7 +136,8 @@ function ExamContent() {
     }
 
     // Count completed lines (lines with at least one letter)
-    const lines = anthemText.split('\n')
+    // Filter out empty lines to handle the extra newline after 4th line
+    const lines = anthemText.split('\n').filter(line => line.trim() !== '')
     const completedLines = lines.filter(line => 
       /[a-zA-ZāčēģīķļņšūžĀČĒĢĪĶĻŅŠŪŽ]/.test(line)
     ).length
@@ -165,7 +166,8 @@ function ExamContent() {
     if (!anthemText || anthemText.trim().length === 0) return false
 
     // Check if all 8 lines have content (at least one letter each)
-    const lines = anthemText.split('\n')
+    // Filter out empty lines to handle the extra newline after 4th line
+    const lines = anthemText.split('\n').filter(line => line.trim() !== '')
     const completedLines = lines.filter(line => 
       /[a-zA-ZāčēģīķļņšūžĀČĒĢĪĶĻŅŠŪŽ]/.test(line)
     ).length
@@ -204,7 +206,7 @@ function ExamContent() {
       progress: anthemProgress,
       isCompleted: isAnthemValid(),
       isActive: anthemProgress > 0 && !isAnthemValid(),
-      itemsCompleted: anthemText ? anthemText.split('\n').filter(line => 
+      itemsCompleted: anthemText ? anthemText.split('\n').filter(line => line.trim() !== '').filter(line => 
         /[a-zA-ZāčēģīķļņšūžĀČĒĢĪĶĻŅŠŪŽ]/.test(line)
       ).length : 0,
       totalItems: 8,
