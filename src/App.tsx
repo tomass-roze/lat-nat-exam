@@ -137,8 +137,8 @@ function ExamContent() {
 
     // Count completed lines (lines with at least one letter)
     // Filter out empty lines to handle the extra newline after 4th line
-    const lines = anthemText.split('\n').filter(line => line.trim() !== '')
-    const completedLines = lines.filter(line => 
+    const lines = anthemText.split('\n').filter((line) => line.trim() !== '')
+    const completedLines = lines.filter((line) =>
       /[a-zA-ZāčēģīķļņšūžĀČĒĢĪĶĻŅŠŪŽ]/.test(line)
     ).length
 
@@ -167,8 +167,8 @@ function ExamContent() {
 
     // Check if all 8 lines have content (at least one letter each)
     // Filter out empty lines to handle the extra newline after 4th line
-    const lines = anthemText.split('\n').filter(line => line.trim() !== '')
-    const completedLines = lines.filter(line => 
+    const lines = anthemText.split('\n').filter((line) => line.trim() !== '')
+    const completedLines = lines.filter((line) =>
       /[a-zA-ZāčēģīķļņšūžĀČĒĢĪĶĻŅŠŪŽ]/.test(line)
     ).length
 
@@ -206,9 +206,13 @@ function ExamContent() {
       progress: anthemProgress,
       isCompleted: isAnthemValid(),
       isActive: anthemProgress > 0 && !isAnthemValid(),
-      itemsCompleted: anthemText ? anthemText.split('\n').filter(line => line.trim() !== '').filter(line => 
-        /[a-zA-ZāčēģīķļņšūžĀČĒĢĪĶĻŅŠŪŽ]/.test(line)
-      ).length : 0,
+      itemsCompleted: anthemText
+        ? anthemText
+            .split('\n')
+            .filter((line) => line.trim() !== '')
+            .filter((line) => /[a-zA-ZāčēģīķļņšūžĀČĒĢĪĶĻŅŠŪŽ]/.test(line))
+            .length
+        : 0,
       totalItems: 8,
     },
     {
@@ -259,7 +263,7 @@ function ExamContent() {
     try {
       // Validate at submission time only
       validateAll(sessionState.testState, 'onSubmit')
-      
+
       // Calculate exam results (this includes accuracy validation for anthem)
       const results = calculateTestResults(testState, selectedQuestions)
       setExamResults(results)

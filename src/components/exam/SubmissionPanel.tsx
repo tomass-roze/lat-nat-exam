@@ -13,6 +13,7 @@ import { CheckCircle, AlertTriangle, Clock, Send, Info, X } from 'lucide-react'
 import { SCORING_THRESHOLDS } from '@/types/constants'
 import { ConfirmationDialog } from './ConfirmationDialog'
 import { useValidationStatus } from '@/contexts/ValidationContext'
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
 // compareAnthemText import removed - accuracy validation moved to final results only
 import type { TestState } from '@/types/exam'
 
@@ -51,7 +52,7 @@ export function SubmissionPanel({
     } else {
       // Check if all 8 lines have content (at least one letter each)
       // Filter out empty lines to handle the extra newline after 4th line
-      const lines = anthemText.split('\n').filter(line => line.trim() !== '')
+      const lines = anthemText.split('\n').filter((line) => line.trim() !== '')
       const requiredLines = 8
       let emptyLineCount = 0
 
@@ -303,7 +304,8 @@ export function SubmissionPanel({
             <AlertDescription>
               <strong>Eksāmens ir gatavs iesniegšanai!</strong>
               <br />
-              Visas sekcijas ir pabeigtas. Precizitāte tiks novērtēta rezultātos.
+              Visas sekcijas ir pabeigtas. Precizitāte tiks novērtēta
+              rezultātos.
             </AlertDescription>
           </Alert>
         )}
@@ -354,13 +356,49 @@ export function SubmissionPanel({
       </CardContent>
 
       {/* Confirmation Dialog */}
-      <ConfirmationDialog
-        open={showConfirmDialog}
-        onClose={() => setShowConfirmDialog(false)}
-        onSubmit={handleConfirmSubmit}
-        testState={testState}
-        isSubmitting={isSubmitting}
-      />
+      <ErrorBoundary
+        onError={(error, errorInfo) => {
+          console.error('ConfirmationDialog error:', error, errorInfo)
+        }}
+        fallback={
+          <Alert variant="destructive" className="m-4">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              <div className="space-y-2">
+                <div>
+                  <strong>Apstiprinājuma dialogs nav pieejams</strong>
+                  <br />
+                  Radās tehniska problēma ar apstiprinājuma dialogu.
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => setShowConfirmDialog(false)}
+                    variant="outline"
+                    size="sm"
+                  >
+                    Aizvērt
+                  </Button>
+                  <Button
+                    onClick={handleConfirmSubmit}
+                    variant="destructive"
+                    size="sm"
+                  >
+                    Iesniegt tieši
+                  </Button>
+                </div>
+              </div>
+            </AlertDescription>
+          </Alert>
+        }
+      >
+        <ConfirmationDialog
+          open={showConfirmDialog}
+          onClose={() => setShowConfirmDialog(false)}
+          onSubmit={handleConfirmSubmit}
+          testState={testState}
+          isSubmitting={isSubmitting}
+        />
+      </ErrorBoundary>
     </Card>
   )
 }

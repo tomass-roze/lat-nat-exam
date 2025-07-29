@@ -107,7 +107,7 @@ export function validateAnthemSection(
 
   // Split into lines and check each one
   // Filter out empty lines to handle the extra newline after 4th line
-  const lines = anthemText.split('\n').filter(line => line.trim() !== '')
+  const lines = anthemText.split('\n').filter((line) => line.trim() !== '')
   const requiredLines = 8
 
   // Check each line has at least one letter
