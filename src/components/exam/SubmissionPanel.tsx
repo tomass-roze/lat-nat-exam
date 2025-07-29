@@ -13,7 +13,7 @@ import { CheckCircle, AlertTriangle, Clock, Send, Info, X } from 'lucide-react'
 import { SCORING_THRESHOLDS } from '@/types/constants'
 import { ConfirmationDialog } from './ConfirmationDialog'
 import { useValidationStatus } from '@/contexts/ValidationContext'
-import { compareAnthemText } from '@/utils/textProcessing'
+// compareAnthemText import removed - accuracy validation moved to final results only
 import type { TestState } from '@/types/exam'
 
 interface SubmissionPanelProps {
@@ -67,22 +67,8 @@ export function SubmissionPanel({
         anthemIssues.push(
           `${emptyLineCount} rinda${emptyLineCount > 1 ? 's' : ''} nav aizpildīta${emptyLineCount > 1 ? 's' : ''}`
         )
-      } else {
-        // Only check accuracy when all lines are completed
-        try {
-          const anthemResult = compareAnthemText(anthemText)
-          anthemAccuracy = anthemResult.accuracy
-          if (
-            anthemResult.accuracy < SCORING_THRESHOLDS.ANTHEM_PASS_PERCENTAGE
-          ) {
-            anthemIssues.push(
-              `Precizitāte pārāk zema: ${anthemResult.accuracy.toFixed(1)}% (nepieciešams: ${SCORING_THRESHOLDS.ANTHEM_PASS_PERCENTAGE}%)`
-            )
-          }
-        } catch {
-          anthemIssues.push('Neizdevās analizēt himnas tekstu')
-        }
       }
+      // Accuracy validation removed - will be checked only in final results
     }
 
     // History validation
@@ -317,13 +303,7 @@ export function SubmissionPanel({
             <AlertDescription>
               <strong>Eksāmens ir gatavs iesniegšanai!</strong>
               <br />
-              Visas sekcijas ir pareizi pabeigtas un atbilst prasībām.
-              {detailedStatus.anthem.accuracy > 0 && (
-                <div className="mt-2 text-sm">
-                  Himnas precizitāte:{' '}
-                  {detailedStatus.anthem.accuracy.toFixed(1)}%
-                </div>
-              )}
+              Visas sekcijas ir pabeigtas. Precizitāte tiks novērtēta rezultātos.
             </AlertDescription>
           </Alert>
         )}
