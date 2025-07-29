@@ -449,8 +449,15 @@ export function ConfirmationDialog({
     }
   }
 
+  const handleOpenChange = (isOpen: boolean) => {
+    // Only close when explicitly setting to false
+    if (!isOpen) {
+      onClose()
+    }
+  }
+
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
         className="max-w-2xl max-h-[90vh] overflow-y-auto"
         aria-describedby="dialog-description"
