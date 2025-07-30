@@ -1,0 +1,1456 @@
+{
+  "nationalAnthem": [
+    "Dievs, svētī Latviju,",
+    "Mūs' dārgo tēviju,",
+    "Svētī jel Latviju,",
+    "Ak, svētī jel to!",
+    "Kur latvju meitas zied,",
+    "Kur latvju dēli dzied,",
+    "Laid mums tur laimē diet,",
+    "Mūs' Latvijā!"
+  ],
+  "historyQuestions": [
+    {
+      "id": 1,
+      "question": "Ko simbolizē trīs zvaigznes Brīvības piemineklī?",
+      "options": [
+        "Trīs Baltijas valstis: Latviju, Lietuvu, Igauniju",
+        "Trīs Latvijas vēsturiskos novadus: Kurzemi, Vidzemi, Latgali",
+        "Trīs Latvijas novadus: Kurzemi, Zemgali, Vidzemi"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 2,
+      "question": "Ar kurām valstīm Latvijai ir sauszemes robeža?",
+      "options": [
+        "Lietuva, Polija, Krievija, Baltkrievija",
+        "Lietuva, Igaunija, Krievija, Baltkrievija",
+        "Krievija, Baltkrievija, Ukraina, Polija"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 3,
+      "question": "Kāda bija Krievijas impērijas īstenotā nacionālā politika Latvijas teritorijā 19. gadsimta beigās?",
+      "options": [
+        "Atbalsts latviešu kultūras attīstībai",
+        "Pārvācošana",
+        "Pārkrievošana"
+      ],
+      "correctAnswer": 2
+    },
+    {
+      "id": 4,
+      "question": "Kuri cilvēki uzsāka latviešu tautas pirmo atmodu - jaunlatviešu kustību?",
+      "options": [
+        "J. Rainis, R. Blaumanis, E. Veidenbaums",
+        "K. Valdemārs, A. Kronvalds, J. Alunāns",
+        "G. Merķelis, J.G.Herders, J.Cimze"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 5,
+      "question": "Kad tika pasludināta neatkarīga Latvijas valsts?",
+      "options": [
+        "1918. gada 18. novembrī",
+        "1918. gada 11. novembrī",
+        "1990. gada 4. maijā"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 6,
+      "question": "Kurš bija pirmais demokrātiski ievēlētais Latvijas prezidents?",
+      "options": [
+        "Kārlis Ulmanis",
+        "Guntis Ulmanis",
+        "Jānis Čakste"
+      ],
+      "correctAnswer": 2
+    },
+    {
+      "id": 7,
+      "question": "Kāds politiskais režīms bija Latvijā laikā no 1920. līdz 1934. gadam?",
+      "options": [
+        "Demokrātisks",
+        "Autoritārs",
+        "Totalitārs"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 8,
+      "question": "Kas notika Latvijā 1940. gada 17. jūnijā?",
+      "options": [
+        "Latvija tika uzņemta Tautu savienībā",
+        "Latvijā ienāca vācu karaspēks, Latvija tika okupēta",
+        "Latvijā ienāca Padomju Savienības karaspēks, Latvija tika okupēta"
+      ],
+      "correctAnswer": 2
+    },
+    {
+      "id": 9,
+      "question": "Kāpēc 25. marts ir atceres diena Latvijā?",
+      "options": [
+        "Notika zemestrīce",
+        "Latvijas iedzīvotāji tika deportēti – izvesti uz Sibīriju",
+        "Latvijā ienāca Padomju Savienības karaspēks, Latvija tika okupēta"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 10,
+      "question": "Kādai sabiedriski politiskai organizācijai bija izšķiroša loma Latvijas valsts neatkarības atjaunošanā?",
+      "options": [
+        "Komunistiskajai partijai",
+        "Partijai \"Latvijas ceļš\"",
+        "Latvijas Tautas frontei"
+      ],
+      "correctAnswer": 2
+    },
+    {
+      "id": 11,
+      "question": "Kurš ir Latvijas himnas autors?",
+      "options": [
+        "Kārlis Blaumanis",
+        "Kārlis Baumanis",
+        "Kārlis Zāle"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 12,
+      "question": "Kurš ir Latvijas valsts augstākais apbalvojums?",
+      "options": [
+        "Zvaigznes ordenis",
+        "Trīszvaigžņu ordenis",
+        "Viestura ordenis"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 13,
+      "question": "Kuri ir Latvijas vēsturiskie apgabali?",
+      "options": [
+        "Kurzeme, Vidzeme, Latgale",
+        "Vidzeme, Zemgale, Kurzeme, Limbaži",
+        "Vidzeme, Latgale, Kurzeme, Zemgale"
+      ],
+      "correctAnswer": 2
+    },
+    {
+      "id": 14,
+      "question": "Kādas sekas bija krustnešu iebrukumam Latvijas teritorijā 13.gs.?",
+      "options": [
+        "Vietējās ciltis zaudēja brīvību un tika pievērstas Kristietībai",
+        "Vietējās ciltis ieguva labākas iespējas",
+        "Vietējo cilšu dzīvē nekas nemainījās"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 15,
+      "question": "Kas sekmēja ekonomiskās pārmaiņas Latvijā 19.gs. beigās?",
+      "options": [
+        "Vācu muižnieku aktivitāte",
+        "Izglītības līmeņa paaugstināšanās",
+        "Dzimtbūšanas atcelšana"
+      ],
+      "correctAnswer": 2
+    },
+    {
+      "id": 16,
+      "question": "Kāds nozīmīgs notikums pasaulē 1918.gadā veicināja neatkarīgas Latvijas valsts izveidošanos?",
+      "options": [
+        "Krievijas impērijas sabrukums",
+        "Satversmes sapulces darbība Krievijā",
+        "Saules aptumsums"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 17,
+      "question": "Ko izcīnīja Latvijas tauta laikā no 1918. – 1920.gadam?",
+      "options": [
+        "Iespēju būvēt Brīvības pieminekli",
+        "Svešzemnieku aizbraukšanu no Latvijas",
+        "Brīvību un iespēju veidot savu valsti"
+      ],
+      "correctAnswer": 2
+    },
+    {
+      "id": 18,
+      "question": "Kas notika ar Latvijas ebrejiem un čigāniem Otrā pasaules kara laikā?",
+      "options": [
+        "Šīs tautas tika sistemātiski iznīcinātas",
+        "Šīs tautas tika izvestas no Latvijas uz Vāciju",
+        "To pārstāvji tika iesaukti Vācijas armijā"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 19,
+      "question": "Kāpēc Latvijā ir nozīmīgs 2004.gada 1.maijs?",
+      "options": [
+        "Latvija kļuva par pilntiesīgu Eiropas Savienības dalībvalsti",
+        "Latvija pievienojās NVS",
+        "Latvijā vizītē ieradās ASV prezidents"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 20,
+      "question": "Kuri ir nozīmīgākie klasiskās mūzikas dzīves centri Latvijā?",
+      "options": [
+        "Lielais Dzintars, Jēkaba katedrāle",
+        "Nacionālā Opera, Mūzikas Akadēmija",
+        "Dzintaru koncertzāle, Gors"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 21,
+      "question": "Kā Latvijas ģeogrāfiskais stāvoklis ietekmē Latvijas ekonomisko attīstību?",
+      "options": [
+        "Sekmē tranzīta attīstību",
+        "Ļauj nodarboties ar vīnogulāju audzēšanu",
+        "Labvēlīgs tēraudliešanai"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 22,
+      "question": "Kādi apstākļi šobrīd nosaka Latvijas iedzīvotāju skaita samazināšanos?",
+      "options": [
+        "Klimats kļūst aukstāks",
+        "Latvijā iebrauc daudz ārzemnieku",
+        "Dzimst maz bērnu un cilvēki emigrē"
+      ],
+      "correctAnswer": 2
+    },
+    {
+      "id": 23,
+      "question": "Kurā gadsimtā sāka darboties pirmās latviešu skolas?",
+      "options": [
+        "19.gadsimtā",
+        "16.gadsimtā",
+        "Pēc neatkarības pasludināšanas"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 24,
+      "question": "Kā Pirmais pasaules karš ietekmēja situāciju Latvijas teritorijā?",
+      "options": [
+        "Attīstījās kara rūpniecība: tehnikas un ieroču ražošana",
+        "Attīstījās lauksaimniecība, īpaši lopkopība",
+        "Tika evakuēti rūpniecības uzņēmumi un iedzīvotāji"
+      ],
+      "correctAnswer": 2
+    },
+    {
+      "id": 25,
+      "question": "Kāpēc 11.novembrī Latvijā tiek atzīmēta Lāčplēša diena?",
+      "options": [
+        "Latvijas armija izcīnīja nozīmīgo uzvaru Brīvības cīņās",
+        "Tā ir Lāčplēša dzimšanas diena",
+        "Latviju atzina Eiropas valstis"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 26,
+      "question": "Kādi apstākļi veicināja lauksaimniecības un rūpniecības attīstību 20.gs.20.gadu sākumā?",
+      "options": [
+        "Aizdevumi",
+        "Satversmes pieņemšana",
+        "Agrārā reforma"
+      ],
+      "correctAnswer": 2
+    },
+    {
+      "id": 27,
+      "question": "Kā sauc pieminekli, kuru par tautas saziedotajiem līdzekļiem atklāja 1935.gadā Rīgā?",
+      "options": [
+        "Ata Kronvalda piemineklis",
+        "Brīvības piemineklis",
+        "Kārļa Ulmaņa piemineklis"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 28,
+      "question": "Kā Latvijā tika realizēta rūpniecības attīstība padomju varas gados?",
+      "options": [
+        "Izveidojot daudz privāto uzņēmumu",
+        "Ievedot izejvielas un darbaspēku no citām republikām",
+        "Ražojot no vietējām izejvielām un vietējam patēriņam"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 29,
+      "question": "Kādu nozīmīgu dokumentu 1990.gada 4.maijā pieņēma LPSR Augstākā Padome?",
+      "options": [
+        "Deklarāciju par Latvijas Republikas neatkarības atjaunošanu",
+        "Deklarāciju par atbalstu pārbūves politikai",
+        "Deklarāciju par demokrātijas ieviešanu"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 30,
+      "question": "Kuriem režisoriem ir nozīmīga loma latviešu teātra mākslas attīstībā laikā no 20.gs.20.līdz 60.gadiem?",
+      "options": [
+        "Eduardam Smiļģim, Ernestam Feldmanim",
+        "Imantam Ziedonim, Ojāram Vācietim",
+        "Alfredam Jaunušānam, Arnoldam Liniņam"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 31,
+      "question": "Latvijas lielākā dabas bagātība ir?",
+      "options": [
+        "Māls",
+        "Smilšakmens",
+        "Meži"
+      ],
+      "correctAnswer": 2
+    },
+    {
+      "id": 32,
+      "question": "Kā krusta kari Eiropā ietekmēja Latvijas teritorijā dzīvojošo tautu likteni?",
+      "options": [
+        "Tautas tika atbrīvotas",
+        "Tautas tika pakļautas",
+        "Nekā neietekmēja"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 33,
+      "question": "Ar kuru kustību 19. gs. 50. – 60 gados aizsākās latviešu tautas nacionālā atmoda?",
+      "options": [
+        "Jaunstrāvnieki",
+        "Jaunlatvieši",
+        "Vecticībnieki"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 34,
+      "question": "Kāpēc Latvijas vēsturē nozīmīgs ir 18. novembris?",
+      "options": [
+        "Pirmo reizi tiek pasludināta Latvijas neatkarība",
+        "Tiek ievēlēts pirmais Latvijas prezidents",
+        "Tiek atbrīvota Rīga"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 35,
+      "question": "Kādā nozīmīgā pasākumā pirmo reizi publiski izpildīja \"Dievs, svētī Latviju!\"?",
+      "options": [
+        "Rīgas Latviešu biedrības atklāšanā",
+        "Pirmo Vispārējo dziedāšanas svētku laikā",
+        "Latvijas un Padomju Krievijas miera līguma parakstīšanas ceremonijā"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 36,
+      "question": "Kāds būtisks vēsturisks notikums notika 1934.g. 15. maijā?",
+      "options": [
+        "Tika atklāts Brīvības piemineklis",
+        "Latvija zaudēja neatkarību",
+        "Apvērsums, pēc kura sāka valdīt K.Ulmaņa autoritārais režīms"
+      ],
+      "correctAnswer": 2
+    },
+    {
+      "id": 37,
+      "question": "14.jūnijā ir atceres diena",
+      "options": [
+        "Kritušajiem karavīriem",
+        "Deportāciju upuriem",
+        "Visiem mirušajiem"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 38,
+      "question": "Kurai sabiedriski nozīmīgai organizācijai bija svarīga loma Latvijas neatkarības atjaunošanā?",
+      "options": [
+        "Jaunlatvieši",
+        "Jaunā strāva",
+        "Latvijas Tautas fronte"
+      ],
+      "correctAnswer": 2
+    },
+    {
+      "id": 39,
+      "question": "Kāpēc latviešu kultūrā ir nozīmīgs Krišjānis Barons?",
+      "options": [
+        "Dainu tēvs",
+        "Izcils dzejnieks",
+        "Brīvības cīnītājs"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 40,
+      "question": "Kad tika dibināta Rīga?",
+      "options": [
+        "1200. gadā",
+        "1201. gadā",
+        "1206. gadā"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 41,
+      "question": "Kurš dibināja Rīgu?",
+      "options": [
+        "Alberts fon Buksthēdens",
+        "Meinards",
+        "Bertolds"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 42,
+      "question": "Kad notika pirmā latviešu Dziesmu svētki?",
+      "options": [
+        "1873. gadā",
+        "1869. gadā",
+        "1864. gadā"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 43,
+      "question": "Kas bija 'jaunlatviešu' kustības vadītājs?",
+      "options": [
+        "Krišjānis Valdemārs",
+        "Krišjānis Barons",
+        "Atis Kronvalds"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 44,
+      "question": "Kad Latvija iestājās Eiropas Savienībā?",
+      "options": [
+        "2003. gadā",
+        "2004. gadā",
+        "2005. gadā"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 45,
+      "question": "Kad Latvija iestājās NATO?",
+      "options": [
+        "2003. gadā",
+        "2004. gadā",
+        "2005. gadā"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 46,
+      "question": "Cik ilgi ilga Latvijas neatkarības karš?",
+      "options": [
+        "1918-1920",
+        "1919-1920",
+        "1918-1921"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 47,
+      "question": "Kurā gadā tika pieņemta pirmā Latvijas Satversme?",
+      "options": [
+        "1921. gadā",
+        "1922. gadā",
+        "1920. gadā"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 48,
+      "question": "Kad sākās padomju okupācija Latvijā?",
+      "options": [
+        "1939. gadā",
+        "1940. gadā",
+        "1941. gadā"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 49,
+      "question": "Kāds bija Rīgas dibināšanas mērķis?",
+      "options": [
+        "Tirdzniecības centrs",
+        "Katoļu ticības izplatīšana",
+        "Militāra cietoksnis"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 50,
+      "question": "Kurš bija pirmais latviešu valodas pētnieks?",
+      "options": [
+        "Juris Alunāns",
+        "Garlieb Merkel",
+        "Gotthard Friedrich Stender"
+      ],
+      "correctAnswer": 2
+    },
+    {
+      "id": 51,
+      "question": "Kad tika atjaunota Latvijas neatkarība?",
+      "options": [
+        "4. maijā 1990. gadā",
+        "21. augustā 1991. gadā",
+        "6. septembrī 1991. gadā"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 52,
+      "question": "Kas bija 'Atmodas' kustība?",
+      "options": [
+        "Kultūras kustība",
+        "Neatkarības atgūšanas kustība",
+        "Ekonomikas reforma"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 53,
+      "question": "Kurš uzrakstīja Latvijas himnas vārdus?",
+      "options": [
+        "Baumaņu Kārlis",
+        "Jānis Cimze",
+        "Krišjānis Barons"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 54,
+      "question": "Cik gadu ilga vācu okupācija Otrajā pasaules karā?",
+      "options": [
+        "2 gadus",
+        "3 gadus",
+        "4 gadus"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 55,
+      "question": "Kas bija latviešu nacionālā atmodas sākums?",
+      "options": [
+        "18. gadsimta beigas",
+        "19. gadsimta vidus",
+        "19. gadsimta sākums"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 56,
+      "question": "Kāda bija Barikāžu dienas nozīme?",
+      "options": [
+        "Demokrātijas aizsardzība",
+        "Ekonomiska protesta",
+        "Kultūras svētki"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 57,
+      "question": "Kad notika Barikāžu dienas?",
+      "options": [
+        "1990. gada janvārī",
+        "1991. gada janvārī",
+        "1992. gada janvārī"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 58,
+      "question": "Kas bija 'Tautas frontes' mērķis?",
+      "options": [
+        "Kultūras attīstība",
+        "Neatkarības atgūšana",
+        "Ekonomikas uzlabošana"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 59,
+      "question": "Kurā gadā tika izveidota Tautas fronte?",
+      "options": [
+        "1987. gadā",
+        "1988. gadā",
+        "1989. gadā"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 60,
+      "question": "Kas bija Latvijas PSR?",
+      "options": [
+        "Padomju Sociālistiskā Republika",
+        "Politiskā partija",
+        "Kultūras organizācija"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 61,
+      "question": "Kāds bija Molotova-Ribentropa pakta rezultāts Latvijai?",
+      "options": [
+        "Neatkarības zaudēšana",
+        "Teritorijas palielināšana",
+        "Ekonomiskā izaugsme"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 62,
+      "question": "Kas bija deportācijas 1941. gadā?",
+      "options": [
+        "Brīvprātīga izceļošana",
+        "Piespiedu izraidīšana",
+        "Darba migrācija"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 63,
+      "question": "Kurā gadā notika lielākā deportācija?",
+      "options": [
+        "1941. gadā",
+        "1949. gadā",
+        "1953. gadā"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 64,
+      "question": "Kas bija mežabrāļi?",
+      "options": [
+        "Partizāni",
+        "Meža aizsargi",
+        "Mednieki"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 65,
+      "question": "Cik ilgi darbojās mežabrāļu kustība?",
+      "options": [
+        "5 gadus",
+        "10 gadus",
+        "15 gadus"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 66,
+      "question": "Kas bija kolektivizācija?",
+      "options": [
+        "Kultūras reforma",
+        "Zemkopības reforma",
+        "Izglītības reforma"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 67,
+      "question": "Kurā gadā beidzās kolektivizācija?",
+      "options": [
+        "1949. gadā",
+        "1950. gadā",
+        "1951. gadā"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 68,
+      "question": "Kas ir Rundāles pils?",
+      "options": [
+        "Kurzemes hercogu rezidence",
+        "Zviedru karaspēka bāze",
+        "Baznīca"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 69,
+      "question": "Kurš cēla Rundāles pili?",
+      "options": [
+        "Bartolomeo Rastrelli",
+        "Johann Gotfried Herder",
+        "Ernst Glück"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 70,
+      "question": "Kāda ir Latvijas nacionālā ēka?",
+      "options": [
+        "Rīgas pils",
+        "Brīvības piemineklis",
+        "Nacionālā opera"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 71,
+      "question": "Kad tika celts Brīvības piemineklis?",
+      "options": [
+        "1931-1935",
+        "1928-1932",
+        "1933-1937"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 72,
+      "question": "Kas ir Latvijas valsts putns?",
+      "options": [
+        "Baltstārķis",
+        "Pīle",
+        "Dzērve"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 73,
+      "question": "Kas ir Latvijas valsts zieds?",
+      "options": [
+        "Pīpene",
+        "Smilga",
+        "Kamolītis"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 74,
+      "question": "Kāds ir Latvijas valsts koks?",
+      "options": [
+        "Ozols",
+        "Liepa",
+        "Bērzs"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 75,
+      "question": "Kāds ir Latvijas valsts dārgakmens?",
+      "options": [
+        "Dzintars",
+        "Dimants",
+        "Smaragds"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 76,
+      "question": "Kas bija Kārļa Ulmaņa valsts apvērsums?",
+      "options": [
+        "1933. gads",
+        "1934. gads",
+        "1935. gads"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 77,
+      "question": "Kas bija Krišjānis Barons?",
+      "options": [
+        "Dainu krājējs",
+        "Rakstnieks",
+        "Politiķis"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 78,
+      "question": "Kad tika proklamēta Latvijas Republikas neatkarība?",
+      "options": [
+        "18. novembrī 1918. gadā",
+        "4. maijā 1990. gadā",
+        "21. augustā 1991. gadā"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 79,
+      "question": "Kurš bija pirmais Latvijas Republikas prezidents?",
+      "options": [
+        "Jānis Čakste",
+        "Kārlis Ulmanis",
+        "Gustavs Zemgals"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 80,
+      "question": "Kāds bija Kārļa Ulmaņa autoritārā režīma periods?",
+      "options": [
+        "1934-1940",
+        "1933-1939",
+        "1935-1941"
+      ],
+      "correctAnswer": 0
+    }
+  ],
+  "constitutionQuestions": [
+    {
+      "id": 1,
+      "question": "Uz cik gadiem Latvijas pilsoņi ievēlē Saeimu?",
+      "options": [
+        "Uz 3 gadiem",
+        "Uz 4 gadiem",
+        "Uz 5 gadiem"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 2,
+      "question": "Kura ir valsts valoda Latvijā?",
+      "options": [
+        "Latviešu valoda",
+        "Līvu (lībiešu valoda)",
+        "Latviešu un krievu valoda"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 3,
+      "question": "Cik gadus pēc kārtas viens un tā pati persona var pildīt Valsts prezidenta pienākumus?",
+      "options": [
+        "4 gadus",
+        "6 gadus, ja Saeima neiebilst",
+        "8 gadus, ja Saeima šo personu ievēlē atkārtoti"
+      ],
+      "correctAnswer": 2
+    },
+    {
+      "id": 4,
+      "question": "Kam pieder augstākā izpildvara Latvijā?",
+      "options": [
+        "Saeimai",
+        "Ministru kabinetam",
+        "Latvijas tautai"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 5,
+      "question": "Kam ir tiesības uz advokāta palīdzību?",
+      "options": [
+        "Latvijas pilsoņiem",
+        "Visiem, kas likumīgi uzturas Latvijas teritorijā",
+        "Ikvienam"
+      ],
+      "correctAnswer": 2
+    },
+    {
+      "id": 6,
+      "question": "Kādos gadījumos var atņemt vai ierobežot personas tiesības?",
+      "options": [
+        "Likumā paredzētajos gadījumos",
+        "Ja ir tiesas lēmums",
+        "Ja tās apdraud valsti"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 7,
+      "question": "Vai Latvijas Valsts budžets var tikt nodots tautas nobalsošanai?",
+      "options": [
+        "Var, ja tauta to pieprasa",
+        "Var, ja Saeima neapstiprina budžetu",
+        "Nevar nekādā gadījumā"
+      ],
+      "correctAnswer": 2
+    },
+    {
+      "id": 8,
+      "question": "Kas aizsargā cilvēka godu un cieņu?",
+      "options": [
+        "Policija un tiesa",
+        "Valsts",
+        "Likums"
+      ],
+      "correctAnswer": 2
+    },
+    {
+      "id": 9,
+      "question": "Kam Latvijā pieder augstākā likumdošanas vara?",
+      "options": [
+        "Ministru kabinetam",
+        "Saeimai",
+        "Augstākajai tiesai"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 10,
+      "question": "Uz cik gadiem tiek ievēlēts valsts prezidents?",
+      "options": [
+        "Uz 8 gadiem",
+        "Uz 4 gadiem",
+        "Uz 3 gadiem"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 11,
+      "question": "Kam ir tiesības atzīt likumus un citus normatīvos aktus par spēkā neesošiem?",
+      "options": [
+        "Valsts prezidentam",
+        "Augstākajai tiesai",
+        "Satversmes tiesai"
+      ],
+      "correctAnswer": 2
+    },
+    {
+      "id": 12,
+      "question": "Kam ir tiesības pildīt valsts dienestu?",
+      "options": [
+        "Latvijas pilsoņiem",
+        "Ikvienam",
+        "Eiropas Savienības pilsoņiem"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 13,
+      "question": "Kam ir tiesības brīvi pārvietoties un izvēlēties dzīvesvietu Latvijas teritorijā?",
+      "options": [
+        "Ikvienam",
+        "Ikvienam, kas likumīgi uzturas Latvijas teritorijā",
+        "Latvijas pilsoņiem"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 14,
+      "question": "Kādā gadījumā drīkst atņemt vai ierobežot personas tiesības?",
+      "options": [
+        "Ja ir tiesas lēmums",
+        "Ja personai nav dokumentu",
+        "Ja to paredz likums"
+      ],
+      "correctAnswer": 2
+    },
+    {
+      "id": 15,
+      "question": "Kas ir tiesīgs veidot ministru kabinetu?",
+      "options": [
+        "Valsts prezidents",
+        "Persona, ko uzaicina Valsts prezidents",
+        "Ministri un premjerministrs"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 16,
+      "question": "Kas veido Latvijas teritoriju?",
+      "options": [
+        "Latvijas robežas",
+        "Rīga, Alūksne, Daugavpils, Liepāja",
+        "Kurzeme, Zemgale, Vidzeme, Latgale"
+      ],
+      "correctAnswer": 2
+    },
+    {
+      "id": 17,
+      "question": "Cik deputātu ir Saeimā?",
+      "options": [
+        "Simts deputātu",
+        "Simts divdesmit deputātu",
+        "Astoņdesmit deputātu"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 18,
+      "question": "Kas nosaka Saeimas iekšējās darbības kārtību?",
+      "options": [
+        "Saeimas kārtības noteikumi",
+        "Saeimas kārtības rullis",
+        "Satversme"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 19,
+      "question": "Kam ir tiesības apžēlot noziedzniekus?",
+      "options": [
+        "Tiesai",
+        "Ministru kabinetam",
+        "Valsts prezidentam"
+      ],
+      "correctAnswer": 2
+    },
+    {
+      "id": 20,
+      "question": "Kam ir tiesības iestāties partijās un sabiedriskās organizācijās?",
+      "options": [
+        "Latvijas pilsoņiem",
+        "Eiropas Savienības pilsoņiem",
+        "Ikvienam"
+      ],
+      "correctAnswer": 2
+    },
+    {
+      "id": 21,
+      "question": "Kam ir tiesības uz izglītību?",
+      "options": [
+        "Ikvienam",
+        "Tikai Latvijas pilsoņiem",
+        "Tikai Eiropas Savienības pilsoņiem"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 22,
+      "question": "Kam ir tiesības zināt savas tiesības?",
+      "options": [
+        "Policistiem",
+        "Ikvienam",
+        "Ikvienam, kam ir advokāts"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 23,
+      "question": "Kam ir tiesības piedalīties valsts pārvaldē un pildīt valsts dienestu?",
+      "options": [
+        "Ikvienam",
+        "Visiem Latvijas pilsoņiem",
+        "Eiropas Savienības pilsoņiem"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 24,
+      "question": "Kam pieder Latvijas suverenā vara?",
+      "options": [
+        "Latvijas tautai",
+        "Saeimai",
+        "Prezidentam"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 25,
+      "question": "No cik gadu vecuma pilsoņi var tikt ievēlēti Saeimā?",
+      "options": [
+        "21",
+        "18",
+        "24"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 26,
+      "question": "Cik termiņus pēc kārtas viena un tā pati persona var būt Valsts prezidents?",
+      "options": [
+        "Divus",
+        "Trīs",
+        "Vienu"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 27,
+      "question": "Kas aizsargā personas tiesības uz dzīvību?",
+      "options": [
+        "Municipālā policija",
+        "Prokuratūra",
+        "Likums"
+      ],
+      "correctAnswer": 2
+    },
+    {
+      "id": 28,
+      "question": "Kam ir tiesības brīvi izbraukt no Latvijas?",
+      "options": [
+        "Ikvienam",
+        "Tikai Latvijas pilsoņiem",
+        "Tikai citu valstu pilsoņiem"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 29,
+      "question": "Kam ir tiesības brīvi atgriezties Latvijā?",
+      "options": [
+        "Latvijas un Eiropas Savienības valstu pilsoņiem",
+        "Ikvienam, kam ir Latvijas pase",
+        "Tikai Latvijas pilsoņiem"
+      ],
+      "correctAnswer": 2
+    },
+    {
+      "id": 30,
+      "question": "Kas ir Latvijas Republikas augstākā valsts vara?",
+      "options": [
+        "Saeima",
+        "Prezidents",
+        "Ministru kabinets"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 31,
+      "question": "Kurš ievēl Latvijas Republikas Prezidentu?",
+      "options": [
+        "Tauta",
+        "Saeima",
+        "Ministru kabinets"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 32,
+      "question": "Kas ir referendums?",
+      "options": [
+        "Tautas nobalsošana",
+        "Saeimas sēde",
+        "Prezidenta vēlēšanas"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 33,
+      "question": "Cik pilsoņu paraksti nepieciešami, lai iniciētu referendumu?",
+      "options": [
+        "10% no vēlētājiem",
+        "15% no vēlētājiem",
+        "20% no vēlētājiem"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 34,
+      "question": "Kuras Satversmes nodaļas nevar grozīt referendumā?",
+      "options": [
+        "1., 2., 3., 4., 6. un 77. pants",
+        "Visas nodaļas var grozīt",
+        "Tikai 1. un 2. pants"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 35,
+      "question": "Kas ir vēlēšanu tiesības?",
+      "options": [
+        "Tikai pilsoņiem",
+        "Visiem iedzīvotājiem",
+        "Tikai nodokļu maksātājiem"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 36,
+      "question": "No kāda vecuma ir vēlēšanu tiesības?",
+      "options": [
+        "16 gadiem",
+        "18 gadiem",
+        "21 gadam"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 37,
+      "question": "Kāds ir vēlēšanu princips Latvijā?",
+      "options": [
+        "Proporcionālās pārstāvniecības",
+        "Vairākuma",
+        "Jaukts"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 38,
+      "question": "Kas ir Latvijas valsts reliģija?",
+      "options": [
+        "Luterānisms",
+        "Katoļticība",
+        "Nav valsts reliģijas"
+      ],
+      "correctAnswer": 2
+    },
+    {
+      "id": 39,
+      "question": "Kas garantē cilvēka pamattiesības Latvijā?",
+      "options": [
+        "Satversme",
+        "Kriminālkodekss",
+        "Civilkodekss"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 40,
+      "question": "Kāda ir Latvijas valsts iekārta?",
+      "options": [
+        "Parlamentāra republika",
+        "Prezidenta republika",
+        "Monarhija"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 41,
+      "question": "Kas var parakstīt starptautiskos līgumus?",
+      "options": [
+        "Prezidents",
+        "Ministru prezidents",
+        "Ārlietu ministrs"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 42,
+      "question": "Kādas ir tiesu varas pamatfunkcijas?",
+      "options": [
+        "Tiesāt un sodīt",
+        "Likumu pieņemšana",
+        "Valdības vadīšana"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 43,
+      "question": "Kas ir pašvaldība?",
+      "options": [
+        "Vietējā pārvalde",
+        "Valsts institūcija",
+        "Privāta organizācija"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 44,
+      "question": "Kā tiek ievēlēti pašvaldību deputāti?",
+      "options": [
+        "Prezidents ieceļ",
+        "Tauta ievēl",
+        "Saeima ieceļ"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 45,
+      "question": "Kāds ir Latvijas valsts moto?",
+      "options": [
+        "\"Tēvzemei un Brīvībai\"",
+        "\"Vienoti Latvijā\"",
+        "Latvijā nav oficiāla moto"
+      ],
+      "correctAnswer": 2
+    },
+    {
+      "id": 46,
+      "question": "Cik kultūrvēsturiskie novadi ir Latvijā?",
+      "options": [
+        "3",
+        "4",
+        "5"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 47,
+      "question": "Kuri ir Latvijas kultūrvēsturiskie novadi?",
+      "options": [
+        "Vidzeme, Kurzeme, Zemgale, Latgale",
+        "Rīga, Daugavpils, Liepāja, Jelgava",
+        "Ziemeļi, Dienvidi, Austrumi, Rietumi"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 48,
+      "question": "Kurš ir Latvijas valsts galvaspilsēta?",
+      "options": [
+        "Daugavpils",
+        "Rīga",
+        "Liepāja"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 49,
+      "question": "Kāds ir Latvijas karogs?",
+      "options": [
+        "Balts ar sarkanu svītru",
+        "Sarkans ar baltu svītru",
+        "Zils ar baltu svītru"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 50,
+      "question": "Kurš apstiprina likumus Latvijā?",
+      "options": [
+        "Prezidents",
+        "Saeima",
+        "Ministru kabinets"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 51,
+      "question": "Kas ir Satversmes tiesa?",
+      "options": [
+        "Likumdošanas vara",
+        "Tiesu vara",
+        "Izpildvara"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 52,
+      "question": "Cik tiesneši darbojas Satversmes tiesā?",
+      "options": [
+        "5",
+        "7",
+        "9"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 53,
+      "question": "Kas ieceļ Satversmes tiesas tiesnešus?",
+      "options": [
+        "Prezidents",
+        "Saeima",
+        "Ministru kabinets"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 54,
+      "question": "Kāds ir minimālais vecums, lai kandidētu uz Saeimu?",
+      "options": [
+        "18 gadi",
+        "21 gads",
+        "25 gadi"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 55,
+      "question": "Kāds ir minimālais vecums, lai kandidētu uz Prezidentu?",
+      "options": [
+        "35 gadi",
+        "40 gadi",
+        "45 gadi"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 56,
+      "question": "Kas ieceļ Ministru prezidentu?",
+      "options": [
+        "Saeima",
+        "Prezidents",
+        "Tauta"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 57,
+      "question": "Kas apstiprina Ministru kabinetu?",
+      "options": [
+        "Prezidents",
+        "Saeima",
+        "Satversmes tiesa"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 58,
+      "question": "Cik deputātu ir Saeimā?",
+      "options": [
+        "100",
+        "101",
+        "99"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 59,
+      "question": "Uz cik gadiem tiek ievēlēta Saeima?",
+      "options": [
+        "3 gadiem",
+        "4 gadiem",
+        "5 gadiem"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 60,
+      "question": "Kāda ir Latvijas valsts valoda?",
+      "options": [
+        "Latviešu un krievu",
+        "Tikai latviešu",
+        "Latviešu, krievu un angļu"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 61,
+      "question": "Uz cik gadiem ievēl Latvijas Republikas Prezidentu?",
+      "options": [
+        "3 gadiem",
+        "4 gadiem",
+        "5 gadiem"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 62,
+      "question": "Kas nosaka Saeimas deputātu skaitu?",
+      "options": [
+        "Satversme",
+        "Vēlēšanu likums",
+        "Ministru kabinets"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "id": 63,
+      "question": "Kāda ir prezidenta galvenā funkcija?",
+      "options": [
+        "Likumu pieņemšana",
+        "Valsts pārstāvēšana",
+        "Tiesnešu iecelšana"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "id": 64,
+      "question": "Kas nosaka Latvijas ārpolitiku?",
+      "options": [
+        "Prezidents",
+        "Saeima un Ministru kabinets",
+        "Ārlietu ministrija"
+      ],
+      "correctAnswer": 1
+    }
+  ]
+}

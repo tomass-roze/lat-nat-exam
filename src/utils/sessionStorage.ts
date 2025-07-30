@@ -131,10 +131,11 @@ function compressData(data: string): string {
     return data
   }
 
-  // Simple LZ-like compression for demo purposes
-  // In production, you might use a proper compression library
+  // Simple base64 encoding for compression simulation
   try {
-    return btoa(encodeURIComponent(data))
+    const encoded = btoa(encodeURIComponent(data))
+    // Only return compressed version if it's actually smaller
+    return encoded.length < data.length ? encoded : data
   } catch {
     return data
   }
@@ -144,10 +145,17 @@ function compressData(data: string): string {
  * Decompress data
  */
 function decompressData(data: string): string {
+  // First try to parse as regular JSON (uncompressed)
   try {
-    return decodeURIComponent(atob(data))
+    JSON.parse(data)
+    return data // It's already valid JSON, no decompression needed
   } catch {
-    return data
+    // Not valid JSON, try decompression
+    try {
+      return decodeURIComponent(atob(data))
+    } catch {
+      return data // Return as-is if decompression fails
+    }
   }
 }
 
@@ -199,6 +207,23 @@ export async function saveSessionData(
     // Get storage quota
     const quota = await getStorageQuota()
 
+    // Get existing metadata safely
+    let existingMetadata: SessionData['metadata'] | undefined
+    if (existingSessionId) {
+      try {
+        const existingData = sessionStorage.getItem(DEFAULT_CONFIG.STORAGE_KEY)
+        if (existingData) {
+          const decompressed = decompressData(existingData)
+          const parsed = JSON.parse(decompressed) as SessionData
+          if (parsed && parsed.metadata && isValidSessionData(parsed)) {
+            existingMetadata = parsed.metadata
+          }
+        }
+      } catch {
+        // Ignore parsing errors, will use default values
+      }
+    }
+
     // Create session data
     const sessionData: SessionData = {
       testState,
@@ -207,17 +232,9 @@ export async function saveSessionData(
       expiresAt: timestamp + DEFAULT_CONFIG.SESSION_DURATION,
       version: DEFAULT_CONFIG.SCHEMA_VERSION,
       metadata: {
-        createdAt: existingSessionId
-          ? JSON.parse(
-              sessionStorage.getItem(DEFAULT_CONFIG.STORAGE_KEY) || '{}'
-            ).metadata?.createdAt || timestamp
-          : timestamp,
+        createdAt: existingMetadata?.createdAt || timestamp,
         lastUpdated: timestamp,
-        saveCount: existingSessionId
-          ? (JSON.parse(
-              sessionStorage.getItem(DEFAULT_CONFIG.STORAGE_KEY) || '{}'
-            ).metadata?.saveCount || 0) + 1
-          : 1,
+        saveCount: (existingMetadata?.saveCount || 0) + 1,
         browserInfo: getBrowserInfo(),
         config: {
           autoSaveInterval: 30000,
@@ -232,14 +249,47 @@ export async function saveSessionData(
       checksum: '',
     }
 
-    // Serialize data
-    const serializedData = JSON.stringify(sessionData)
+    // Serialize data with error handling
+    let serializedData: string
+    try {
+      serializedData = JSON.stringify(sessionData)
+    } catch (error) {
+      return {
+        success: false,
+        error: createSessionError(
+          'SERIALIZATION_ERROR',
+          'Failed to serialize session data',
+          error instanceof Error ? error.message : 'JSON.stringify failed',
+          true,
+          'Try refreshing the page or clear browser data'
+        ),
+        dataSize: 0,
+        timestamp,
+      }
+    }
 
     // Calculate checksum
     sessionData.checksum = calculateChecksum(serializedData)
 
     // Re-serialize with checksum
-    const finalData = JSON.stringify(sessionData)
+    let finalData: string
+    try {
+      finalData = JSON.stringify(sessionData)
+    } catch (error) {
+      return {
+        success: false,
+        error: createSessionError(
+          'SERIALIZATION_ERROR',
+          'Failed to serialize session data with checksum',
+          error instanceof Error ? error.message : 'JSON.stringify failed',
+          true,
+          'Try refreshing the page or clear browser data'
+        ),
+        dataSize: 0,
+        timestamp,
+      }
+    }
+
     const compressedData = compressData(finalData)
 
     // Check if data would exceed quota
@@ -258,8 +308,23 @@ export async function saveSessionData(
       }
     }
 
-    // Save to sessionStorage
-    sessionStorage.setItem(DEFAULT_CONFIG.STORAGE_KEY, compressedData)
+    // Save to sessionStorage with error handling
+    try {
+      sessionStorage.setItem(DEFAULT_CONFIG.STORAGE_KEY, compressedData)
+    } catch (error) {
+      return {
+        success: false,
+        error: createSessionError(
+          'STORAGE_QUOTA_EXCEEDED',
+          'Failed to save to sessionStorage',
+          error instanceof Error ? error.message : 'sessionStorage.setItem failed',
+          true,
+          'Clear browser data or reduce storage usage'
+        ),
+        dataSize: compressedData.length,
+        timestamp,
+      }
+    }
 
     return {
       success: true,
@@ -432,6 +497,41 @@ export function clearSessionData(): boolean {
     }
 
     sessionStorage.removeItem(DEFAULT_CONFIG.STORAGE_KEY)
+    return true
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Force clear all exam-related session data (emergency cleanup)
+ */
+export function forceCleanSessionData(): boolean {
+  try {
+    if (!isSessionStorageAvailable()) {
+      return false
+    }
+
+    // Clear the main session key
+    sessionStorage.removeItem(DEFAULT_CONFIG.STORAGE_KEY)
+    
+    // Clear any other exam-related keys that might exist
+    const keysToRemove: string[] = []
+    for (let i = 0; i < sessionStorage.length; i++) {
+      const key = sessionStorage.key(i)
+      if (key && (key.includes('latvian') || key.includes('exam') || key.includes('session'))) {
+        keysToRemove.push(key)
+      }
+    }
+    
+    keysToRemove.forEach(key => {
+      try {
+        sessionStorage.removeItem(key)
+      } catch {
+        // Ignore individual removal errors
+      }
+    })
+    
     return true
   } catch {
     return false

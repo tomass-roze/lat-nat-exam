@@ -27,6 +27,7 @@ import {
   saveSessionData,
   loadSessionData,
   clearSessionData,
+  forceCleanSessionData,
   isSessionStorageAvailable,
   extendSession,
 } from '@/utils/sessionStorage'
@@ -78,6 +79,7 @@ type SessionAction =
   | { type: 'CLEAR_ERROR' }
   | { type: 'SESSION_EXPIRED' }
   | { type: 'STORAGE_UNAVAILABLE' }
+  | { type: 'RESET_TO_INITIAL' }
 
 /**
  * Create initial test state
@@ -292,6 +294,12 @@ function sessionReducer(
           ...state.autoSave,
           isActive: false,
         },
+      }
+
+    case 'RESET_TO_INITIAL':
+      return {
+        ...initialState,
+        hasStorage: state.hasStorage, // Preserve storage availability
       }
 
     default:
@@ -564,16 +572,14 @@ export function SessionProvider({
    * Clear session data
    */
   const clearSession = useCallback(() => {
-    clearSessionData()
-    dispatch({ type: 'SET_STATUS', payload: 'missing' })
-    dispatch({
-      type: 'SET_AUTO_SAVE_STATUS',
-      payload: {
-        isActive: false,
-        lastSave: 0,
-        failedAttempts: 0,
-      },
-    })
+    // First try normal clear, then force clean if needed
+    const cleared = clearSessionData()
+    if (!cleared) {
+      forceCleanSessionData()
+    }
+    
+    // Reset to completely blank initial state - this will trigger reinitialization
+    dispatch({ type: 'RESET_TO_INITIAL' })
   }, [])
 
   /**

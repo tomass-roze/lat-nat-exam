@@ -14,7 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { FocusTrap } from '@/components/accessibility/FocusTrap'
+// import { FocusTrap } from '@/components/accessibility/FocusTrap' // Temporarily removed for debugging
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
@@ -95,6 +95,12 @@ export function ConfirmationDialog({
 
   // Perform final validation when dialog opens
   useEffect(() => {
+    debugLogger.debug('validation', 'Validation effect triggered', { 
+      open, 
+      hasValidationResult: !!validationResult, 
+      hasValidationError: validationError.hasError 
+    })
+    
     if (open && !validationResult && !validationError.hasError) {
       logDialogOpen('ConfirmationDialog')
       logValidationStart(testState, 'dialog-open')
@@ -450,8 +456,11 @@ export function ConfirmationDialog({
   }
 
   const handleOpenChange = (isOpen: boolean) => {
+    debugLogger.debug('dialog', 'handleOpenChange called', { isOpen, currentOpen: open })
+    
     // Only close when explicitly setting to false
     if (!isOpen) {
+      debugLogger.debug('dialog', 'Closing dialog via handleOpenChange')
       onClose()
     }
   }
@@ -462,14 +471,8 @@ export function ConfirmationDialog({
         className="max-w-2xl max-h-[90vh] overflow-y-auto"
         aria-describedby="dialog-description"
       >
-        <FocusTrap
-          active={open}
-          onDeactivate={onClose}
-          focusTrapOptions={{
-            initialFocus: '[data-focus-first]',
-            escapeDeactivates: true,
-          }}
-        >
+        {/* Temporarily removing FocusTrap to debug dialog issues */}
+        <div>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Send className="h-5 w-5" />
@@ -707,7 +710,7 @@ export function ConfirmationDialog({
               </div>
             )}
           </DialogFooter>
-        </FocusTrap>
+        </div>
       </DialogContent>
     </Dialog>
   )

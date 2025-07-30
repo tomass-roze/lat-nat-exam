@@ -1,353 +1,60 @@
 /**
- * @fileoverview Latvian Constitution Knowledge Questions
+ * @fileoverview Constitution Questions Database
  *
- * Comprehensive collection of constitutional law questions for the Latvian citizenship
- * naturalization exam. Questions cover fundamental constitutional principles, rights,
- * government structure, and legislative processes as defined in the Latvijas Republikas Satversme.
+ * Contains all questions for the constitution section of the Latvian citizenship exam.
+ * Questions are now loaded from the official JSON database to ensure accuracy
+ * and consistency with the official exam materials.
  */
 
 import type { Question } from '@/types/questions'
+import { SCORING_THRESHOLDS } from '@/types/constants'
+import { OFFICIAL_CONSTITUTION_QUESTIONS } from './questionDatabase'
 
 /**
- * Pool of constitutional law questions for the Latvian citizenship exam.
- * Minimum 16 questions required for proper randomization (8 selected per exam).
+ * Validation result for question pools
  */
-export const CONSTITUTION_QUESTIONS: Question[] = [
-  {
-    id: 1,
-    question: 'Kad tika pieņemta spēkā esošā Latvijas Republikas Satversme?',
-    options: [
-      '1922. gada 15. februārī',
-      '1921. gada 15. februārī',
-      '1920. gada 15. februārī',
-    ],
-    correctAnswer: 0,
-    category: 'constitution',
-    metadata: {
-      source: 'Satversme, pieņemšanas datums',
-      tags: ['vēsture', 'satversme', 'dibināšana'],
-      lastUpdated: Date.now(),
-      author: 'Latvian Constitution',
-    },
-  },
-  {
-    id: 2,
-    question: 'Kurš ir Latvijas valsts prezidents pēc Satversmes?',
-    options: ['Valsts galva', 'Valdības vadītājs', 'Saeimas priekšsēdētājs'],
-    correctAnswer: 0,
-    category: 'constitution',
-    metadata: {
-      source: 'Satversme, 35. pants',
-      tags: ['prezidents', 'valsts galva', 'vara'],
-      lastUpdated: Date.now(),
-      author: 'Latvian Constitution',
-    },
-  },
-  {
-    id: 3,
-    question: 'Cik deputātu ir Saeimā?',
-    options: ['100 deputāti', '120 deputāti', '80 deputāti'],
-    correctAnswer: 0,
-    category: 'constitution',
-    metadata: {
-      source: 'Satversme, 5. pants',
-      tags: ['saeima', 'deputāti', 'likumdošana'],
-      lastUpdated: Date.now(),
-      author: 'Latvian Constitution',
-    },
-  },
-  {
-    id: 4,
-    question: 'Uz cik gadiem tiek ievēlēts Latvijas Valsts prezidents?',
-    options: ['4 gadiem', '5 gadiem', '6 gadiem'],
-    correctAnswer: 0,
-    category: 'constitution',
-    metadata: {
-      source: 'Satversme, 35. pants',
-      tags: ['prezidents', 'pilnvaru termiņš', 'vēlēšanas'],
-      lastUpdated: Date.now(),
-      author: 'Latvian Constitution',
-    },
-  },
-  {
-    id: 5,
-    question: 'Kas ir augstākā izpildvaras institūcija Latvijā?',
-    options: ['Ministru kabinets', 'Valsts prezidents', 'Saeimas prezidijs'],
-    correctAnswer: 0,
-    category: 'constitution',
-    metadata: {
-      source: 'Satversme, 55. pants',
-      tags: ['izpildvara', 'ministru kabinets', 'valdība'],
-      lastUpdated: Date.now(),
-      author: 'Latvian Constitution',
-    },
-  },
-  {
-    id: 6,
-    question: 'Kurš ieceļ un atceļ ministrus?',
-    options: ['Ministru prezidents', 'Valsts prezidents', 'Saeima'],
-    correctAnswer: 0,
-    category: 'constitution',
-    metadata: {
-      source: 'Satversme, 56. pants',
-      tags: ['ministri', 'ministru prezidents', 'iecelšana'],
-      lastUpdated: Date.now(),
-      author: 'Latvian Constitution',
-    },
-  },
-  {
-    id: 7,
-    question: 'Kas ir Latvijas augstākā tiesas institūcija?',
-    options: ['Augstākā tiesa', 'Satversmes tiesa', 'Administratīvā tiesa'],
-    correctAnswer: 0,
-    category: 'constitution',
-    metadata: {
-      source: 'Satversme, 82. pants',
-      tags: ['tiesu vara', 'augstākā tiesa', 'tiesības'],
-      lastUpdated: Date.now(),
-      author: 'Latvian Constitution',
-    },
-  },
-  {
-    id: 8,
-    question:
-      'Kāda ir minimālā vecuma prasība, lai kļūtu par Saeimas deputātu?',
-    options: ['21 gads', '18 gadi', '25 gadi'],
-    correctAnswer: 0,
-    category: 'constitution',
-    metadata: {
-      source: 'Satversme, 7. pants',
-      tags: ['saeima', 'deputāti', 'vecuma prasības'],
-      lastUpdated: Date.now(),
-      author: 'Latvian Constitution',
-    },
-  },
-  {
-    id: 9,
-    question: 'Uz cik gadiem tiek ievēlēta Saeima?',
-    options: ['4 gadiem', '3 gadiem', '5 gadiem'],
-    correctAnswer: 0,
-    category: 'constitution',
-    metadata: {
-      source: 'Satversme, 10. pants',
-      tags: ['saeima', 'pilnvaru termiņš', 'vēlēšanas'],
-      lastUpdated: Date.now(),
-      author: 'Latvian Constitution',
-    },
-  },
-  {
-    id: 10,
-    question: 'Kas pēc Satversmes ir Latvijas valsts valoda?',
-    options: [
-      'Latviešu valoda',
-      'Latviešu un krievu valoda',
-      'Latviešu, krievu un vācu valoda',
-    ],
-    correctAnswer: 0,
-    category: 'constitution',
-    metadata: {
-      source: 'Satversme, 4. pants',
-      tags: ['valsts valoda', 'latviešu valoda', 'valoda'],
-      lastUpdated: Date.now(),
-      author: 'Latvian Constitution',
-    },
-  },
-  {
-    id: 11,
-    question: 'Kurš var izsludināt referendumu par Saeimas atlaišanu?',
-    options: [
-      'Valsts prezidents',
-      'Ministru prezidents',
-      'Saeimas priekšsēdētājs',
-    ],
-    correctAnswer: 0,
-    category: 'constitution',
-    metadata: {
-      source: 'Satversme, 48. pants',
-      tags: ['referendums', 'saeimas atlaišana', 'prezidents'],
-      lastUpdated: Date.now(),
-      author: 'Latvian Constitution',
-    },
-  },
-  {
-    id: 12,
-    question: 'Kas ir Latvijas valsts ģerbonis?',
-    options: [
-      'Sarkans lauva ar sudrabainu vairogu',
-      'Balts ērglis uz zila fona',
-      'Zelta saule uz zaļa fona',
-    ],
-    correctAnswer: 0,
-    category: 'constitution',
-    metadata: {
-      source: 'Satversme, valsts simboli',
-      tags: ['valsts simboli', 'ģerbonis', 'latvijas simboli'],
-      lastUpdated: Date.now(),
-      author: 'Latvian Constitution',
-    },
-  },
-  {
-    id: 13,
-    question: 'Kas ir Latvijas pilsoņu pamattiesība pēc Satversmes?',
-    options: [
-      'Vienlīdzība likuma priekšā',
-      'Bezmaksas izglītība',
-      'Garantēta darbavieta',
-    ],
-    correctAnswer: 0,
-    category: 'constitution',
-    metadata: {
-      source: 'Satversme, 91. pants',
-      tags: ['pamattiesības', 'vienlīdzība', 'tiesības'],
-      lastUpdated: Date.now(),
-      author: 'Latvian Constitution',
-    },
-  },
-  {
-    id: 14,
-    question: 'Kurš apstiprina valsts budžetu?',
-    options: ['Saeima', 'Ministru kabinets', 'Finanšu ministrs'],
-    correctAnswer: 0,
-    category: 'constitution',
-    metadata: {
-      source: 'Satversme, 11. pants',
-      tags: ['budžets', 'saeima', 'finanses'],
-      lastUpdated: Date.now(),
-      author: 'Latvian Constitution',
-    },
-  },
-  {
-    id: 15,
-    question: 'Kāda ir maksimālā vecuma robeža Valsts prezidentam?',
-    options: ['Nav vecuma ierobežojuma', '70 gadi', '75 gadi'],
-    correctAnswer: 0,
-    category: 'constitution',
-    metadata: {
-      source: 'Satversme, 35. pants',
-      tags: ['prezidents', 'vecuma prasības', 'ierobežojumi'],
-      lastUpdated: Date.now(),
-      author: 'Latvian Constitution',
-    },
-  },
-  {
-    id: 16,
-    question: 'Kas notiek, ja Valsts prezidents nevar pildīt savus pienākumus?',
-    options: [
-      'Viņa pienākumus pilda Saeimas priekšsēdētājs',
-      'Tiek izsludinātas ārkārtas vēlēšanas',
-      'Pienākumus pilda ministru prezidents',
-    ],
-    correctAnswer: 0,
-    category: 'constitution',
-    metadata: {
-      source: 'Satversme, 53. pants',
-      tags: ['prezidents', 'pilnvaru nodošana', 'saeimas priekšsēdētājs'],
-      lastUpdated: Date.now(),
-      author: 'Latvian Constitution',
-    },
-  },
-  {
-    id: 17,
-    question: 'Kāda ir Satversmes tiesas galvenā funkcija?',
-    options: [
-      'Pārbaudīt likumu atbilstību Satversmei',
-      'Tiesāt krimināllietas',
-      'Risināt civilstrīdus',
-    ],
-    correctAnswer: 0,
-    category: 'constitution',
-    metadata: {
-      source: 'Satversmes tiesas likums',
-      tags: ['satversmes tiesa', 'likumu kontrole', 'satversme'],
-      lastUpdated: Date.now(),
-      author: 'Latvian Constitution',
-    },
-  },
-  {
-    id: 18,
-    question: 'Kas var ierosināt Satversmes grozījumus?',
-    options: [
-      'Ne mazāk kā trešdaļa Saeimas deputātu',
-      'Tikai Valsts prezidents',
-      'Tikai Ministru kabinets',
-    ],
-    correctAnswer: 0,
-    category: 'constitution',
-    metadata: {
-      source: 'Satversme, 76. pants',
-      tags: ['satversmes grozījumi', 'likumdošanas process', 'deputāti'],
-      lastUpdated: Date.now(),
-      author: 'Latvian Constitution',
-    },
-  },
-  {
-    id: 19,
-    question: 'Kāda ir minimālā dalībnieku skaita prasība referendumam?',
-    options: [
-      'Puse no iepriekšējo Saeimas vēlēšanu dalībnieku skaita',
-      'Trešdaļa no visiem vēlētājiem',
-      'Divas trešdaļas no visiem vēlētājiem',
-    ],
-    correctAnswer: 0,
-    category: 'constitution',
-    metadata: {
-      source: 'Satversme, 77. pants',
-      tags: ['referendums', 'dalībnieku skaits', 'demokrātija'],
-      lastUpdated: Date.now(),
-      author: 'Latvian Constitution',
-    },
-  },
-  {
-    id: 20,
-    question: 'Kas ir nepieciešams, lai kļūtu par Latvijas Valsts prezidentu?',
-    options: [
-      'Latvijas pilsonība un 40 gadu vecums',
-      'Dzimšana Latvijā un 35 gadu vecums',
-      '10 gadu dzīvošana Latvijā un 45 gadu vecums',
-    ],
-    correctAnswer: 0,
-    category: 'constitution',
-    metadata: {
-      source: 'Satversme, 36. pants',
-      tags: ['prezidents', 'pilsonība', 'vecuma prasības'],
-      lastUpdated: Date.now(),
-      author: 'Latvian Constitution',
-    },
-  },
-]
-
-/**
- * Validates that the question pool meets minimum requirements
- */
-export function validateConstitutionQuestionPool(): {
+interface ValidationResult {
   isValid: boolean
   errors: string[]
   questionCount: number
-} {
+  minRequired: number
+  category: string
+}
+
+/**
+ * Complete set of constitution questions for the Latvian citizenship exam
+ * Loaded from the official JSON database
+ */
+export const CONSTITUTION_QUESTIONS: Question[] = OFFICIAL_CONSTITUTION_QUESTIONS
+
+/**
+ * Validate the constitution question pool meets exam requirements
+ */
+export function validateConstitutionQuestionPool(): ValidationResult {
   const errors: string[] = []
-  const questionCount = CONSTITUTION_QUESTIONS.length
+  const minRequired = SCORING_THRESHOLDS.MIN_CONSTITUTION_POOL_SIZE
 
-  if (questionCount < 16) {
+  // Check minimum pool size
+  if (CONSTITUTION_QUESTIONS.length < minRequired) {
     errors.push(
-      `Insufficient questions: ${questionCount} (minimum 16 required)`
+      `Insufficient constitution questions: ${CONSTITUTION_QUESTIONS.length} (minimum ${minRequired} required)`
     )
-  }
-
-  // Check for duplicate IDs
-  const ids = CONSTITUTION_QUESTIONS.map((q) => q.id)
-  const duplicateIds = ids.filter((id, index) => ids.indexOf(id) !== index)
-  if (duplicateIds.length > 0) {
-    errors.push(`Duplicate question IDs found: ${duplicateIds.join(', ')}`)
   }
 
   // Validate each question structure
   CONSTITUTION_QUESTIONS.forEach((question, index) => {
+    const questionNum = index + 1
+
+    if (!question.id || typeof question.id !== 'number') {
+      errors.push(`Constitution question ${questionNum}: Invalid or missing ID`)
+    }
+
     if (!question.question?.trim()) {
-      errors.push(`Question ${index + 1}: Missing question text`)
+      errors.push(`Constitution question ${questionNum}: Missing question text`)
     }
 
     if (!Array.isArray(question.options) || question.options.length !== 3) {
-      errors.push(`Question ${index + 1}: Must have exactly 3 options`)
+      errors.push(`Constitution question ${questionNum}: Must have exactly 3 options`)
     }
 
     if (
@@ -355,17 +62,70 @@ export function validateConstitutionQuestionPool(): {
       question.correctAnswer < 0 ||
       question.correctAnswer > 2
     ) {
-      errors.push(`Question ${index + 1}: Invalid correct answer index`)
+      errors.push(`Constitution question ${questionNum}: Invalid correct answer index`)
     }
 
     if (question.category !== 'constitution') {
-      errors.push(`Question ${index + 1}: Must have category 'constitution'`)
+      errors.push(`Constitution question ${questionNum}: Invalid category '${question.category}'`)
+    }
+
+    // Check for empty or duplicate options
+    if (question.options) {
+      const uniqueOptions = new Set(question.options.map(opt => opt.trim().toLowerCase()))
+      if (uniqueOptions.size !== 3) {
+        errors.push(`Constitution question ${questionNum}: Duplicate or empty options`)
+      }
     }
   })
+
+  // Check for duplicate question IDs
+  const questionIds = CONSTITUTION_QUESTIONS.map(q => q.id)
+  const uniqueIds = new Set(questionIds)
+  if (uniqueIds.size !== questionIds.length) {
+    errors.push('Duplicate question IDs found in constitution questions')
+  }
 
   return {
     isValid: errors.length === 0,
     errors,
-    questionCount,
+    questionCount: CONSTITUTION_QUESTIONS.length,
+    minRequired,
+    category: 'constitution',
+  }
+}
+
+/**
+ * Get a random sample of constitution questions for testing/development
+ */
+export function getRandomConstitutionQuestions(count: number = 5): Question[] {
+  const shuffled = [...CONSTITUTION_QUESTIONS].sort(() => Math.random() - 0.5)
+  return shuffled.slice(0, Math.min(count, CONSTITUTION_QUESTIONS.length))
+}
+
+/**
+ * Get constitution question by ID
+ */
+export function getConstitutionQuestionById(id: number): Question | undefined {
+  return CONSTITUTION_QUESTIONS.find(q => q.id === id)
+}
+
+/**
+ * Get constitution questions statistics
+ */
+export function getConstitutionQuestionStats() {
+  const validation = validateConstitutionQuestionPool()
+  
+  return {
+    total: CONSTITUTION_QUESTIONS.length,
+    isValid: validation.isValid,
+    errors: validation.errors,
+    minRequired: validation.minRequired,
+    categories: {
+      constitution: CONSTITUTION_QUESTIONS.length,
+    },
+    difficultyDistribution: CONSTITUTION_QUESTIONS.reduce((acc, q) => {
+      acc[q.difficulty || 'medium'] = (acc[q.difficulty || 'medium'] || 0) + 1
+      return acc
+    }, {} as Record<string, number>),
   }
 }

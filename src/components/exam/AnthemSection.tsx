@@ -15,8 +15,8 @@ interface AnthemSectionProps {
 }
 
 export function AnthemSection({ value, onChange, onNext }: AnthemSectionProps) {
-  // Individual line inputs - filter out empty line
-  const anthemLines = NATIONAL_ANTHEM_REFERENCE.filter((line) => line !== '')
+  // Individual line inputs - all 8 lines are now valid
+  const anthemLines = NATIONAL_ANTHEM_REFERENCE
   const [anthemInputs, setAnthemInputs] = useState<string[]>(() => {
     // Initialize from existing value if available
     if (value) {
