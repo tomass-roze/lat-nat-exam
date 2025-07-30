@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react'
 import { ExamSection } from './ExamSection'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Label } from '@/components/ui/label'
@@ -10,64 +9,27 @@ import { Badge } from '@/components/ui/badge'
 import {
   Info,
   CheckCircle,
-  AlertTriangle,
   Circle,
   CheckCircle2,
 } from 'lucide-react'
 import { SCORING_THRESHOLDS } from '@/types/constants'
-import {
-  loadHistoryQuestions,
-  QuestionLoadingError,
-} from '@/utils/questionLoader'
 import type { Question } from '@/types/questions'
 
 interface HistorySectionProps {
   answers: Record<number, 0 | 1 | 2>
   onChange: (questionId: number, answer: 0 | 1 | 2) => void
   onNext?: () => void
+  questions: Question[] // Use questions from session instead of loading separately
 }
 
 export function HistorySection({
   answers,
   onChange,
   onNext,
+  questions,
 }: HistorySectionProps) {
-  const [questions, setQuestions] = useState<Question[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [loadError, setLoadError] = useState<string | null>(null)
-
-  // Load history questions on component mount
-  useEffect(() => {
-    const loadQuestions = async () => {
-      try {
-        setIsLoading(true)
-        setLoadError(null)
-
-        // Load questions with a consistent seed for this session
-        // Use a seed based on current date to ensure same questions during the day
-        const today = new Date().toDateString()
-        const sessionSeed = today
-          .split('')
-          .reduce((acc, char) => acc + char.charCodeAt(0), 0)
-
-        const result = loadHistoryQuestions(sessionSeed)
-        setQuestions(result.questions)
-      } catch (error) {
-        console.error('Failed to load history questions:', error)
-        if (error instanceof QuestionLoadingError) {
-          setLoadError(error.message)
-        } else {
-          setLoadError(
-            'Radās kļūda, ielādējot vēstures jautājumus. Lūdzu, atjaunojiet lapu.'
-          )
-        }
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    loadQuestions()
-  }, [])
+  // Questions are now passed as props from the session state, ensuring consistency
+  // between what the user sees and what is used for scoring
   const getProgress = () => {
     const answered = Object.keys(answers).length
     const total = SCORING_THRESHOLDS.HISTORY_TOTAL_QUESTIONS
@@ -89,46 +51,6 @@ export function HistorySection({
     : progress.current > 0
       ? 'in-progress'
       : 'pending'
-
-  // Show loading state
-  if (isLoading) {
-    return (
-      <ExamSection
-        id="history"
-        title="Vēstures jautājumi"
-        description="Ielādē jautājumus..."
-        status="pending"
-        progress={{ current: 0, total: 10, percentage: 0 }}
-      >
-        <div className="flex justify-center items-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <span className="ml-3 text-gray-600">
-            Ielādē vēstures jautājumus...
-          </span>
-        </div>
-      </ExamSection>
-    )
-  }
-
-  // Show error state
-  if (loadError) {
-    return (
-      <ExamSection
-        id="history"
-        title="Vēstures jautājumi"
-        description="Radās kļūda, ielādējot jautājumus"
-        status="pending"
-        progress={{ current: 0, total: 10, percentage: 0 }}
-      >
-        <Alert className="border-red-200 bg-red-50 text-red-800">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>
-            <strong>Kļūda:</strong> {loadError}
-          </AlertDescription>
-        </Alert>
-      </ExamSection>
-    )
-  }
 
   return (
     <ExamSection

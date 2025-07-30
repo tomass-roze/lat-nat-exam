@@ -354,6 +354,7 @@ function ExamContent() {
             answers={historyAnswers}
             onChange={handleHistoryAnswer}
             onNext={scrollToConstitution}
+            questions={selectedQuestions?.history || []}
           />
         </section>
 
