@@ -54,7 +54,9 @@ export function validateHistoryQuestionPool(): ValidationResult {
     }
 
     if (!Array.isArray(question.options) || question.options.length !== 3) {
-      errors.push(`History question ${questionNum}: Must have exactly 3 options`)
+      errors.push(
+        `History question ${questionNum}: Must have exactly 3 options`
+      )
     }
 
     if (
@@ -62,24 +64,32 @@ export function validateHistoryQuestionPool(): ValidationResult {
       question.correctAnswer < 0 ||
       question.correctAnswer > 2
     ) {
-      errors.push(`History question ${questionNum}: Invalid correct answer index`)
+      errors.push(
+        `History question ${questionNum}: Invalid correct answer index`
+      )
     }
 
     if (question.category !== 'history') {
-      errors.push(`History question ${questionNum}: Invalid category '${question.category}'`)
+      errors.push(
+        `History question ${questionNum}: Invalid category '${question.category}'`
+      )
     }
 
     // Check for empty or duplicate options
     if (question.options) {
-      const uniqueOptions = new Set(question.options.map(opt => opt.trim().toLowerCase()))
+      const uniqueOptions = new Set(
+        question.options.map((opt) => opt.trim().toLowerCase())
+      )
       if (uniqueOptions.size !== 3) {
-        errors.push(`History question ${questionNum}: Duplicate or empty options`)
+        errors.push(
+          `History question ${questionNum}: Duplicate or empty options`
+        )
       }
     }
   })
 
   // Check for duplicate question IDs
-  const questionIds = HISTORY_QUESTIONS.map(q => q.id)
+  const questionIds = HISTORY_QUESTIONS.map((q) => q.id)
   const uniqueIds = new Set(questionIds)
   if (uniqueIds.size !== questionIds.length) {
     errors.push('Duplicate question IDs found in history questions')
@@ -106,7 +116,7 @@ export function getRandomHistoryQuestions(count: number = 5): Question[] {
  * Get history question by ID
  */
 export function getHistoryQuestionById(id: number): Question | undefined {
-  return HISTORY_QUESTIONS.find(q => q.id === id)
+  return HISTORY_QUESTIONS.find((q) => q.id === id)
 }
 
 /**
@@ -114,7 +124,7 @@ export function getHistoryQuestionById(id: number): Question | undefined {
  */
 export function getHistoryQuestionStats() {
   const validation = validateHistoryQuestionPool()
-  
+
   return {
     total: HISTORY_QUESTIONS.length,
     isValid: validation.isValid,
@@ -123,9 +133,12 @@ export function getHistoryQuestionStats() {
     categories: {
       history: HISTORY_QUESTIONS.length,
     },
-    difficultyDistribution: HISTORY_QUESTIONS.reduce((acc, q) => {
-      acc[q.difficulty || 'medium'] = (acc[q.difficulty || 'medium'] || 0) + 1
-      return acc
-    }, {} as Record<string, number>),
+    difficultyDistribution: HISTORY_QUESTIONS.reduce(
+      (acc, q) => {
+        acc[q.difficulty || 'medium'] = (acc[q.difficulty || 'medium'] || 0) + 1
+        return acc
+      },
+      {} as Record<string, number>
+    ),
   }
 }

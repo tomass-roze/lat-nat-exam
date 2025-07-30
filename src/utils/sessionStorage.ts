@@ -317,7 +317,9 @@ export async function saveSessionData(
         error: createSessionError(
           'STORAGE_QUOTA_EXCEEDED',
           'Failed to save to sessionStorage',
-          error instanceof Error ? error.message : 'sessionStorage.setItem failed',
+          error instanceof Error
+            ? error.message
+            : 'sessionStorage.setItem failed',
           true,
           'Clear browser data or reduce storage usage'
         ),
@@ -514,24 +516,29 @@ export function forceCleanSessionData(): boolean {
 
     // Clear the main session key
     sessionStorage.removeItem(DEFAULT_CONFIG.STORAGE_KEY)
-    
+
     // Clear any other exam-related keys that might exist
     const keysToRemove: string[] = []
     for (let i = 0; i < sessionStorage.length; i++) {
       const key = sessionStorage.key(i)
-      if (key && (key.includes('latvian') || key.includes('exam') || key.includes('session'))) {
+      if (
+        key &&
+        (key.includes('latvian') ||
+          key.includes('exam') ||
+          key.includes('session'))
+      ) {
         keysToRemove.push(key)
       }
     }
-    
-    keysToRemove.forEach(key => {
+
+    keysToRemove.forEach((key) => {
       try {
         sessionStorage.removeItem(key)
       } catch {
         // Ignore individual removal errors
       }
     })
-    
+
     return true
   } catch {
     return false

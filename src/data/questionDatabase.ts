@@ -1,8 +1,8 @@
 /**
  * @fileoverview Official Question Database Loader
- * 
+ *
  * Loads the complete Latvian citizenship exam questions from the official JSON database.
- * Provides standardized data access for history and constitution questions with 
+ * Provides standardized data access for history and constitution questions with
  * proper validation and type safety.
  */
 
@@ -42,10 +42,12 @@ export const OFFICIAL_ANTHEM_TEXT = rawData.nationalAnthem
  * Convert raw question data to typed Question objects
  */
 function convertToQuestions(
-  rawQuestions: RawQuestionData['historyQuestions'] | RawQuestionData['constitutionQuestions'],
+  rawQuestions:
+    | RawQuestionData['historyQuestions']
+    | RawQuestionData['constitutionQuestions'],
   category: 'history' | 'constitution'
 ): Question[] {
-  return rawQuestions.map(rawQuestion => ({
+  return rawQuestions.map((rawQuestion) => ({
     id: rawQuestion.id,
     question: rawQuestion.question,
     options: rawQuestion.options,
@@ -64,7 +66,7 @@ export const OFFICIAL_HISTORY_QUESTIONS: Question[] = convertToQuestions(
 )
 
 /**
- * All constitution questions from the official database  
+ * All constitution questions from the official database
  */
 export const OFFICIAL_CONSTITUTION_QUESTIONS: Question[] = convertToQuestions(
   rawData.constitutionQuestions,
@@ -84,14 +86,16 @@ export function validateOfficialDatabase(): {
   }
 } {
   const errors: string[] = []
-  
+
   // Validate anthem text
   if (!Array.isArray(rawData.nationalAnthem)) {
     errors.push('National anthem must be an array of strings')
   } else if (rawData.nationalAnthem.length !== 8) {
-    errors.push(`National anthem must have exactly 8 lines, got ${rawData.nationalAnthem.length}`)
+    errors.push(
+      `National anthem must have exactly 8 lines, got ${rawData.nationalAnthem.length}`
+    )
   }
-  
+
   // Validate history questions
   if (!Array.isArray(rawData.historyQuestions)) {
     errors.push('History questions must be an array')
@@ -104,14 +108,20 @@ export function validateOfficialDatabase(): {
         errors.push(`History question ${index + 1}: invalid question text`)
       }
       if (!Array.isArray(q.options) || q.options.length !== 3) {
-        errors.push(`History question ${index + 1}: must have exactly 3 options`)
+        errors.push(
+          `History question ${index + 1}: must have exactly 3 options`
+        )
       }
-      if (typeof q.correctAnswer !== 'number' || q.correctAnswer < 0 || q.correctAnswer > 2) {
+      if (
+        typeof q.correctAnswer !== 'number' ||
+        q.correctAnswer < 0 ||
+        q.correctAnswer > 2
+      ) {
         errors.push(`History question ${index + 1}: invalid correct answer`)
       }
     })
   }
-  
+
   // Validate constitution questions
   if (!Array.isArray(rawData.constitutionQuestions)) {
     errors.push('Constitution questions must be an array')
@@ -124,14 +134,22 @@ export function validateOfficialDatabase(): {
         errors.push(`Constitution question ${index + 1}: invalid question text`)
       }
       if (!Array.isArray(q.options) || q.options.length !== 3) {
-        errors.push(`Constitution question ${index + 1}: must have exactly 3 options`)
+        errors.push(
+          `Constitution question ${index + 1}: must have exactly 3 options`
+        )
       }
-      if (typeof q.correctAnswer !== 'number' || q.correctAnswer < 0 || q.correctAnswer > 2) {
-        errors.push(`Constitution question ${index + 1}: invalid correct answer`)
+      if (
+        typeof q.correctAnswer !== 'number' ||
+        q.correctAnswer < 0 ||
+        q.correctAnswer > 2
+      ) {
+        errors.push(
+          `Constitution question ${index + 1}: invalid correct answer`
+        )
       }
     })
   }
-  
+
   return {
     isValid: errors.length === 0,
     errors,
@@ -139,7 +157,7 @@ export function validateOfficialDatabase(): {
       anthemLines: rawData.nationalAnthem?.length || 0,
       historyQuestions: rawData.historyQuestions?.length || 0,
       constitutionQuestions: rawData.constitutionQuestions?.length || 0,
-    }
+    },
   }
 }
 
@@ -148,7 +166,7 @@ export function validateOfficialDatabase(): {
  */
 export function getDatabaseStats() {
   const validation = validateOfficialDatabase()
-  
+
   return {
     ...validation.stats,
     isValid: validation.isValid,

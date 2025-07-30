@@ -25,7 +25,8 @@ interface ValidationResult {
  * Complete set of constitution questions for the Latvian citizenship exam
  * Loaded from the official JSON database
  */
-export const CONSTITUTION_QUESTIONS: Question[] = OFFICIAL_CONSTITUTION_QUESTIONS
+export const CONSTITUTION_QUESTIONS: Question[] =
+  OFFICIAL_CONSTITUTION_QUESTIONS
 
 /**
  * Validate the constitution question pool meets exam requirements
@@ -54,7 +55,9 @@ export function validateConstitutionQuestionPool(): ValidationResult {
     }
 
     if (!Array.isArray(question.options) || question.options.length !== 3) {
-      errors.push(`Constitution question ${questionNum}: Must have exactly 3 options`)
+      errors.push(
+        `Constitution question ${questionNum}: Must have exactly 3 options`
+      )
     }
 
     if (
@@ -62,24 +65,32 @@ export function validateConstitutionQuestionPool(): ValidationResult {
       question.correctAnswer < 0 ||
       question.correctAnswer > 2
     ) {
-      errors.push(`Constitution question ${questionNum}: Invalid correct answer index`)
+      errors.push(
+        `Constitution question ${questionNum}: Invalid correct answer index`
+      )
     }
 
     if (question.category !== 'constitution') {
-      errors.push(`Constitution question ${questionNum}: Invalid category '${question.category}'`)
+      errors.push(
+        `Constitution question ${questionNum}: Invalid category '${question.category}'`
+      )
     }
 
     // Check for empty or duplicate options
     if (question.options) {
-      const uniqueOptions = new Set(question.options.map(opt => opt.trim().toLowerCase()))
+      const uniqueOptions = new Set(
+        question.options.map((opt) => opt.trim().toLowerCase())
+      )
       if (uniqueOptions.size !== 3) {
-        errors.push(`Constitution question ${questionNum}: Duplicate or empty options`)
+        errors.push(
+          `Constitution question ${questionNum}: Duplicate or empty options`
+        )
       }
     }
   })
 
   // Check for duplicate question IDs
-  const questionIds = CONSTITUTION_QUESTIONS.map(q => q.id)
+  const questionIds = CONSTITUTION_QUESTIONS.map((q) => q.id)
   const uniqueIds = new Set(questionIds)
   if (uniqueIds.size !== questionIds.length) {
     errors.push('Duplicate question IDs found in constitution questions')
@@ -106,7 +117,7 @@ export function getRandomConstitutionQuestions(count: number = 5): Question[] {
  * Get constitution question by ID
  */
 export function getConstitutionQuestionById(id: number): Question | undefined {
-  return CONSTITUTION_QUESTIONS.find(q => q.id === id)
+  return CONSTITUTION_QUESTIONS.find((q) => q.id === id)
 }
 
 /**
@@ -114,7 +125,7 @@ export function getConstitutionQuestionById(id: number): Question | undefined {
  */
 export function getConstitutionQuestionStats() {
   const validation = validateConstitutionQuestionPool()
-  
+
   return {
     total: CONSTITUTION_QUESTIONS.length,
     isValid: validation.isValid,
@@ -123,9 +134,12 @@ export function getConstitutionQuestionStats() {
     categories: {
       constitution: CONSTITUTION_QUESTIONS.length,
     },
-    difficultyDistribution: CONSTITUTION_QUESTIONS.reduce((acc, q) => {
-      acc[q.difficulty || 'medium'] = (acc[q.difficulty || 'medium'] || 0) + 1
-      return acc
-    }, {} as Record<string, number>),
+    difficultyDistribution: CONSTITUTION_QUESTIONS.reduce(
+      (acc, q) => {
+        acc[q.difficulty || 'medium'] = (acc[q.difficulty || 'medium'] || 0) + 1
+        return acc
+      },
+      {} as Record<string, number>
+    ),
   }
 }

@@ -6,12 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
-import {
-  Info,
-  CheckCircle,
-  Circle,
-  CheckCircle2,
-} from 'lucide-react'
+import { Info, CheckCircle, Circle, CheckCircle2 } from 'lucide-react'
 import { SCORING_THRESHOLDS } from '@/types/constants'
 import type { Question } from '@/types/questions'
 

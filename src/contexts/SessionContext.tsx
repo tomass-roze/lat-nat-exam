@@ -577,7 +577,7 @@ export function SessionProvider({
     if (!cleared) {
       forceCleanSessionData()
     }
-    
+
     // Reset to completely blank initial state - this will trigger reinitialization
     dispatch({ type: 'RESET_TO_INITIAL' })
   }, [])
