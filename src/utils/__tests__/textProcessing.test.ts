@@ -232,6 +232,72 @@ describe('Anthem Comparison', () => {
     assert.ok(result.accuracy > 0)
     assert.ok(result.characterDifferences.length > 0)
   })
+
+  test('compareAnthemText fix for issue #49 - perfect match should be 100%', () => {
+    // This test reproduces the exact bug reported in issue #49
+    // where perfect anthem matches were showing 47% accuracy
+    const result = compareAnthemText(NATIONAL_ANTHEM_TEXT)
+
+    // The main assertion - perfect match must be 100%
+    assert.strictEqual(
+      result.accuracy,
+      100,
+      'Perfect anthem match must return 100% accuracy, not 47% as reported in issue #49'
+    )
+    assert.strictEqual(result.passed, true)
+    assert.strictEqual(result.characterDifferences.length, 0)
+  })
+
+  test('calculateAccuracy handles length differences correctly', () => {
+    const reference = 'Hello world'
+
+    // Perfect match
+    assert.strictEqual(calculateAccuracy(reference, reference), 100)
+
+    // Slightly longer text (should be high but not 100%)
+    const longer = reference + ' extra'
+    const longerAccuracy = calculateAccuracy(longer, reference)
+    assert.ok(
+      longerAccuracy > 80 && longerAccuracy < 100,
+      `Longer text accuracy should be 80-100%, got ${longerAccuracy}%`
+    )
+
+    // Shorter text
+    const shorter = reference.substring(0, reference.length - 2)
+    const shorterAccuracy = calculateAccuracy(shorter, reference)
+    assert.ok(
+      shorterAccuracy > 60 && shorterAccuracy < 100,
+      `Shorter text accuracy should be 60-100%, got ${shorterAccuracy}%`
+    )
+
+    // Empty text
+    assert.strictEqual(calculateAccuracy('', reference), 0)
+
+    // Completely different text
+    const different = 'xyz'.repeat(reference.length)
+    const differentAccuracy = calculateAccuracy(different, reference)
+    assert.ok(
+      differentAccuracy < 20,
+      `Different text should have very low accuracy, got ${differentAccuracy}%`
+    )
+  })
+
+  test('calculateAccuracy prevents character misalignment issues', () => {
+    // This test ensures the fix prevents the specific misalignment issue
+    // that caused the 47% accuracy bug
+    const reference = 'abc def ghi'
+    const submitted = 'abc  def  ghi' // Extra spaces (different length after normalization)
+
+    // The old algorithm would misalign after the first space difference
+    // The new algorithm should handle this gracefully
+    const accuracy = calculateAccuracy(submitted, reference)
+
+    // Should be high accuracy since most characters match, just different spacing
+    assert.ok(
+      accuracy > 70,
+      `Text with spacing differences should have >70% accuracy, got ${accuracy}%`
+    )
+  })
 })
 
 // ===== LINE ANALYSIS TESTS =====

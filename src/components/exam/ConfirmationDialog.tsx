@@ -1,6 +1,6 @@
 /**
  * @fileoverview Confirmation dialog for exam submission
- * 
+ *
  * NOTE: This component is no longer used in the main submission flow as of issue #48.
  * Direct submission is now implemented in SubmissionPanel.tsx with loading screen feedback.
  * This file is kept for potential future use or reference.

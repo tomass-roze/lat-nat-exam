@@ -168,32 +168,17 @@ export function ExamResults({ results, onRetakeExam }: ExamResultsProps) {
               aria-labelledby="anthem-title"
             >
               <div className="space-y-4">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm font-medium mb-2">Statistika</p>
-                    <div className="text-sm space-y-1 text-muted-foreground">
-                      <div>
-                        Pareizi rakstu: {results.anthem.correctCharacters}/
-                        {results.anthem.totalCharacters}
-                      </div>
-                      <div>
-                        Precizitāte: {results.anthem.accuracy.toFixed(2)}%
-                      </div>
-                      <div>Nepieciešamā precizitāte: 75%</div>
+                <div>
+                  <p className="text-sm font-medium mb-2">Rezultāts</p>
+                  <div className="text-sm space-y-1 text-muted-foreground">
+                    <div>
+                      Pareizi rakstu: {results.anthem.correctCharacters}/
+                      {results.anthem.totalCharacters}
                     </div>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium mb-2">Analīze</p>
-                    <div className="text-sm space-y-1 text-muted-foreground">
-                      <div>
-                        Kļūdu skaits:{' '}
-                        {results.anthem.characterDifferences.length}
-                      </div>
-                      <div>
-                        Teksta kvalitāte:{' '}
-                        {results.anthem.analysis.qualityMetrics.qualityScore}%
-                      </div>
+                    <div>
+                      Precizitāte: {results.anthem.accuracy.toFixed(2)}%
                     </div>
+                    <div>Nepieciešamā precizitāte: 75%</div>
                   </div>
                 </div>
 
