@@ -24,7 +24,7 @@ import type { TestState } from '@/types/exam'
 import type { TestResults } from '@/types/scoring'
 import { loadExamQuestions, QuestionLoadingError } from '@/utils/questionLoader'
 import { calculateTestResults } from '@/utils/scoring'
-import { compareAnthemText } from '@/utils/textProcessing'
+// compareAnthemText import removed - only used during final results calculation
 
 function ExamContent() {
   // Session and validation contexts
@@ -116,44 +116,33 @@ function ExamContent() {
     }
   }, [lastError, recovery, showRecoveryDialog])
 
-  // Trigger validation when test state changes
-  useEffect(() => {
-    if (isInitialized && !questionLoadingError) {
-      validateAll(sessionState.testState, 'onChange')
-    }
-  }, [sessionState.testState, validateAll, isInitialized, questionLoadingError])
+  // Trigger validation when test state changes - DISABLED for blind test approach
+  // Real-time validation removed to maintain blind test principles
+  // Validation will only happen at submission time
+  // useEffect(() => {
+  //   if (isInitialized && !questionLoadingError) {
+  //     validateAll(sessionState.testState, 'onChange')
+  //   }
+  // }, [sessionState.testState, validateAll, isInitialized, questionLoadingError])
 
   // Get current data from session state
   const { testState, selectedQuestions } = sessionState
   const { anthemText, historyAnswers, constitutionAnswers } = testState
 
-  // Calculate progress
+  // Calculate progress - simplified line-based approach
   const getAnthemProgress = () => {
-    // Return 0 if no text entered
     if (!anthemText || anthemText.trim().length === 0) {
       return 0
     }
 
-    // Check minimum length first
-    const minLength = SCORING_THRESHOLDS.ANTHEM_MIN_CHARACTERS
-    if (anthemText.length < minLength) {
-      // Show character progress up to minimum requirement
-      return Math.min((anthemText.length / minLength) * 50, 50)
-    }
+    // Count completed lines (lines with at least one letter)
+    // Filter out empty lines to handle the extra newline after 4th line
+    const lines = anthemText.split('\n').filter((line) => line.trim() !== '')
+    const completedLines = lines.filter((line) =>
+      /[a-zA-ZāčēģīķļņšūžĀČĒĢĪĶĻŅŠŪŽ]/.test(line)
+    ).length
 
-    // For text meeting minimum length, check actual accuracy
-    try {
-      const anthemResult = compareAnthemText(anthemText)
-      const passThreshold = SCORING_THRESHOLDS.ANTHEM_PASS_PERCENTAGE
-
-      // Progress starts at 50% once minimum length is met, then accuracy determines final percentage
-      const accuracyProgress = (anthemResult.accuracy / passThreshold) * 50
-      return Math.min(50 + accuracyProgress, 100)
-    } catch (error) {
-      console.error('Error calculating anthem accuracy:', error)
-      // Fall back to character-based progress if accuracy calculation fails
-      return Math.min((anthemText.length / minLength) * 100, 100)
-    }
+    return (completedLines / 8) * 100
   }
 
   const getHistoryProgress = () => {
@@ -172,18 +161,18 @@ function ExamContent() {
   const overallProgress =
     (anthemProgress + historyProgress + constitutionProgress) / 3
 
-  // Helper function to check if anthem meets validation requirements
+  // Helper function to check if anthem meets validation requirements - simplified line-based
   const isAnthemValid = () => {
     if (!anthemText || anthemText.trim().length === 0) return false
-    if (anthemText.length < SCORING_THRESHOLDS.ANTHEM_MIN_CHARACTERS)
-      return false
 
-    try {
-      const anthemResult = compareAnthemText(anthemText)
-      return anthemResult.accuracy >= SCORING_THRESHOLDS.ANTHEM_PASS_PERCENTAGE
-    } catch {
-      return false
-    }
+    // Check if all 8 lines have content (at least one letter each)
+    // Filter out empty lines to handle the extra newline after 4th line
+    const lines = anthemText.split('\n').filter((line) => line.trim() !== '')
+    const completedLines = lines.filter((line) =>
+      /[a-zA-ZāčēģīķļņšūžĀČĒĢĪĶĻŅŠŪŽ]/.test(line)
+    ).length
+
+    return completedLines === 8
   }
 
   // Helper function to check if history answers are valid
@@ -217,8 +206,14 @@ function ExamContent() {
       progress: anthemProgress,
       isCompleted: isAnthemValid(),
       isActive: anthemProgress > 0 && !isAnthemValid(),
-      itemsCompleted: anthemText.length,
-      totalItems: SCORING_THRESHOLDS.ANTHEM_MIN_CHARACTERS,
+      itemsCompleted: anthemText
+        ? anthemText
+            .split('\n')
+            .filter((line) => line.trim() !== '')
+            .filter((line) => /[a-zA-ZāčēģīķļņšūžĀČĒĢĪĶĻŅŠŪŽ]/.test(line))
+            .length
+        : 0,
+      totalItems: 8,
     },
     {
       id: 'history',
@@ -266,7 +261,10 @@ function ExamContent() {
 
   const handleSubmit = async () => {
     try {
-      // Calculate exam results
+      // Validate at submission time only
+      validateAll(sessionState.testState, 'onSubmit')
+
+      // Calculate exam results (this includes accuracy validation for anthem)
       const results = calculateTestResults(testState, selectedQuestions)
       setExamResults(results)
 

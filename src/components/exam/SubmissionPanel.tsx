@@ -13,7 +13,8 @@ import { CheckCircle, AlertTriangle, Clock, Send, Info, X } from 'lucide-react'
 import { SCORING_THRESHOLDS } from '@/types/constants'
 import { ConfirmationDialog } from './ConfirmationDialog'
 import { useValidationStatus } from '@/contexts/ValidationContext'
-import { compareAnthemText } from '@/utils/textProcessing'
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
+// compareAnthemText import removed - accuracy validation moved to final results only
 import type { TestState } from '@/types/exam'
 
 interface SubmissionPanelProps {
@@ -42,28 +43,33 @@ export function SubmissionPanel({
   const getDetailedValidationStatus = () => {
     const { anthemText, historyAnswers, constitutionAnswers } = testState
 
-    // Anthem validation
+    // Anthem validation - simplified line-based check for submission
     const anthemIssues: string[] = []
     let anthemAccuracy = 0
 
     if (!anthemText || anthemText.trim().length === 0) {
       anthemIssues.push('Himnas teksts nav ievadīts')
-    } else if (anthemText.length < SCORING_THRESHOLDS.ANTHEM_MIN_CHARACTERS) {
-      anthemIssues.push(
-        `Nepieciešams vismaz ${SCORING_THRESHOLDS.ANTHEM_MIN_CHARACTERS} simboli (pašlaik: ${anthemText.length})`
-      )
     } else {
-      try {
-        const anthemResult = compareAnthemText(anthemText)
-        anthemAccuracy = anthemResult.accuracy
-        if (anthemResult.accuracy < SCORING_THRESHOLDS.ANTHEM_PASS_PERCENTAGE) {
-          anthemIssues.push(
-            `Precizitāte pārāk zema: ${anthemResult.accuracy.toFixed(1)}% (nepieciešams: ${SCORING_THRESHOLDS.ANTHEM_PASS_PERCENTAGE}%)`
-          )
+      // Check if all 8 lines have content (at least one letter each)
+      // Filter out empty lines to handle the extra newline after 4th line
+      const lines = anthemText.split('\n').filter((line) => line.trim() !== '')
+      const requiredLines = 8
+      let emptyLineCount = 0
+
+      // Count how many of the 8 expected lines are missing or empty
+      for (let i = 0; i < requiredLines; i++) {
+        const line = lines[i] || ''
+        if (!/[a-zA-ZāčēģīķļņšūžĀČĒĢĪĶĻŅŠŪŽ]/.test(line)) {
+          emptyLineCount++
         }
-      } catch {
-        anthemIssues.push('Neizdevās analizēt himnas tekstu')
       }
+
+      if (emptyLineCount > 0) {
+        anthemIssues.push(
+          `${emptyLineCount} rinda${emptyLineCount > 1 ? 's' : ''} nav aizpildīta${emptyLineCount > 1 ? 's' : ''}`
+        )
+      }
+      // Accuracy validation removed - will be checked only in final results
     }
 
     // History validation
@@ -298,13 +304,8 @@ export function SubmissionPanel({
             <AlertDescription>
               <strong>Eksāmens ir gatavs iesniegšanai!</strong>
               <br />
-              Visas sekcijas ir pareizi pabeigtas un atbilst prasībām.
-              {detailedStatus.anthem.accuracy > 0 && (
-                <div className="mt-2 text-sm">
-                  Himnas precizitāte:{' '}
-                  {detailedStatus.anthem.accuracy.toFixed(1)}%
-                </div>
-              )}
+              Visas sekcijas ir pabeigtas. Precizitāte tiks novērtēta
+              rezultātos.
             </AlertDescription>
           </Alert>
         )}
@@ -355,13 +356,49 @@ export function SubmissionPanel({
       </CardContent>
 
       {/* Confirmation Dialog */}
-      <ConfirmationDialog
-        open={showConfirmDialog}
-        onClose={() => setShowConfirmDialog(false)}
-        onSubmit={handleConfirmSubmit}
-        testState={testState}
-        isSubmitting={isSubmitting}
-      />
+      <ErrorBoundary
+        onError={(error, errorInfo) => {
+          console.error('ConfirmationDialog error:', error, errorInfo)
+        }}
+        fallback={
+          <Alert variant="destructive" className="m-4">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              <div className="space-y-2">
+                <div>
+                  <strong>Apstiprinājuma dialogs nav pieejams</strong>
+                  <br />
+                  Radās tehniska problēma ar apstiprinājuma dialogu.
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => setShowConfirmDialog(false)}
+                    variant="outline"
+                    size="sm"
+                  >
+                    Aizvērt
+                  </Button>
+                  <Button
+                    onClick={handleConfirmSubmit}
+                    variant="destructive"
+                    size="sm"
+                  >
+                    Iesniegt tieši
+                  </Button>
+                </div>
+              </div>
+            </AlertDescription>
+          </Alert>
+        }
+      >
+        <ConfirmationDialog
+          open={showConfirmDialog}
+          onClose={() => setShowConfirmDialog(false)}
+          onSubmit={handleConfirmSubmit}
+          testState={testState}
+          isSubmitting={isSubmitting}
+        />
+      </ErrorBoundary>
     </Card>
   )
 }

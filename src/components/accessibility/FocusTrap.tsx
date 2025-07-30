@@ -1,4 +1,4 @@
-import { ReactNode } from 'react'
+import { ReactNode, useState, useEffect } from 'react'
 import FocusTrapReact from 'focus-trap-react'
 
 interface FocusTrapProps {
@@ -22,6 +22,9 @@ export function FocusTrap({
   className,
   focusTrapOptions = {},
 }: FocusTrapProps) {
+  const [focusTrapError, setFocusTrapError] = useState<string | null>(null)
+  const [useFallback, setUseFallback] = useState(false)
+
   const defaultOptions = {
     escapeDeactivates: true,
     clickOutsideDeactivates: true,
@@ -29,17 +32,79 @@ export function FocusTrap({
     ...focusTrapOptions,
   }
 
-  return (
-    <FocusTrapReact
-      active={active}
-      focusTrapOptions={{
-        ...defaultOptions,
-        onDeactivate: onDeactivate,
-      }}
-    >
-      <div className={className}>{children}</div>
-    </FocusTrapReact>
-  )
+  // Reset error state when active changes
+  useEffect(() => {
+    if (active) {
+      setFocusTrapError(null)
+      setUseFallback(false)
+    }
+  }, [active])
+
+  // Enhanced focus trap options with error handling
+  const enhancedOptions = {
+    ...defaultOptions,
+    onDeactivate: onDeactivate,
+    onActivate: () => {
+      // Successfully activated, clear any error state
+      setFocusTrapError(null)
+    },
+    onPostActivate: () => {
+      // Focus trap is fully active and working
+      console.debug('FocusTrap activated successfully')
+    },
+  }
+
+  // Fallback component without focus trap
+  if (useFallback || focusTrapError) {
+    return (
+      <div
+        className={className}
+        onKeyDown={(e) => {
+          // Basic escape key handling as fallback
+          if (e.key === 'Escape' && defaultOptions.escapeDeactivates) {
+            onDeactivate?.()
+          }
+        }}
+      >
+        {children}
+        {focusTrapError && (
+          <div className="sr-only">
+            Focus trap error: {focusTrapError}. Using fallback keyboard
+            navigation.
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // Try to use the focus trap with error boundary
+  try {
+    return (
+      <FocusTrapReact active={active} focusTrapOptions={enhancedOptions}>
+        <div className={className}>{children}</div>
+      </FocusTrapReact>
+    )
+  } catch (error) {
+    // If focus trap fails, fall back to simple div
+    console.warn('FocusTrap failed, using fallback:', error)
+    setFocusTrapError(
+      error instanceof Error ? error.message : 'Unknown focus trap error'
+    )
+    setUseFallback(true)
+
+    return (
+      <div
+        className={className}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape' && defaultOptions.escapeDeactivates) {
+            onDeactivate?.()
+          }
+        }}
+      >
+        {children}
+      </div>
+    )
+  }
 }
 
 // Custom hook for managing focus within a component

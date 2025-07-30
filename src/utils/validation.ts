@@ -96,87 +96,132 @@ export function createFieldValidationResult(
 }
 
 /**
- * Validate anthem text section
+ * Validate anthem text section - simplified line-based validation
  */
 export function validateAnthemSection(
   anthemText: string,
-  config: AnthemValidationConfig = DEFAULT_ANTHEM_CONFIG
+  _config: AnthemValidationConfig = DEFAULT_ANTHEM_CONFIG
 ): FieldValidationResult {
   const errors: ValidationError[] = []
   const field = 'anthemText'
 
-  // Check if text is provided
-  if (!anthemText || anthemText.trim().length === 0) {
-    errors.push(
-      createValidationError(
-        VALIDATION_ERRORS.REQUIRED_FIELD,
-        'Himnas teksts ir obligāts',
-        'anthem',
-        field,
-        'Lūdzu, ierakstiet Latvijas valsts himnas tekstu'
+  // Split into lines and check each one
+  // Filter out empty lines to handle the extra newline after 4th line
+  const lines = anthemText.split('\n').filter((line) => line.trim() !== '')
+  const requiredLines = 8
+
+  // Check each line has at least one letter
+  for (let i = 0; i < requiredLines; i++) {
+    const line = lines[i] || ''
+    if (!/[a-zA-ZāčēģīķļņšūžĀČĒĢĪĶĻŅŠŪŽ]/.test(line)) {
+      errors.push(
+        createValidationError(
+          VALIDATION_ERRORS.REQUIRED_FIELD,
+          `${i + 1}. rinda ir tukša vai nesatur burtus`,
+          'anthem',
+          field,
+          'Lūdzu, ierakstiet himnas tekstu šajā rindā'
+        )
       )
-    )
-    return createFieldValidationResult(field, false, errors)
+    }
   }
 
-  // Check minimum length
-  if (anthemText.length < config.minLength) {
-    errors.push(
-      createValidationError(
-        VALIDATION_ERRORS.INSUFFICIENT_LENGTH,
-        `Himnas teksts ir pārāk īss. Nepieciešams vismaz ${config.minLength} simboli`,
-        'anthem',
-        field,
-        `Pašlaik ir ${anthemText.length} simboli, nepieciešams ${config.minLength}`
-      )
-    )
-    return createFieldValidationResult(field, false, errors)
+  return createFieldValidationResult(field, errors.length === 0, errors)
+}
+
+/**
+ * Validate anthem text for submission - performs accuracy check
+ */
+export function validateAnthemForSubmission(
+  anthemText: string
+): ValidationResult {
+  const errors: ValidationError[] = []
+  const field = 'anthemText'
+
+  // First check basic line completion
+  const basicValidation = validateAnthemSection(anthemText)
+  if (!basicValidation.isValid) {
+    return {
+      isValid: false,
+      isSubmissionReady: false,
+      fieldResults: { [field]: basicValidation },
+      globalErrors: [],
+      summary: {
+        errorCount: basicValidation.errors.length,
+        warningCount: 0,
+        infoCount: 0,
+        errorsBySeverity: {
+          error: basicValidation.errors.length,
+          warning: 0,
+          info: 0,
+        },
+        completionPercentage: 0,
+        criticalIssues: basicValidation.errors.map((e) => e.message),
+      },
+      metadata: {
+        startedAt: Date.now(),
+        completedAt: Date.now(),
+        duration: 0,
+        appliedRules: ['anthem-submission-validation'],
+        validatorVersion: '1.0.0',
+      },
+    }
   }
 
-  // Check maximum length
-  if (anthemText.length > config.maxLength) {
-    errors.push(
-      createValidationError(
-        VALIDATION_ERRORS.OUT_OF_RANGE,
-        `Himnas teksts ir pārāk garš. Maksimums ${config.maxLength} simboli`,
-        'anthem',
-        field,
-        `Pašlaik ir ${anthemText.length} simboli, maksimums ${config.maxLength}`
-      )
-    )
-    return createFieldValidationResult(field, false, errors)
-  }
-
-  // Check accuracy using existing text processing utility
+  // Then check accuracy against reference text
   try {
     const anthemResult = compareAnthemText(anthemText)
-
-    if (anthemResult.accuracy < config.requiredAccuracy) {
+    if (anthemResult.accuracy < SCORING_THRESHOLDS.ANTHEM_PASS_PERCENTAGE) {
       errors.push(
         createValidationError(
           VALIDATION_ERRORS.INSUFFICIENT_LENGTH,
-          `Himnas precizitāte ir pārāk zema. Nepieciešams vismaz ${config.requiredAccuracy}%`,
+          `Himnas precizitāte (${anthemResult.accuracy.toFixed(1)}%) ir zemāka par nepieciešamo (${SCORING_THRESHOLDS.ANTHEM_PASS_PERCENTAGE}%)`,
           'anthem',
           field,
-          `Pašlaik precizitāte ir ${anthemResult.accuracy.toFixed(1)}%, nepieciešams ${config.requiredAccuracy}%`
+          'Lūdzu, pārbaudiet un uzlabojiet himnas tekstu'
         )
       )
-      return createFieldValidationResult(field, false, errors)
     }
-  } catch {
+  } catch (error) {
     errors.push(
       createValidationError(
         VALIDATION_ERRORS.MALFORMED_DATA,
         'Neizdevās analizēt himnas tekstu',
         'anthem',
         field,
-        'Lūdzu, pārbaudiet ievadīto tekstu'
+        'Lūdzu, pārbaudiet teksta pareizību'
       )
     )
-    return createFieldValidationResult(field, false, errors)
   }
 
-  return createFieldValidationResult(field, true, [])
+  const fieldResult = createFieldValidationResult(
+    field,
+    errors.length === 0,
+    errors
+  )
+  const isValid = errors.length === 0
+
+  return {
+    isValid,
+    isSubmissionReady: isValid,
+    fieldResults: { [field]: fieldResult },
+    globalErrors: [],
+    summary: {
+      errorCount: errors.length,
+      warningCount: 0,
+      infoCount: 0,
+      errorsBySeverity: { error: errors.length, warning: 0, info: 0 },
+      completionPercentage: isValid ? 100 : 0,
+      criticalIssues: errors.map((e) => e.message),
+    },
+    metadata: {
+      startedAt: Date.now(),
+      completedAt: Date.now(),
+      duration: 0,
+      appliedRules: ['anthem-submission-validation'],
+      validatorVersion: '1.0.0',
+    },
+  }
 }
 
 /**

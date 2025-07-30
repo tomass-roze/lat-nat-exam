@@ -110,13 +110,13 @@ export type ValidationErrorCode =
 /**
  * Official Latvian national anthem text (8 lines)
  * Used as reference for anthem accuracy checking
+ * Updated from official JSON database
  */
 export const NATIONAL_ANTHEM_REFERENCE = [
   'Dievs, svētī Latviju,',
   "Mūs' dārgo tēviju,",
   'Svētī jel Latviju,',
   'Ak, svētī jel to!',
-  '',
   'Kur latvju meitas zied,',
   'Kur latvju dēli dzied,',
   'Laid mums tur laimē diet,',
