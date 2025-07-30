@@ -272,12 +272,379 @@ export type QuestionUpdate = Partial<
 export type NewQuestion = Omit<Question, 'id'>
 
 /**
+ * Enhanced database validation types
+ */
+export interface DatabaseValidationResult {
+  isValid: boolean
+  errors: DatabaseValidationError[]
+  warnings: string[]
+  stats: DatabaseStats
+  performance: PerformanceMetrics
+}
+
+export interface DatabaseValidationError {
+  category: 'structure' | 'content' | 'encoding' | 'duplicate' | 'format'
+  severity: 'error' | 'warning'
+  message: string
+  context: string
+  questionId?: number
+  suggestions?: string[]
+}
+
+export interface DatabaseStats {
+  anthemLines: number
+  historyQuestions: number
+  constitutionQuestions: number
+  totalQuestions: number
+  uniqueIds: number
+  duplicateIds: number[]
+  utf8Characters: {
+    total: number
+    byCharacter: Record<LatvianDiacritic, number>
+    coverage: number
+  }
+}
+
+export interface PerformanceMetrics {
+  validationTimeMs: number
+  memoryUsageMB: number
+  questionsPerSecond?: number
+  loadingTimeMs?: number
+}
+
+/**
+ * Latvian diacritical characters as literal type
+ */
+export type LatvianDiacritic =
+  | 'ā'
+  | 'ē'
+  | 'ī'
+  | 'ō'
+  | 'ū'
+  | 'ģ'
+  | 'ķ'
+  | 'ļ'
+  | 'ņ'
+  | 'š'
+  | 'ž'
+
+/**
+ * Enhanced raw question data with strict typing
+ */
+export interface RawQuestionData {
+  nationalAnthem: readonly [
+    string,
+    string,
+    string,
+    string,
+    string,
+    string,
+    string,
+    string,
+  ]
+  historyQuestions: readonly RawQuestion[]
+  constitutionQuestions: readonly RawQuestion[]
+}
+
+export interface RawQuestion {
+  readonly id: number
+  readonly question: string
+  readonly options: readonly [string, string, string]
+  readonly correctAnswer: 0 | 1 | 2
+}
+
+/**
+ * Validated question with enhanced type safety
+ */
+export interface ValidatedQuestion extends Omit<Question, 'options'> {
+  readonly id: number
+  readonly question: string
+  readonly options: [string, string, string]
+  readonly correctAnswer: 0 | 1 | 2
+  readonly category: 'history' | 'constitution'
+  readonly isValidated: true
+  readonly validatedAt: number
+  readonly utf8Valid: boolean
+  readonly contentHash: string
+}
+
+/**
+ * Question pool validation configuration
+ */
+export interface ValidationConfig {
+  strictMode: boolean
+  checkUtf8Encoding: boolean
+  validateDuplicateIds: boolean
+  checkContentLength: boolean
+  maxQuestionLength: number
+  maxOptionLength: number
+  requiredFields: (keyof Question)[]
+}
+
+/**
+ * Performance benchmark result
+ */
+export interface BenchmarkResult {
+  averageLoadTimeMs: number
+  minLoadTimeMs: number
+  maxLoadTimeMs: number
+  standardDeviation: number
+  totalQuestions: number
+  averageQuestionsPerSecond: number
+  memoryUsageMB: number
+  iterations: number
+  reliability: 'excellent' | 'good' | 'poor'
+}
+
+/**
+ * Cross-pool validation result
+ */
+export interface CrossPoolValidation {
+  isValid: boolean
+  duplicateIds: number[]
+  totalIds: number
+  uniqueIds: number
+  details: string
+  affectedCategories: ('history' | 'constitution')[]
+}
+
+/**
+ * UTF-8 character validation result
+ */
+export interface Utf8ValidationResult {
+  isValid: boolean
+  encoding: 'utf-8' | 'invalid' | 'mixed'
+  characters: {
+    total: number
+    latvian: number
+    coverage: number
+    distribution: Record<LatvianDiacritic, number>
+  }
+  issues: Utf8Issue[]
+}
+
+export interface Utf8Issue {
+  type: 'encoding_error' | 'missing_character' | 'character_corruption'
+  message: string
+  context: string
+  questionId?: number
+  position?: number
+}
+
+/**
+ * Enhanced type guards with better error reporting
+ */
+export interface TypeGuardResult<T> {
+  isValid: boolean
+  data?: T
+  errors: TypeValidationError[]
+}
+
+export interface TypeValidationError {
+  field: string
+  expected: string
+  actual: string
+  message: string
+}
+
+/**
+ * Enhanced question validation function
+ */
+export function validateQuestion(obj: unknown): TypeGuardResult<Question> {
+  const errors: TypeValidationError[] = []
+
+  if (typeof obj !== 'object' || obj === null) {
+    errors.push({
+      field: 'root',
+      expected: 'object',
+      actual: typeof obj,
+      message: 'Question must be an object',
+    })
+    return { isValid: false, errors }
+  }
+
+  const q = obj as any
+
+  // ID validation
+  if (typeof q.id !== 'number') {
+    errors.push({
+      field: 'id',
+      expected: 'number',
+      actual: typeof q.id,
+      message: 'Question ID must be a number',
+    })
+  }
+
+  // Question text validation
+  if (typeof q.question !== 'string' || !q.question.trim()) {
+    errors.push({
+      field: 'question',
+      expected: 'non-empty string',
+      actual: typeof q.question,
+      message: 'Question text must be a non-empty string',
+    })
+  }
+
+  // Options validation
+  if (!Array.isArray(q.options)) {
+    errors.push({
+      field: 'options',
+      expected: 'array',
+      actual: typeof q.options,
+      message: 'Options must be an array',
+    })
+  } else if (q.options.length !== 3) {
+    errors.push({
+      field: 'options',
+      expected: 'array of length 3',
+      actual: `array of length ${q.options.length}`,
+      message: 'Options must contain exactly 3 items',
+    })
+  }
+
+  // Correct answer validation
+  if (
+    typeof q.correctAnswer !== 'number' ||
+    ![0, 1, 2].includes(q.correctAnswer)
+  ) {
+    errors.push({
+      field: 'correctAnswer',
+      expected: '0, 1, or 2',
+      actual: String(q.correctAnswer),
+      message: 'Correct answer must be 0, 1, or 2',
+    })
+  }
+
+  // Category validation
+  if (!['history', 'constitution'].includes(q.category)) {
+    errors.push({
+      field: 'category',
+      expected: 'history or constitution',
+      actual: String(q.category),
+      message: 'Category must be either history or constitution',
+    })
+  }
+
+  const isValid = errors.length === 0
+  return {
+    isValid,
+    data: isValid ? (q as Question) : undefined,
+    errors,
+  }
+}
+
+/**
+ * Enhanced question pool validation
+ */
+export function validateQuestionPool(
+  obj: unknown
+): TypeGuardResult<QuestionPool> {
+  const errors: TypeValidationError[] = []
+
+  if (typeof obj !== 'object' || obj === null) {
+    errors.push({
+      field: 'root',
+      expected: 'object',
+      actual: typeof obj,
+      message: 'Question pool must be an object',
+    })
+    return { isValid: false, errors }
+  }
+
+  const pool = obj as any
+
+  // History questions validation
+  if (!Array.isArray(pool.history)) {
+    errors.push({
+      field: 'history',
+      expected: 'array',
+      actual: typeof pool.history,
+      message: 'History questions must be an array',
+    })
+  } else {
+    pool.history.forEach((q: unknown, index: number) => {
+      const validation = validateQuestion(q)
+      if (!validation.isValid) {
+        errors.push({
+          field: `history[${index}]`,
+          expected: 'valid Question object',
+          actual: 'invalid Question',
+          message: `History question ${index + 1} is invalid: ${validation.errors.map((e) => e.message).join(', ')}`,
+        })
+      }
+    })
+  }
+
+  // Constitution questions validation
+  if (!Array.isArray(pool.constitution)) {
+    errors.push({
+      field: 'constitution',
+      expected: 'array',
+      actual: typeof pool.constitution,
+      message: 'Constitution questions must be an array',
+    })
+  } else {
+    pool.constitution.forEach((q: unknown, index: number) => {
+      const validation = validateQuestion(q)
+      if (!validation.isValid) {
+        errors.push({
+          field: `constitution[${index}]`,
+          expected: 'valid Question object',
+          actual: 'invalid Question',
+          message: `Constitution question ${index + 1} is invalid: ${validation.errors.map((e) => e.message).join(', ')}`,
+        })
+      }
+    })
+  }
+
+  // Metadata validation
+  if (typeof pool.metadata !== 'object' || pool.metadata === null) {
+    errors.push({
+      field: 'metadata',
+      expected: 'object',
+      actual: typeof pool.metadata,
+      message: 'Question pool metadata must be an object',
+    })
+  }
+
+  const isValid = errors.length === 0
+  return {
+    isValid,
+    data: isValid ? (pool as QuestionPool) : undefined,
+    errors,
+  }
+}
+
+/**
  * Union type for all question-related error types
  */
 export type QuestionError =
   | AnswerValidationError
+  | DatabaseValidationError
+  | TypeValidationError
+  | Utf8Issue
   | {
-      type: 'SELECTION_ERROR' | 'RANDOMIZATION_ERROR' | 'VALIDATION_ERROR'
+      type:
+        | 'SELECTION_ERROR'
+        | 'RANDOMIZATION_ERROR'
+        | 'VALIDATION_ERROR'
+        | 'PERFORMANCE_ERROR'
       message: string
       details?: Record<string, unknown>
+      timestamp?: number
     }
+
+/**
+ * Comprehensive validation result for the entire system
+ */
+export interface SystemValidationResult {
+  database: DatabaseValidationResult
+  crossPool: CrossPoolValidation
+  utf8: Utf8ValidationResult
+  performance: BenchmarkResult
+  overall: {
+    isValid: boolean
+    score: number // 0-100
+    recommendations: string[]
+  }
+}

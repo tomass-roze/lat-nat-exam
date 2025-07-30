@@ -214,22 +214,32 @@ export function calculateAccuracy(
     return 0
   }
 
+  // Check for perfect match first (most common case)
+  if (submitted === reference) {
+    return 100
+  }
+
   let correctCharacters = 0
-  const maxLength = Math.max(submitted.length, reference.length)
+  const minLength = Math.min(submitted.length, reference.length)
 
-  // Compare character by character
-  for (let i = 0; i < maxLength; i++) {
-    const submittedChar = submitted[i] || ''
-    const referenceChar = reference[i] || ''
-
-    if (submittedChar === referenceChar) {
+  // Compare character by character up to the shorter text length
+  for (let i = 0; i < minLength; i++) {
+    if (submitted[i] === reference[i]) {
       correctCharacters++
     }
   }
 
-  // Calculate accuracy as percentage of correct characters
-  // Use reference length as the denominator for consistent scoring
-  return (correctCharacters / reference.length) * 100
+  // Calculate base accuracy from matching characters
+  let accuracy = (correctCharacters / reference.length) * 100
+
+  // Apply penalty for length differences
+  if (submitted.length !== reference.length) {
+    const lengthDifference = Math.abs(submitted.length - reference.length)
+    const lengthPenalty = Math.min(lengthDifference / reference.length, 0.5) // Cap penalty at 50%
+    accuracy = accuracy * (1 - lengthPenalty)
+  }
+
+  return Math.max(0, accuracy)
 }
 
 /**
