@@ -12,6 +12,7 @@ import { HistorySection } from '@/components/exam/HistorySection'
 import { ConstitutionSection } from '@/components/exam/ConstitutionSection'
 import { SubmissionPanel } from '@/components/exam/SubmissionPanel'
 import { ExamResults } from '@/components/exam/ExamResults'
+import { SubmissionLoadingScreen } from '@/components/exam/SubmissionLoadingScreen'
 import { ValidationProvider, useValidation } from '@/contexts/ValidationContext'
 import {
   SessionProvider,
@@ -51,6 +52,7 @@ function ExamContent() {
   // Results state
   const [examResults, setExamResults] = useState<TestResults | null>(null)
   const [showResults, setShowResults] = useState(false)
+  const [isCalculatingResults, setIsCalculatingResults] = useState(false)
 
   // Refs for smooth scrolling
   const historyRef = useRef<HTMLDivElement>(null)
@@ -260,21 +262,64 @@ function ExamContent() {
   }
 
   const handleSubmit = async () => {
+    setIsCalculatingResults(true)
     try {
+      // Minimum loading time for better UX (prevent flash)
+      const startTime = Date.now()
+      const minLoadingTime = 200
+
       // Validate at submission time only
-      validateAll(sessionState.testState, 'onSubmit')
+      try {
+        validateAll(sessionState.testState, 'onSubmit')
+      } catch (validationError) {
+        console.error('Validation failed:', validationError)
+        alert(
+          'Eksāmens nav gatavs iesniegšanai. Lūdzu, pārbaudiet visas sekcijas un novērsiet kļūdas.'
+        )
+        return
+      }
 
       // Calculate exam results (this includes accuracy validation for anthem)
-      const results = calculateTestResults(testState, selectedQuestions)
-      setExamResults(results)
+      let results
+      try {
+        results = calculateTestResults(testState, selectedQuestions)
+        setExamResults(results)
+      } catch (calculationError) {
+        console.error('Results calculation failed:', calculationError)
+        alert(
+          'Neizdevās aprēķināt eksāmena rezultātus. Lūdzu, mēģinājiet vēlreiz vai sazinieties ar atbalstu.'
+        )
+        return
+      }
 
-      // Mark as completed and show results
-      updateTestState({ isCompleted: true })
-      await saveSession()
+      // Mark as completed and save session
+      try {
+        updateTestState({ isCompleted: true })
+        await saveSession()
+      } catch (saveError) {
+        console.error('Session save failed:', saveError)
+        // Still show results even if save fails, but warn user
+        console.warn(
+          'Results calculated but session save failed. Results will still be displayed.'
+        )
+      }
+
+      // Ensure minimum loading time for smooth UX
+      const elapsedTime = Date.now() - startTime
+      if (elapsedTime < minLoadingTime) {
+        await new Promise((resolve) =>
+          setTimeout(resolve, minLoadingTime - elapsedTime)
+        )
+      }
+
       setShowResults(true)
     } catch (error) {
-      console.error('Error calculating results:', error)
-      alert('Kļūda aprēķinot rezultātus. Lūdzu, mēģinājiet vēlreiz.')
+      console.error('Unexpected error during submission:', error)
+      alert(
+        'Radās neparedzēta kļūda. Lūdzu, mēģinājiet vēlreiz vai pārlādējiet lapu.'
+      )
+    } finally {
+      setIsCalculatingResults(false)
     }
   }
 
@@ -389,6 +434,9 @@ function ExamContent() {
         sections={sections}
         overallProgress={overallProgress}
       />
+
+      {/* Submission Loading Screen */}
+      <SubmissionLoadingScreen isVisible={isCalculatingResults} />
     </MainLayout>
   )
 }

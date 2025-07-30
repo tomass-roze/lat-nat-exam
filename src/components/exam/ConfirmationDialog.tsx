@@ -1,7 +1,11 @@
 /**
  * @fileoverview Confirmation dialog for exam submission
+ * 
+ * NOTE: This component is no longer used in the main submission flow as of issue #48.
+ * Direct submission is now implemented in SubmissionPanel.tsx with loading screen feedback.
+ * This file is kept for potential future use or reference.
  *
- * Provides comprehensive submission confirmation with validation summary,
+ * Previously provided comprehensive submission confirmation with validation summary,
  * section completion status, and final submission prevention checks.
  */
 
@@ -95,12 +99,12 @@ export function ConfirmationDialog({
 
   // Perform final validation when dialog opens
   useEffect(() => {
-    debugLogger.debug('validation', 'Validation effect triggered', { 
-      open, 
-      hasValidationResult: !!validationResult, 
-      hasValidationError: validationError.hasError 
+    debugLogger.debug('validation', 'Validation effect triggered', {
+      open,
+      hasValidationResult: !!validationResult,
+      hasValidationError: validationError.hasError,
     })
-    
+
     if (open && !validationResult && !validationError.hasError) {
       logDialogOpen('ConfirmationDialog')
       logValidationStart(testState, 'dialog-open')
@@ -456,8 +460,11 @@ export function ConfirmationDialog({
   }
 
   const handleOpenChange = (isOpen: boolean) => {
-    debugLogger.debug('dialog', 'handleOpenChange called', { isOpen, currentOpen: open })
-    
+    debugLogger.debug('dialog', 'handleOpenChange called', {
+      isOpen,
+      currentOpen: open,
+    })
+
     // Only close when explicitly setting to false
     if (!isOpen) {
       debugLogger.debug('dialog', 'Closing dialog via handleOpenChange')

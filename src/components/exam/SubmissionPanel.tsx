@@ -11,10 +11,10 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { CheckCircle, AlertTriangle, Clock, Send, Info, X } from 'lucide-react'
 import { SCORING_THRESHOLDS } from '@/types/constants'
-import { ConfirmationDialog } from './ConfirmationDialog'
+// ConfirmationDialog removed - direct submission implementation
 import { useValidationStatus } from '@/contexts/ValidationContext'
-import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
 // compareAnthemText import removed - accuracy validation moved to final results only
+// ErrorBoundary import removed - no longer needed without ConfirmationDialog
 import type { TestState } from '@/types/exam'
 
 interface SubmissionPanelProps {
@@ -35,7 +35,6 @@ export function SubmissionPanel({
   className,
 }: SubmissionPanelProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false)
 
   const validationStatus = useValidationStatus()
 
@@ -119,17 +118,15 @@ export function SubmissionPanel({
 
   const detailedStatus = getDetailedValidationStatus()
 
-  const handleSubmitClick = () => {
-    setShowConfirmDialog(true)
-  }
-
-  const handleConfirmSubmit = async () => {
+  const handleSubmitClick = async () => {
     setIsSubmitting(true)
     try {
       await onSubmit()
+    } catch (error) {
+      console.error('Submission error:', error)
+      // Error handling is managed by App.handleSubmit
     } finally {
       setIsSubmitting(false)
-      setShowConfirmDialog(false)
     }
   }
 
@@ -355,50 +352,7 @@ export function SubmissionPanel({
         </Alert>
       </CardContent>
 
-      {/* Confirmation Dialog */}
-      <ErrorBoundary
-        onError={(error, errorInfo) => {
-          console.error('ConfirmationDialog error:', error, errorInfo)
-        }}
-        fallback={
-          <Alert variant="destructive" className="m-4">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>
-              <div className="space-y-2">
-                <div>
-                  <strong>Apstiprinājuma dialogs nav pieejams</strong>
-                  <br />
-                  Radās tehniska problēma ar apstiprinājuma dialogu.
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    onClick={() => setShowConfirmDialog(false)}
-                    variant="outline"
-                    size="sm"
-                  >
-                    Aizvērt
-                  </Button>
-                  <Button
-                    onClick={handleConfirmSubmit}
-                    variant="destructive"
-                    size="sm"
-                  >
-                    Iesniegt tieši
-                  </Button>
-                </div>
-              </div>
-            </AlertDescription>
-          </Alert>
-        }
-      >
-        <ConfirmationDialog
-          open={showConfirmDialog}
-          onClose={() => setShowConfirmDialog(false)}
-          onSubmit={handleConfirmSubmit}
-          testState={testState}
-          isSubmitting={isSubmitting}
-        />
-      </ErrorBoundary>
+      {/* Direct submission - no confirmation dialog needed */}
     </Card>
   )
 }
