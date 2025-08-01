@@ -3,6 +3,25 @@ import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './styles/index.css'
 
+// Initialize global error handling
+import { initializeGlobalErrorHandling } from './utils/globalErrorHandler'
+
+// Initialize global error handling before anything else
+initializeGlobalErrorHandling({
+  showUserNotifications: true,
+  attemptAutoRecovery: true,
+  maxErrorsBeforeWarning: 3,
+  errorCountingWindow: 30000, // 30 seconds
+  notificationPreferences: {
+    showNotifications: true,
+    notificationTimeout: 8000, // 8 seconds
+    showTechnicalDetails: process.env.NODE_ENV === 'development',
+    position: 'top',
+    soundEnabled: false,
+    vibrationEnabled: false,
+  },
+})
+
 // Initialize axe-core for development accessibility testing
 if (process.env.NODE_ENV === 'development') {
   import('@axe-core/react')

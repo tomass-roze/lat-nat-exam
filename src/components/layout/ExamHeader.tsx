@@ -1,11 +1,13 @@
 import { ReactNode } from 'react'
 import { cn } from '@/lib/utils'
+import { NetworkStatusBadge } from '@/components/ui/NetworkStatusIndicator'
 
 interface ExamHeaderProps {
   title?: string
   subtitle?: string
   children?: ReactNode
   className?: string
+  showNetworkStatus?: boolean
 }
 
 export function ExamHeader({
@@ -13,10 +15,18 @@ export function ExamHeader({
   subtitle = 'Prakses eksāmens pilsonības iegūšanai',
   children,
   className,
+  showNetworkStatus = true,
 }: ExamHeaderProps) {
   return (
     <header role="banner" className={cn('border-b border-border', className)}>
       <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 max-w-6xl">
+        {/* Network Status Badge - Top Right */}
+        {showNetworkStatus && (
+          <div className="flex justify-end mb-2">
+            <NetworkStatusBadge />
+          </div>
+        )}
+        
         <div className="text-center">
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-2 leading-tight">
             {title}

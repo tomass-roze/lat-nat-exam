@@ -20,14 +20,20 @@ import {
   useSessionStatus,
 } from '@/contexts/SessionContext'
 import { SessionRecoveryDialog } from '@/components/session/SessionRecoveryDialog'
+import { ErrorBoundary, SectionErrorBoundary, useErrorHandler } from '@/components/ui/ErrorBoundary'
+import { NetworkWarningBanner } from '@/components/ui/NetworkStatusIndicator'
 import { SCORING_THRESHOLDS } from '@/types/constants'
 import type { TestState } from '@/types/exam'
 import type { TestResults } from '@/types/scoring'
 import { loadExamQuestions, QuestionLoadingError } from '@/utils/questionLoader'
 import { calculateTestResults } from '@/utils/scoring'
+import { logRuntimeError } from '@/utils/errorLogger'
 // compareAnthemText import removed - only used during final results calculation
 
 function ExamContent() {
+  // Error handling
+  useErrorHandler('ExamContent')
+
   // Session and validation contexts
   const {
     state: sessionState,
@@ -379,14 +385,19 @@ function ExamContent() {
         onDismiss={handleRecoveryDialogDismiss}
       />
 
+      {/* Network Status Warning */}
+      <NetworkWarningBanner />
+
       <div className="space-y-8 sm:space-y-12 py-4 sm:py-8 mobile-bottom-safe">
         {/* Anthem Section */}
         <section id="anthem-section" aria-labelledby="anthem-title">
-          <AnthemSection
-            value={anthemText}
-            onChange={handleAnthemChange}
-            onNext={scrollToHistory}
-          />
+          <SectionErrorBoundary sectionName="Himna" isCritical={true}>
+            <AnthemSection
+              value={anthemText}
+              onChange={handleAnthemChange}
+              onNext={scrollToHistory}
+            />
+          </SectionErrorBoundary>
         </section>
 
         {/* History Section */}
@@ -395,12 +406,14 @@ function ExamContent() {
           aria-labelledby="history-title"
           ref={historyRef}
         >
-          <HistorySection
-            answers={historyAnswers}
-            onChange={handleHistoryAnswer}
-            onNext={scrollToConstitution}
-            questions={selectedQuestions?.history || []}
-          />
+          <SectionErrorBoundary sectionName="Vēsture" isCritical={true}>
+            <HistorySection
+              answers={historyAnswers}
+              onChange={handleHistoryAnswer}
+              onNext={scrollToConstitution}
+              questions={selectedQuestions?.history || []}
+            />
+          </SectionErrorBoundary>
         </section>
 
         {/* Constitution Section */}
@@ -409,23 +422,27 @@ function ExamContent() {
           aria-labelledby="constitution-title"
           ref={constitutionRef}
         >
-          <ConstitutionSection
-            answers={constitutionAnswers}
-            onChange={handleConstitutionAnswer}
-            questions={selectedQuestions?.constitution || []}
-            error={questionLoadingError || undefined}
-          />
+          <SectionErrorBoundary sectionName="Konstitūcija" isCritical={true}>
+            <ConstitutionSection
+              answers={constitutionAnswers}
+              onChange={handleConstitutionAnswer}
+              questions={selectedQuestions?.constitution || []}
+              error={questionLoadingError || undefined}
+            />
+          </SectionErrorBoundary>
         </section>
 
         {/* Submission Panel */}
         <section id="submission-section" aria-labelledby="submission-title">
-          <SubmissionPanel
-            anthemProgress={anthemProgress}
-            historyAnswered={Object.keys(historyAnswers).length}
-            constitutionAnswered={Object.keys(constitutionAnswers).length}
-            testState={testState}
-            onSubmit={handleSubmit}
-          />
+          <SectionErrorBoundary sectionName="Iesniegšana" isCritical={true}>
+            <SubmissionPanel
+              anthemProgress={anthemProgress}
+              historyAnswered={Object.keys(historyAnswers).length}
+              constitutionAnswered={Object.keys(constitutionAnswers).length}
+              testState={testState}
+              onSubmit={handleSubmit}
+            />
+          </SectionErrorBoundary>
         </section>
       </div>
 
@@ -443,21 +460,44 @@ function ExamContent() {
 
 function App() {
   return (
-    <SessionProvider
-      autoSaveInterval={30000} // 30 seconds
-      onSessionExpiry={() => {
-        console.log('Session expired')
-        alert('Jūsu eksāmena sesija ir beigusies. Lūdzu, sāciet no jauna.')
-      }}
-      onStorageError={(error) => {
-        console.error('Storage error:', error)
-        // Could show a toast notification here
-      }}
+    <ErrorBoundary
+      componentName="App"
+      isCritical={true}
+      enableAutoRecovery={false}
+      showDetails={process.env.NODE_ENV === 'development'}
     >
-      <ValidationProvider>
-        <ExamContent />
-      </ValidationProvider>
-    </SessionProvider>
+      <SessionProvider
+        autoSaveInterval={30000} // 30 seconds
+        onSessionExpiry={() => {
+          console.log('Session expired')
+          alert('Jūsu eksāmena sesija ir beigusies. Lūdzu, sāciet no jauna.')
+        }}
+        onStorageError={(error) => {
+          console.error('Storage error:', error)
+          logRuntimeError(
+            new Error(`Storage error: ${error.message}`),
+            'SessionProvider',
+            'App'
+          )
+        }}
+      >
+        <ErrorBoundary
+          componentName="ValidationProvider"
+          isCritical={false}
+          enableAutoRecovery={true}
+        >
+          <ValidationProvider>
+            <ErrorBoundary
+              componentName="ExamContent"
+              isCritical={true}
+              enableAutoRecovery={false}
+            >
+              <ExamContent />
+            </ErrorBoundary>
+          </ValidationProvider>
+        </ErrorBoundary>
+      </SessionProvider>
+    </ErrorBoundary>
   )
 }
 
