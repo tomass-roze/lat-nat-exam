@@ -397,19 +397,19 @@ export function ExamResults({ results, onRetakeExam }: ExamResultsProps) {
       </Card>
 
       {/* Action Buttons */}
-      <div className="flex justify-center space-x-4">
+      <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
         <Button
           onClick={onRetakeExam}
           variant="outline"
           size="lg"
-          className="flex items-center space-x-2"
+          className="flex items-center justify-center space-x-2 w-full sm:w-auto"
         >
           <RotateCcw className="h-5 w-5" />
           <span>Mēģināt vēlreiz</span>
         </Button>
 
         {results.overall.passed && (
-          <Button size="lg" className="flex items-center space-x-2">
+          <Button size="lg" className="flex items-center justify-center space-x-2 w-full sm:w-auto">
             <Trophy className="h-5 w-5" />
             <span>Lejupielādēt sertifikātu</span>
           </Button>

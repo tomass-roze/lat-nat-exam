@@ -325,7 +325,7 @@ export function SubmissionPanel({
               validationStatus.isValidating
             }
             size="lg"
-            className="min-w-32"
+            className="w-full sm:w-auto sm:min-w-32"
           >
             {isSubmitting ? (
               <>
