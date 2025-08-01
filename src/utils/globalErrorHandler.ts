@@ -160,7 +160,10 @@ export class GlobalErrorHandler {
       }
 
       if (this.originalRejectionHandler) {
-        window.removeEventListener('unhandledrejection', this.originalRejectionHandler)
+        window.removeEventListener(
+          'unhandledrejection',
+          this.originalRejectionHandler
+        )
       }
 
       // Remove notification container
@@ -196,7 +199,7 @@ export class GlobalErrorHandler {
 
       // Find appropriate recovery strategy
       const strategy = this.findRecoveryStrategy(error)
-      
+
       if (!strategy || !this.config.attemptAutoRecovery) {
         return {
           handled: true,
@@ -210,7 +213,7 @@ export class GlobalErrorHandler {
 
       // Attempt automatic recovery
       const recoveryResult = await this.attemptRecovery(error, strategy)
-      
+
       // Mark error as handled
       errorLogger.markErrorHandled(
         errorKey,
@@ -264,7 +267,8 @@ export class GlobalErrorHandler {
           line: lineno,
           column: colno,
         },
-        originalError: error || new Error(message?.toString() || 'Unknown error'),
+        originalError:
+          error || new Error(message?.toString() || 'Unknown error'),
         stack: error?.stack,
       }
 
@@ -403,7 +407,8 @@ export class GlobalErrorHandler {
 
     const warning = {
       id: `degradation-warning-${Date.now()}`,
-      message: 'Aplikācija saskārusies ar vairākām kļūdām. Ieteicams pārlādēt lapu.',
+      message:
+        'Aplikācija saskārusies ar vairākām kļūdām. Ieteicams pārlādēt lapu.',
       severity: 'warning' as const,
       category: 'performance' as const,
       timestamp: Date.now(),
@@ -424,10 +429,14 @@ export class GlobalErrorHandler {
   /**
    * Find appropriate recovery strategy for error
    */
-  private findRecoveryStrategy(error: ApplicationError): ErrorRecoveryStrategy | null {
-    return this.config.recoveryStrategies.find(strategy =>
-      strategy.categories.includes(error.category)
-    ) || null
+  private findRecoveryStrategy(
+    error: ApplicationError
+  ): ErrorRecoveryStrategy | null {
+    return (
+      this.config.recoveryStrategies.find((strategy) =>
+        strategy.categories.includes(error.category)
+      ) || null
+    )
   }
 
   /**
@@ -481,7 +490,7 @@ export class GlobalErrorHandler {
     action: ErrorRecoveryAction,
     delay: number
   ): Promise<boolean> {
-    await new Promise(resolve => setTimeout(resolve, delay))
+    await new Promise((resolve) => setTimeout(resolve, delay))
 
     switch (action) {
       case 'retry':
@@ -517,10 +526,10 @@ export class GlobalErrorHandler {
     // Set fallback mode in session storage for components to use
     try {
       sessionStorage.setItem('app-fallback-mode', 'true')
-      
+
       // Dispatch custom event to notify components
       window.dispatchEvent(new CustomEvent('fallback-mode-enabled'))
-      
+
       return true
     } catch {
       return false
@@ -534,18 +543,21 @@ export class GlobalErrorHandler {
     switch (error.category) {
       case 'network':
         return 'Savienojums ar internetu ir pārtraukts. Lūdzu, pārbaudiet interneta savienojumu un mēģinājiet vēlreiz.'
-      
+
       case 'storage':
         return 'Problēma ar datu saglabāšanu. Iespējams, pārlādācijai tiek nepieciešama lapa.'
-      
+
       case 'runtime':
         return 'Radās tehniska problēma. Lūdzu, mēģinājiet vēlreiz vai pārlādējiet lapu.'
-      
+
       case 'compatibility':
         return 'Jūsu pārlūks var nebūt pilnībā atbalstīts. Lūdzu, izmantojiet jaunāku pārlūka versiju.'
-      
+
       default:
-        return error.message || 'Radās neparedzēta problēma. Lūdzu, mēģinājiet vēlreiz.'
+        return (
+          error.message ||
+          'Radās neparedzēta problēma. Lūdzu, mēģinājiet vēlreiz.'
+        )
     }
   }
 
@@ -572,9 +584,10 @@ export class GlobalErrorHandler {
 
     const title = document.createElement('div')
     title.style.cssText = 'font-weight: 600; margin-bottom: 0.5rem;'
-    title.textContent = error.severity === 'critical' || error.severity === 'error' 
-      ? 'Radās kļūda' 
-      : 'Brīdinājums'
+    title.textContent =
+      error.severity === 'critical' || error.severity === 'error'
+        ? 'Radās kļūda'
+        : 'Brīdinājums'
 
     const message = document.createElement('div')
     message.style.cssText = 'font-size: 0.875rem; margin-bottom: 0.75rem;'

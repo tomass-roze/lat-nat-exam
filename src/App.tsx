@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, Suspense, lazy } from 'react'
 import { useKeyboardNavigation } from '@/hooks/useKeyboardNavigation'
 import { MainLayout } from '@/components/layout/MainLayout'
 import { ExamHeader } from '@/components/layout/ExamHeader'
@@ -11,8 +11,10 @@ import { AnthemSection } from '@/components/exam/AnthemSection'
 import { HistorySection } from '@/components/exam/HistorySection'
 import { ConstitutionSection } from '@/components/exam/ConstitutionSection'
 import { SubmissionPanel } from '@/components/exam/SubmissionPanel'
-import { ExamResults } from '@/components/exam/ExamResults'
 import { SubmissionLoadingScreen } from '@/components/exam/SubmissionLoadingScreen'
+
+// Lazy load heavy components that are not immediately needed
+const ExamResults = lazy(() => import('@/components/exam/ExamResults'))
 import { ValidationProvider, useValidation } from '@/contexts/ValidationContext'
 import {
   SessionProvider,
@@ -20,8 +22,17 @@ import {
   useSessionStatus,
 } from '@/contexts/SessionContext'
 import { SessionRecoveryDialog } from '@/components/session/SessionRecoveryDialog'
-import { ErrorBoundary, SectionErrorBoundary, useErrorHandler } from '@/components/ui/ErrorBoundary'
+import {
+  ErrorBoundary,
+  SectionErrorBoundary,
+  useErrorHandler,
+} from '@/components/ui/ErrorBoundary'
 import { NetworkWarningBanner } from '@/components/ui/NetworkStatusIndicator'
+import { CompatibilityWarning } from '@/components/ui/CompatibilityWarning'
+import {
+  initializeBrowserCompatibility,
+  isBrowserCompatible,
+} from '@/utils/browserCompatibility'
 import { SCORING_THRESHOLDS } from '@/types/constants'
 import type { TestState } from '@/types/exam'
 import type { TestResults } from '@/types/scoring'
@@ -55,6 +66,11 @@ function ExamContent() {
   >(null)
   const [showRecoveryDialog, setShowRecoveryDialog] = useState(false)
 
+  // Browser compatibility state
+  const [isCompatibleBrowser, setIsCompatibleBrowser] = useState<
+    boolean | null
+  >(null)
+
   // Results state
   const [examResults, setExamResults] = useState<TestResults | null>(null)
   const [showResults, setShowResults] = useState(false)
@@ -69,6 +85,29 @@ function ExamContent() {
     enableSectionNavigation: true,
     enableGlobalShortcuts: true,
   })
+
+  // Initialize browser compatibility check
+  useEffect(() => {
+    try {
+      // Initialize browser compatibility detection
+      initializeBrowserCompatibility()
+
+      // Check if browser is compatible
+      const compatible = isBrowserCompatible()
+      setIsCompatibleBrowser(compatible)
+
+      // Log compatibility result
+      if (!compatible) {
+        console.warn('Browser compatibility issues detected')
+      } else {
+        console.log('Browser compatibility check passed')
+      }
+    } catch (error) {
+      console.error('Browser compatibility check failed:', error)
+      // Assume compatible if check fails to avoid blocking users
+      setIsCompatibleBrowser(true)
+    }
+  }, [])
 
   // Initialize session or load existing one
   useEffect(() => {
@@ -112,10 +151,11 @@ function ExamContent() {
       }
     }
 
-    if (!isInitialized) {
+    // Only initialize session if browser compatibility check is complete
+    if (!isInitialized && isCompatibleBrowser !== null) {
       initializeOrLoadSession()
     }
-  }, [isInitialized, loadSession, initializeSession])
+  }, [isInitialized, isCompatibleBrowser, loadSession, initializeSession])
 
   // Show recovery dialog when there are errors
   useEffect(() => {
@@ -348,14 +388,61 @@ function ExamContent() {
     // The useEffect will automatically reinitialize a new session
   }
 
-  // Show loading state while session is initializing
-  if (!isInitialized) {
+  // Show loading state while compatibility check or session is initializing
+  if (isCompatibleBrowser === null || (!isInitialized && isCompatibleBrowser)) {
     return (
       <MainLayout>
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p>Ielādē eksāmena sesiju...</p>
+            <p>
+              {isCompatibleBrowser === null
+                ? 'Pārbauda pārlūkprogrammas saderību...'
+                : 'Ielādē eksāmena sesiju...'}
+            </p>
+          </div>
+        </div>
+      </MainLayout>
+    )
+  }
+
+  // Show incompatible browser message
+  if (isCompatibleBrowser === false) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="max-w-2xl mx-auto px-4 text-center">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+              <h1 className="text-xl font-semibold text-red-800 mb-4">
+                Pārlūkprogramma nav atbalstīta
+              </h1>
+              <p className="text-red-700 mb-4">
+                Jūsu pārlūkprogramma nav pilnībā saderīga ar šo eksāmena
+                aplikāciju. Lai nodrošinātu labāko pieredzi un izvairītos no
+                tehniskām problēmām, lūdzu, izmantojiet vienu no šīm
+                pārlūkprogrammām:
+              </p>
+              <ul className="text-left text-red-700 mb-6 space-y-1">
+                <li>• Google Chrome 88 vai jaunāka versija</li>
+                <li>• Mozilla Firefox 85 vai jaunāka versija</li>
+                <li>• Safari 14 vai jaunāka versija</li>
+                <li>• Microsoft Edge 88 vai jaunāka versija</li>
+              </ul>
+              <div className="space-y-3">
+                <button
+                  onClick={() => setIsCompatibleBrowser(true)}
+                  className="bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-2 rounded-lg mr-3"
+                >
+                  Turpināt tik un tā (nav ieteicams)
+                </button>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg"
+                >
+                  Pārlādēt lapu
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </MainLayout>
@@ -366,7 +453,18 @@ function ExamContent() {
   if (showResults && examResults) {
     return (
       <MainLayout>
-        <ExamResults results={examResults} onRetakeExam={handleRetakeExam} />
+        <Suspense
+          fallback={
+            <div className="flex items-center justify-center min-h-screen">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                <p>Ielādē rezultātus...</p>
+              </div>
+            </div>
+          }
+        >
+          <ExamResults results={examResults} onRetakeExam={handleRetakeExam} />
+        </Suspense>
       </MainLayout>
     )
   }
@@ -387,6 +485,9 @@ function ExamContent() {
 
       {/* Network Status Warning */}
       <NetworkWarningBanner />
+
+      {/* Browser Compatibility Warning */}
+      <CompatibilityWarning autoShow={true} />
 
       <div className="space-y-8 sm:space-y-12 py-4 sm:py-8 mobile-bottom-safe">
         {/* Anthem Section */}

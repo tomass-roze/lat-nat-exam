@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "build:analyze": "ANALYZE_BUNDLE=true npm run build",
     "preview": "vite preview",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint . --ext ts,tsx --fix",
@@ -14,7 +15,9 @@
     "type-check": "tsc --noEmit",
     "test": "node --test src/utils/__tests__/*.test.ts",
     "test:watch": "node --test --watch src/utils/__tests__/*.test.ts",
-    "test:coverage": "node --test --experimental-test-coverage src/utils/__tests__/*.test.ts"
+    "test:coverage": "node --test --experimental-test-coverage src/utils/__tests__/*.test.ts",
+    "perf:benchmark": "node performance-benchmark.js",
+    "perf:test": "node simple-performance-test.mjs"
   },
   "repository": {
     "type": "git",
@@ -70,6 +73,7 @@
     "globals": "^16.3.0",
     "postcss": "^8.5.6",
     "prettier": "^3.6.2",
+    "rollup-plugin-visualizer": "^6.0.3",
     "tailwindcss": "^4.1.11",
     "tw-animate-css": "^1.3.6"
   }

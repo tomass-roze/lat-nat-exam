@@ -4,6 +4,8 @@
  * Provides functions for loading, selecting, and randomizing questions for the
  * Latvian citizenship exam. Handles both history and constitution question pools
  * with proper randomization and validation.
+ *
+ * Now includes lazy loading support for improved performance.
  */
 
 import type {
@@ -20,6 +22,10 @@ import {
   validateHistoryQuestionPool,
 } from '@/data/historyQuestions'
 import { SCORING_THRESHOLDS } from '@/types/constants'
+import {
+  loadExamQuestionsLazy,
+  preloadQuestions,
+} from '@/utils/lazyQuestionLoader'
 
 /**
  * Error thrown when question loading fails
@@ -328,6 +334,49 @@ export function loadExamQuestions(randomSeed?: number): SelectedQuestions {
       error instanceof Error ? error : undefined
     )
   }
+}
+
+/**
+ * Load exam questions with lazy loading for performance optimization
+ * This is the preferred method for production use
+ */
+export async function loadExamQuestionsAsync(
+  randomSeed?: number
+): Promise<SelectedQuestions> {
+  try {
+    // Use lazy loading for better performance
+    const lazyResult = await loadExamQuestionsLazy()
+
+    // Add selection metadata for compatibility
+    const metadata: SelectionMetadata = {
+      selectedAt: Date.now(),
+      randomSeed: randomSeed ?? Date.now(),
+      selectedIds: {
+        history: lazyResult.history.map((q) => q.id),
+        constitution: lazyResult.constitution.map((q) => q.id),
+      },
+    }
+
+    return {
+      ...lazyResult,
+      selectionMetadata: metadata,
+    }
+  } catch (error) {
+    // Fallback to synchronous loading if lazy loading fails
+    console.warn(
+      'Lazy loading failed, falling back to synchronous loading:',
+      error
+    )
+    return loadExamQuestions(randomSeed)
+  }
+}
+
+/**
+ * Preload questions for better user experience
+ * Call this during application startup
+ */
+export function initializeQuestionPreloading(): void {
+  preloadQuestions()
 }
 
 /**

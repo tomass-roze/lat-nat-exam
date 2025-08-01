@@ -9,16 +9,16 @@ import { useState } from 'react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { 
-  WifiOff, 
-  Signal, 
-  SignalHigh, 
-  SignalMedium, 
+import {
+  WifiOff,
+  Signal,
+  SignalHigh,
+  SignalMedium,
   SignalLow,
   RefreshCw,
   AlertTriangle,
   CheckCircle,
-  Info
+  Info,
 } from 'lucide-react'
 import { useNetworkStatus } from '@/hooks/useNetworkStatus'
 import type { NetworkQuality } from '@/types/errors'
@@ -89,7 +89,7 @@ function getQualityColors(quality: NetworkQuality) {
  */
 function formatSpeed(downlink?: number): string {
   if (!downlink) return 'Nav pieejams'
-  
+
   if (downlink >= 1) {
     return `${downlink.toFixed(1)} Mbps`
   } else {
@@ -128,12 +128,12 @@ export function NetworkStatusIndicator({
   showRecommendations = true,
   className = '',
 }: NetworkStatusIndicatorProps) {
-  const { 
-    networkStatus, 
-    forceCheck, 
-    isNetworkSuitable, 
-    getStatusMessage, 
-    getRecommendedActions 
+  const {
+    networkStatus,
+    forceCheck,
+    isNetworkSuitable,
+    getStatusMessage,
+    getRecommendedActions,
   } = useNetworkStatus()
 
   const [isRefreshing, setIsRefreshing] = useState(false)
@@ -151,18 +151,14 @@ export function NetworkStatusIndicator({
   if (compact) {
     return (
       <div className={`flex items-center gap-2 ${className}`}>
-        <div className={colors.icon}>
-          {icon}
-        </div>
+        <div className={colors.icon}>{icon}</div>
         <Badge
           variant="outline"
           className={`${colors.bg} ${colors.text} ${colors.border}`}
         >
           {getStatusMessage()}
         </Badge>
-        {!isSuitable && (
-          <AlertTriangle className="h-4 w-4 text-amber-500" />
-        )}
+        {!isSuitable && <AlertTriangle className="h-4 w-4 text-amber-500" />}
       </div>
     )
   }
@@ -178,9 +174,7 @@ export function NetworkStatusIndicator({
           </div>
           <div>
             <div className="font-medium">Interneta savienojums</div>
-            <div className={`text-sm ${colors.text}`}>
-              {getStatusMessage()}
-            </div>
+            <div className={`text-sm ${colors.text}`}>{getStatusMessage()}</div>
           </div>
         </div>
         <Button
@@ -189,7 +183,9 @@ export function NetworkStatusIndicator({
           onClick={handleRefresh}
           disabled={isRefreshing}
         >
-          <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+          <RefreshCw
+            className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`}
+          />
         </Button>
       </div>
 
@@ -205,8 +201,7 @@ export function NetworkStatusIndicator({
               <div className="text-sm">
                 {networkStatus.quality === 'offline'
                   ? 'Nav interneta savienojuma. Eksāmenu nevar turpināt bez interneta.'
-                  : 'Vājš interneta savienojums var ietekmēt eksāmena veiktspēju.'
-                }
+                  : 'Vājš interneta savienojums var ietekmēt eksāmena veiktspēju.'}
               </div>
               {showRecommendations && (
                 <div className="space-y-1">
@@ -285,7 +280,8 @@ export function NetworkStatusIndicator({
                 <Info className="h-4 w-4" />
                 <AlertDescription>
                   <div className="text-xs">
-                    <strong>Datu taupīšanas režīms:</strong> Ieslēgts - var ietekmēt veiktspēju
+                    <strong>Datu taupīšanas režīms:</strong> Ieslēgts - var
+                    ietekmēt veiktspēju
                   </div>
                 </AlertDescription>
               </Alert>
@@ -296,7 +292,8 @@ export function NetworkStatusIndicator({
 
       {/* Last Updated */}
       <div className="text-xs text-muted-foreground">
-        Pēdējoreiz atjaunots: {new Date(networkStatus.lastUpdated).toLocaleTimeString('lv-LV')}
+        Pēdējoreiz atjaunots:{' '}
+        {new Date(networkStatus.lastUpdated).toLocaleTimeString('lv-LV')}
       </div>
     </div>
   )
@@ -324,7 +321,8 @@ export function NetworkStatusBadge({ className = '' }: { className?: string }) {
           {networkStatus.quality === 'excellent' && 'Lielisks'}
           {networkStatus.quality === 'unknown' && '?'}
         </span>
-        {(networkStatus.quality === 'offline' || networkStatus.quality === 'poor') && (
+        {(networkStatus.quality === 'offline' ||
+          networkStatus.quality === 'poor') && (
           <AlertTriangle className="h-3 w-3 ml-1" />
         )}
       </div>
@@ -354,8 +352,7 @@ export function NetworkWarningBanner() {
           <div>
             {networkStatus.quality === 'offline'
               ? 'Nav interneta savienojuma. Eksāmenu nevar turpināt bez interneta savienojuma.'
-              : 'Vājš interneta savienojums var izraisīt eksāmena traucējumus vai datu zudumu.'
-            }
+              : 'Vājš interneta savienojums var izraisīt eksāmena traucējumus vai datu zudumu.'}
           </div>
           <div className="space-y-1">
             <div className="font-medium">Ko darīt:</div>

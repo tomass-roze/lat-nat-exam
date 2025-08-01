@@ -22,6 +22,31 @@ initializeGlobalErrorHandling({
   },
 })
 
+// Initialize memory management system
+import { initializeMemoryManagement } from './utils/memoryCleanup'
+initializeMemoryManagement()
+
+// Initialize question preloading for better performance
+import { initializeQuestionPreloading } from './utils/questionLoader'
+initializeQuestionPreloading()
+
+// Initialize performance monitoring
+import { initializePerformanceMonitoring } from './utils/performanceMonitoring'
+initializePerformanceMonitoring()
+
+// Initialize caching system
+import { initializeCaching } from './utils/cacheStrategies'
+initializeCaching()
+
+// Initialize browser compatibility detection early
+import { initializeBrowserCompatibility } from './utils/browserCompatibility'
+try {
+  initializeBrowserCompatibility()
+  console.log('Browser compatibility detection initialized')
+} catch (error) {
+  console.warn('Failed to initialize browser compatibility detection:', error)
+}
+
 // Initialize axe-core for development accessibility testing
 if (process.env.NODE_ENV === 'development') {
   import('@axe-core/react')

@@ -45,7 +45,12 @@ export type CompatibilityLevel = 'supported' | 'limited' | 'unsupported'
 /**
  * Network connection quality indicators
  */
-export type NetworkQuality = 'excellent' | 'good' | 'poor' | 'offline' | 'unknown'
+export type NetworkQuality =
+  | 'excellent'
+  | 'good'
+  | 'poor'
+  | 'offline'
+  | 'unknown'
 
 /**
  * Base error interface
