@@ -32,28 +32,6 @@ export function ExamSection({
   progress,
   className,
 }: ExamSectionProps) {
-  const getStatusColor = () => {
-    switch (status) {
-      case 'completed':
-        return 'bg-muted text-muted-foreground'
-      case 'in-progress':
-        return 'bg-primary hover:bg-primary/90 text-primary-foreground'
-      default:
-        return 'bg-muted text-muted-foreground'
-    }
-  }
-
-  const getStatusText = () => {
-    switch (status) {
-      case 'completed':
-        return 'Pabeigts'
-      case 'in-progress':
-        return 'Aktīvs'
-      default:
-        return 'Gaida'
-    }
-  }
-
   return (
     <section
       id={id}
@@ -82,24 +60,16 @@ export function ExamSection({
                 </CardDescription>
               )}
             </div>
-            <div className="flex flex-col items-end gap-2">
+            {progress && (
               <Badge
-                className={getStatusColor()}
-                aria-label={`Sekcijas statuss: ${getStatusText()}`}
+                variant="outline"
+                className="text-xs"
+                aria-label={`Progress: ${progress.current} no ${progress.total}, ${Math.round(progress.percentage)} procenti`}
               >
-                {getStatusText()}
+                {progress.current}/{progress.total} (
+                {Math.round(progress.percentage)}%)
               </Badge>
-              {progress && (
-                <Badge
-                  variant="outline"
-                  className="text-xs"
-                  aria-label={`Progress: ${progress.current} no ${progress.total}, ${Math.round(progress.percentage)} procenti`}
-                >
-                  {progress.current}/{progress.total} (
-                  {Math.round(progress.percentage)}%)
-                </Badge>
-              )}
-            </div>
+            )}
           </div>
         </CardHeader>
         <CardContent>{children}</CardContent>

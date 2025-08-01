@@ -4,9 +4,7 @@ import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Progress } from '@/components/ui/progress'
-import { Badge } from '@/components/ui/badge'
-import { Info, CheckCircle, Circle, CheckCircle2 } from 'lucide-react'
+import { Info, CheckCircle } from 'lucide-react'
 import { SCORING_THRESHOLDS } from '@/types/constants'
 import type { Question } from '@/types/questions'
 
@@ -69,34 +67,6 @@ export function HistorySection({
           </AlertDescription>
         </Alert>
 
-        {/* Enhanced Progress Section */}
-        <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-4 space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Badge variant="outline" className="font-medium">
-                Progress
-              </Badge>
-              <span className="text-sm text-slate-600 dark:text-slate-400">
-                {progress.current} no {progress.total} jautājumiem
-              </span>
-            </div>
-            <div className="text-sm font-medium text-slate-700 dark:text-slate-300">
-              {Math.round(progress.percentage)}%
-            </div>
-          </div>
-          <Progress value={progress.percentage} className="h-2" />
-          <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
-            <div className="flex items-center gap-1">
-              <CheckCircle2 className="h-3 w-3 text-green-600" />
-              <span>Nepieciešams: {SCORING_THRESHOLDS.HISTORY_PASS_COUNT}</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Circle className="h-3 w-3" />
-              <span>Kopā: {SCORING_THRESHOLDS.HISTORY_TOTAL_QUESTIONS}</span>
-            </div>
-          </div>
-        </div>
-
         <div className="space-y-8">
           {questions.map((question, index) => {
             const isAnswered = answers[question.id] !== undefined
@@ -123,9 +93,6 @@ export function HistorySection({
                         >
                           <span>{index + 1}</span>
                         </div>
-                        <Badge variant="outline" className="text-xs">
-                          {isAnswered ? 'Atbildēts' : 'Gaida atbildi'}
-                        </Badge>
                       </div>
                       <span className="flex-1">{question.question}</span>
                     </legend>
