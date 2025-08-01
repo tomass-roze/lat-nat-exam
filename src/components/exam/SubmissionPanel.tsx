@@ -316,7 +316,7 @@ export function SubmissionPanel({
         )}
 
         {/* Submit Button */}
-        <div className="flex justify-end">
+        <div className="flex sm:justify-end">
           <Button
             onClick={handleSubmitClick}
             disabled={

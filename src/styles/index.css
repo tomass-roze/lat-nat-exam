@@ -365,3 +365,16 @@ body {
     -webkit-font-smoothing: subpixel-antialiased;
   }
 }
+
+/* Mobile bottom spacing for sticky progress bar */
+@media (max-width: 640px) {
+  .mobile-bottom-safe {
+    padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px)); /* 80px + safe area */
+  }
+}
+
+@media (min-width: 641px) {
+  .mobile-bottom-safe {
+    padding-bottom: 8rem; /* 128px for desktop */
+  }
+}
