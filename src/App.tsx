@@ -379,7 +379,7 @@ function ExamContent() {
         onDismiss={handleRecoveryDialogDismiss}
       />
 
-      <div className="space-y-12 py-8 pb-32">
+      <div className="space-y-8 sm:space-y-12 py-4 sm:py-8 pb-32">
         {/* Anthem Section */}
         <section id="anthem-section" aria-labelledby="anthem-title">
           <AnthemSection

@@ -48,14 +48,20 @@ export function ExamSection({
           status === 'in-progress' && 'border-primary shadow-md'
         )}
       >
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle id={`${id}-title`} className="text-xl md:text-2xl">
+        <CardHeader className="pb-4 sm:pb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+            <div className="flex-1 min-w-0">
+              <CardTitle
+                id={`${id}-title`}
+                className="text-lg sm:text-xl md:text-2xl leading-tight"
+              >
                 {title}
               </CardTitle>
               {description && (
-                <CardDescription id={`${id}-description`} className="mt-2">
+                <CardDescription
+                  id={`${id}-description`}
+                  className="mt-1 sm:mt-2 text-sm sm:text-base"
+                >
                   {description}
                 </CardDescription>
               )}
@@ -63,7 +69,7 @@ export function ExamSection({
             {progress && (
               <Badge
                 variant="outline"
-                className="text-xs"
+                className="text-xs flex-shrink-0 self-start sm:self-center"
                 aria-label={`Progress: ${progress.current} no ${progress.total}, ${Math.round(progress.percentage)} procenti`}
               >
                 {progress.current}/{progress.total} (
@@ -72,7 +78,7 @@ export function ExamSection({
             )}
           </div>
         </CardHeader>
-        <CardContent>{children}</CardContent>
+        <CardContent className="pt-0">{children}</CardContent>
       </Card>
     </section>
   )
