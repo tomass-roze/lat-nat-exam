@@ -16,17 +16,17 @@ export function ExamHeader({
 }: ExamHeaderProps) {
   return (
     <header role="banner" className={cn('border-b border-border', className)}>
-      <div className="container mx-auto px-4 py-6 max-w-6xl">
+      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 max-w-6xl">
         <div className="text-center">
-          <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-2 leading-tight">
             {title}
           </h1>
-          <p className="text-base md:text-lg text-muted-foreground mb-4">
+          <p className="text-sm sm:text-base md:text-lg text-muted-foreground mb-4 max-w-2xl mx-auto">
             {subtitle}
           </p>
           {children && (
             <div
-              className="flex justify-center"
+              className="flex justify-center overflow-x-auto pb-2"
               role="region"
               aria-label="Eksāmena progress"
             >

@@ -169,7 +169,7 @@ export function HistorySection({
 
         {isCompleted && onNext && (
           <div className="flex justify-end">
-            <Button onClick={onNext}>
+            <Button onClick={onNext} className="w-full sm:w-auto">
               Turpināt uz konstitūcijas jautājumiem
             </Button>
           </div>

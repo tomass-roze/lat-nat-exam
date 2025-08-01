@@ -111,16 +111,16 @@ export function AnthemSection({ value, onChange, onNext }: AnthemSectionProps) {
           </AlertDescription>
         </Alert>
 
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           <div
-            className={`flex flex-col items-center space-y-3 ${
+            className={`flex flex-col items-center space-y-4 sm:space-y-3 ${
               progress.current < 8 ? 'pb-6' : ''
             }`}
           >
             {anthemLines.map((_, index) => (
               <div
                 key={index}
-                className={`relative w-[50%] ${index === 4 ? 'mt-6' : ''}`}
+                className={`relative w-full sm:w-[70%] md:w-[60%] lg:w-[50%] ${index === 4 ? 'mt-6' : ''}`}
               >
                 <Input
                   id={`anthem-line-${index}`}
@@ -163,7 +163,7 @@ export function AnthemSection({ value, onChange, onNext }: AnthemSectionProps) {
 
         {isCompleted && onNext && (
           <div className="flex justify-center">
-            <Button onClick={onNext} className="min-w-[200px]">
+            <Button onClick={onNext} className="w-full sm:w-auto sm:min-w-[200px]">
               Turpināt uz vēstures jautājumiem
             </Button>
           </div>

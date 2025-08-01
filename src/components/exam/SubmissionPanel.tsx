@@ -316,7 +316,7 @@ export function SubmissionPanel({
         )}
 
         {/* Submit Button */}
-        <div className="flex justify-end">
+        <div className="flex sm:justify-end">
           <Button
             onClick={handleSubmitClick}
             disabled={
@@ -325,7 +325,7 @@ export function SubmissionPanel({
               validationStatus.isValidating
             }
             size="lg"
-            className="min-w-32"
+            className="w-full sm:w-auto sm:min-w-32"
           >
             {isSubmitting ? (
               <>
