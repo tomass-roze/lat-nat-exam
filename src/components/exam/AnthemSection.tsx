@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { ExamSection } from './ExamSection'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Info, CheckCircle } from 'lucide-react'
@@ -112,26 +111,27 @@ export function AnthemSection({ value, onChange, onNext }: AnthemSectionProps) {
           </AlertDescription>
         </Alert>
 
-        <div className="space-y-4">
-          <Label className="text-base font-medium">
-            Himnas teksts (8 rindas)
-          </Label>
-
-          <div className="grid gap-3">
+        <div className="space-y-6">
+          <div
+            className={`flex flex-col items-center space-y-3 ${
+              progress.current < 8 ? 'pb-6' : ''
+            }`}
+          >
             {anthemLines.map((_, index) => (
-              <div key={index} className="space-y-1">
-                <Label
-                  htmlFor={`anthem-line-${index}`}
-                  className="text-sm font-medium"
-                >
-                  {index + 1}. rinda
-                </Label>
+              <div
+                key={index}
+                className={`relative w-[50%] ${index === 4 ? 'mt-6' : ''}`}
+              >
                 <Input
                   id={`anthem-line-${index}`}
                   value={anthemInputs[index] || ''}
                   onChange={(e) => updateAnthemLine(index, e.target.value)}
                   placeholder={`Ierakstiet ${index + 1}. rindu...`}
-                  className="font-serif text-base"
+                  className={`anthem-line-input font-serif text-base border-0 border-b bg-transparent px-0 py-3 rounded-none focus:ring-0 focus:ring-offset-0 ${
+                    anthemInputs[index]?.trim()
+                      ? 'border-primary'
+                      : 'border-border focus:border-primary'
+                  }`}
                   aria-describedby="anthem-feedback anthem-instructions anthem-validation"
                   aria-label={`Latvijas valsts himnas ${index + 1}. rindas ievades lauks`}
                   aria-required="true"
