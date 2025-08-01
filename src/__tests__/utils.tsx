@@ -5,9 +5,10 @@
  * Includes custom render functions, mock data, and test helpers.
  */
 
-import { ReactElement } from 'react'
-import { render, RenderOptions } from '@testing-library/react'
+import React, { ReactElement } from 'react'
+import { render, RenderOptions, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { vi } from 'vitest'
 import { SessionProvider } from '@/contexts/SessionContext'
 import { ValidationProvider } from '@/contexts/ValidationContext'
 
@@ -90,26 +91,23 @@ export const mockLocation = {
 }
 
 // Accessibility test helper
-export const axeMatchers = {
-  toHaveNoViolations: expect.extend({
-    toHaveNoViolations(received) {
-      if (received.violations.length === 0) {
-        return {
-          pass: true,
-          message: () => 'Expected to have accessibility violations, but none were found'
-        }
-      }
-      
-      const violationMessages = received.violations.map((violation: any) => 
-        `${violation.impact}: ${violation.description} (${violation.nodes.length} elements)`
-      ).join('\n')
-      
-      return {
-        pass: false,
-        message: () => `Expected no accessibility violations, but found:\n${violationMessages}`
-      }
+export const toHaveNoViolations = (received: any) => {
+  if (received.violations.length === 0) {
+    return {
+      pass: true,
+      message: () => 'Expected to have accessibility violations, but none were found'
     }
-  })
+  }
+  
+  const violationMessages = received.violations.map((violation: any) => 
+    `${violation.impact}: ${violation.description} (${violation.nodes.length} elements)`
+  ).join('\n')
+  
+  
+  return {
+    pass: false,
+    message: () => `Expected no accessibility violations, but found:\n${violationMessages}`
+  }
 }
 
 // Performance testing helper
@@ -185,7 +183,7 @@ export const fillForm = async (user: ReturnType<typeof userEvent.setup>, fields:
   }
 }
 
-export const selectRadioOption = async (user: ReturnType<typeof userEvent.setup>, groupName: string, value: string) => {
+export const selectRadioOption = async (user: ReturnType<typeof userEvent.setup>, value: string) => {
   const radio = screen.getByRole('radio', { name: new RegExp(value, 'i') })
   await user.click(radio)
 }
@@ -214,4 +212,3 @@ export const mockSessionStorage = () => {
 // Export everything needed for tests
 export * from '@testing-library/react'
 export { userEvent }
-export { vi } from 'vitest'

@@ -27,9 +27,14 @@ export default defineConfig({
     host: true,
     port: 3000,
   },
+  preview: {
+    host: true,
+    port: 4173,
+  },
   build: {
     outDir: 'dist',
-    sourcemap: true,
+    sourcemap: process.env.NODE_ENV === 'production' ? false : true, // Disable source maps in production for smaller bundles
+    assetsDir: 'assets',
     rollupOptions: {
       output: {
         manualChunks: {
@@ -62,6 +67,10 @@ export default defineConfig({
           // Focus and accessibility
           a11y: ['focus-trap-react'],
         },
+        // Optimize file naming for better caching
+        chunkFileNames: 'assets/[name]-[hash].js',
+        entryFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]',
       },
     },
     // Performance optimization settings
@@ -70,6 +79,9 @@ export default defineConfig({
     cssMinify: true,
     // Enable chunk size warnings
     chunkSizeWarningLimit: 600,
+    // Additional optimizations
+    reportCompressedSize: true,
+    emptyOutDir: true,
   },
   // Enable tree shaking optimizations
   define: {

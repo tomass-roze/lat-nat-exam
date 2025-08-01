@@ -33,11 +33,16 @@ beforeAll(() => {
 
   // Mock IntersectionObserver for components that use it
   global.IntersectionObserver = class IntersectionObserver {
-    constructor() {}
+    root: Element | null = null
+    rootMargin: string = '0px'
+    thresholds: ReadonlyArray<number> = [0]
+    
+    constructor(_callback: IntersectionObserverCallback, _options?: IntersectionObserverInit) {}
     observe() {}
     unobserve() {}
     disconnect() {}
-  }
+    takeRecords(): IntersectionObserverEntry[] { return [] }
+  } as any
 
   // Mock ResizeObserver for responsive components
   global.ResizeObserver = class ResizeObserver {
@@ -48,21 +53,20 @@ beforeAll(() => {
   }
 
   // Mock localStorage for session storage tests
+  const storage: Record<string, string> = {}
   const localStorageMock = {
-    getItem: (key: string) => {
-      return localStorageMock[key] || null
+    getItem: (key: string): string | null => {
+      return storage[key] || null
     },
     setItem: (key: string, value: string) => {
-      localStorageMock[key] = value
+      storage[key] = value
     },
     removeItem: (key: string) => {
-      delete localStorageMock[key]
+      delete storage[key]
     },
     clear: () => {
-      Object.keys(localStorageMock).forEach(key => {
-        if (key !== 'getItem' && key !== 'setItem' && key !== 'removeItem' && key !== 'clear') {
-          delete localStorageMock[key]
-        }
+      Object.keys(storage).forEach(key => {
+        delete storage[key]
       })
     },
   }

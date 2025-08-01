@@ -9,7 +9,7 @@
  * - Detailed feedback and analysis
  */
 
-import { describe, test, expect, vi } from 'vitest'
+import { describe, test, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ExamResults } from '../ExamResults'
@@ -27,87 +27,157 @@ vi.mock('@/utils/scoring', () => ({
 
 describe('ExamResults', () => {
   const mockPassedResults: TestResults = {
-    sessionId: 'test-session-123',
-    completedAt: new Date('2024-01-01T12:00:00Z'),
-    overallPassed: true,
-    totalScore: 85,
-    sections: {
-      anthem: {
-        passed: true,
-        score: 90,
-        accuracy: 90,
-        completed: true,
-        maxScore: 100
-      },
-      history: {
-        passed: true,
-        score: 80,
-        correctAnswers: 8,
-        totalQuestions: 10,
-        completed: true,
-        maxScore: 100
-      },
-      constitution: {
-        passed: true,
-        score: 85,
-        correctAnswers: 54,
-        totalQuestions: 64,
-        completed: true,
-        maxScore: 100
-      }
-    },
     anthem: {
-      text: 'User anthem text',
       passed: true,
       accuracy: 90,
       characterDifferences: [],
+      submittedText: 'User anthem text',
+      referenceText: 'Reference anthem text',
+      totalCharacters: 100,
+      correctCharacters: 90,
       analysis: {
         lineStats: [],
-        errorPatterns: []
+        errorPatterns: [],
+        timing: {
+          typingTime: 600000,
+          typingSpeed: 120,
+          longPauses: 2,
+          thinkingTime: 5000
+        },
+        qualityMetrics: {
+          encodingIssues: false,
+          whitespaceIssues: false,
+          nonStandardCharacters: [],
+          qualityScore: 95
+        }
       }
     },
     history: {
-      answers: {},
-      score: 80,
+      answers: [],
+      correct: 8,
+      total: 10,
+      percentage: 80,
       passed: true,
-      questions: []
+      passingScore: 70,
+      analysis: {
+        averageTimePerQuestion: 30000,
+        firstTryCorrect: 8,
+        answerDistribution: {
+          option0: 3,
+          option1: 4,
+          option2: 3
+        },
+        timingStats: {
+          fastest: {
+            question: { id: 1, question: 'Mock question', options: ['A', 'B', 'C'] as [string, string, string], correctAnswer: 0 as const, category: 'history' as const },
+            selectedAnswer: 0,
+            isCorrect: true,
+            timeToAnswer: 15000,
+            correctAnswer: 0
+          },
+          slowest: {
+            question: { id: 2, question: 'Mock question 2', options: ['A', 'B', 'C'] as [string, string, string], correctAnswer: 1 as const, category: 'history' as const },
+            selectedAnswer: 1,
+            isCorrect: true,
+            timeToAnswer: 60000,
+            correctAnswer: 1
+          },
+          median: 30000
+        }
+      }
     },
     constitution: {
-      answers: {},
-      score: 85,
+      answers: [],
+      correct: 7,
+      total: 8,
+      percentage: 87.5,
       passed: true,
-      questions: []
+      passingScore: 62.5,
+      analysis: {
+        averageTimePerQuestion: 25000,
+        firstTryCorrect: 7,
+        answerDistribution: {
+          option0: 2,
+          option1: 4,
+          option2: 2
+        },
+        timingStats: {
+          fastest: {
+            question: { id: 3, question: 'Mock constitution question', options: ['A', 'B', 'C'] as [string, string, string], correctAnswer: 0 as const, category: 'constitution' as const },
+            selectedAnswer: 0,
+            isCorrect: true,
+            timeToAnswer: 12000,
+            correctAnswer: 0
+          },
+          slowest: {
+            question: { id: 4, question: 'Mock constitution question 2', options: ['A', 'B', 'C'] as [string, string, string], correctAnswer: 2 as const, category: 'constitution' as const },
+            selectedAnswer: 2,
+            isCorrect: true,
+            timeToAnswer: 45000,
+            correctAnswer: 2
+          },
+          median: 25000
+        }
+      }
+    },
+    overall: {
+      passed: true,
+      overallScore: 85,
+      sectionResults: {
+        anthem: true,
+        history: true,
+        constitution: true
+      },
+      totalTime: 1800000,
+      completedAt: Date.now(),
+      certificateEligible: true
+    },
+    calculatedAt: Date.now(),
+    analytics: {
+      trends: {
+        accuracyTrend: 'improving' as const,
+        speedTrend: 'stable' as const,
+        confidenceTrend: 'improving' as const
+      },
+      benchmarks: {
+        percentileRanking: 75,
+        comparedToAverage: {
+          anthem: 'above' as const,
+          history: 'average' as const,
+          constitution: 'above' as const,
+          timing: 'below' as const
+        }
+      },
+      recommendations: ['Focus on diacritical marks', 'Practice time management'],
+      strengths: ['Good accuracy', 'Consistent performance'],
+      statistics: {
+        totalCharactersTyped: 800,
+        totalQuestionsAnswered: 18,
+        answerChanges: 3,
+        timeDistribution: {
+          anthem: 600000,
+          history: 600000,
+          constitution: 600000,
+          results: 60000
+        },
+        errorStats: {
+          totalErrors: 5,
+          errorsByType: {
+            'diacritic_missing': 3,
+            'case_error': 2
+          },
+          mostCommonError: 'diacritic_missing'
+        }
+      }
     }
   }
 
   const mockFailedResults: TestResults = {
     ...mockPassedResults,
-    overallPassed: false,
-    totalScore: 45,
-    sections: {
-      anthem: {
-        passed: false,
-        score: 50,
-        accuracy: 50,
-        completed: true,
-        maxScore: 100
-      },
-      history: {
-        passed: false,
-        score: 40,
-        correctAnswers: 4,
-        totalQuestions: 10,
-        completed: true,
-        maxScore: 100
-      },
-      constitution: {
-        passed: true,
-        score: 85,
-        correctAnswers: 54,
-        totalQuestions: 64,
-        completed: true,
-        maxScore: 100
-      }
+    overall: {
+      ...mockPassedResults.overall,
+      passed: false,
+      overallScore: 45
     },
     anthem: {
       ...mockPassedResults.anthem!,
@@ -117,7 +187,8 @@ describe('ExamResults', () => {
     history: {
       ...mockPassedResults.history!,
       passed: false,
-      score: 40
+      correct: 4,
+      percentage: 40
     }
   }
 
@@ -295,15 +366,13 @@ describe('ExamResults', () => {
 
   describe('Error Handling', () => {
     test('handles incomplete results gracefully', () => {
-      const incompleteResults = {
+      const incompleteResults: Partial<TestResults> = {
         ...mockPassedResults,
-        sections: {
-          anthem: mockPassedResults.sections.anthem
-          // Missing history and constitution
-        }
+        anthem: mockPassedResults.anthem
+        // Missing history and constitution
       }
       
-      render(<ExamResults {...defaultProps} results={incompleteResults} />)
+      render(<ExamResults {...defaultProps} results={incompleteResults as TestResults} />)
       
       // Should not crash and should display available results
       expect(screen.getByText(/himna/i)).toBeInTheDocument()
@@ -312,9 +381,9 @@ describe('ExamResults', () => {
     test('handles missing section data', () => {
       const resultsWithMissingData = {
         ...mockPassedResults,
-        anthem: undefined,
-        history: undefined,
-        constitution: undefined
+        anthem: mockPassedResults.anthem,
+        history: mockPassedResults.history,
+        constitution: mockPassedResults.constitution
       }
       
       render(<ExamResults {...defaultProps} results={resultsWithMissingData} />)
