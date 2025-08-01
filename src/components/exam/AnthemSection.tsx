@@ -163,7 +163,10 @@ export function AnthemSection({ value, onChange, onNext }: AnthemSectionProps) {
 
         {isCompleted && onNext && (
           <div className="flex justify-center">
-            <Button onClick={onNext} className="w-full sm:w-auto sm:min-w-[200px]">
+            <Button
+              onClick={onNext}
+              className="w-full sm:w-auto sm:min-w-[200px]"
+            >
               Turpināt uz vēstures jautājumiem
             </Button>
           </div>

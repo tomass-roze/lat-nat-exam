@@ -77,7 +77,7 @@ const DEFAULT_CONFIG: NetworkMonitorConfig = {
  */
 export function useNetworkStatus(config: Partial<NetworkMonitorConfig> = {}) {
   const finalConfig = { ...DEFAULT_CONFIG, ...config }
-  
+
   const [networkStatus, setNetworkStatus] = useState<NetworkStatus>(() => ({
     isOnline: navigator.onLine,
     quality: 'unknown',
@@ -100,8 +100,10 @@ export function useNetworkStatus(config: Partial<NetworkMonitorConfig> = {}) {
 
       // Use effective type as fallback
       if (effectiveType === '4g' || effectiveType === '5g') {
-        if (downlink >= QUALITY_THRESHOLDS.excellent.minDownlink && 
-            rtt <= QUALITY_THRESHOLDS.excellent.maxRtt) {
+        if (
+          downlink >= QUALITY_THRESHOLDS.excellent.minDownlink &&
+          rtt <= QUALITY_THRESHOLDS.excellent.maxRtt
+        ) {
           return 'excellent'
         }
         return 'good'
@@ -116,13 +118,17 @@ export function useNetworkStatus(config: Partial<NetworkMonitorConfig> = {}) {
       }
 
       // Fallback to speed-based detection
-      if (downlink >= QUALITY_THRESHOLDS.excellent.minDownlink && 
-          rtt <= QUALITY_THRESHOLDS.excellent.maxRtt) {
+      if (
+        downlink >= QUALITY_THRESHOLDS.excellent.minDownlink &&
+        rtt <= QUALITY_THRESHOLDS.excellent.maxRtt
+      ) {
         return 'excellent'
       }
 
-      if (downlink >= QUALITY_THRESHOLDS.good.minDownlink && 
-          rtt <= QUALITY_THRESHOLDS.good.maxRtt) {
+      if (
+        downlink >= QUALITY_THRESHOLDS.good.minDownlink &&
+        rtt <= QUALITY_THRESHOLDS.good.maxRtt
+      ) {
         return 'good'
       }
 
@@ -148,7 +154,10 @@ export function useNetworkStatus(config: Partial<NetworkMonitorConfig> = {}) {
         const controller = new AbortController()
         signal.addEventListener('abort', () => controller.abort())
 
-        const timeout = setTimeout(() => controller.abort(), finalConfig.testTimeout)
+        const timeout = setTimeout(
+          () => controller.abort(),
+          finalConfig.testTimeout
+        )
 
         try {
           await fetch(url, {
@@ -189,7 +198,10 @@ export function useNetworkStatus(config: Partial<NetworkMonitorConfig> = {}) {
    */
   const updateNetworkStatus = useCallback(async () => {
     const isOnline = navigator.onLine
-    const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection
+    const connection =
+      (navigator as any).connection ||
+      (navigator as any).mozConnection ||
+      (navigator as any).webkitConnection
 
     // Perform connectivity test if online
     const actuallyOnline = isOnline ? await testConnectivity() : false
@@ -209,11 +221,15 @@ export function useNetworkStatus(config: Partial<NetworkMonitorConfig> = {}) {
 
     // Log quality changes if tracking is enabled
     if (finalConfig.trackQualityChanges && quality !== networkStatus.quality) {
-      console.log(`Network quality changed: ${networkStatus.quality} → ${quality}`)
-      
+      console.log(
+        `Network quality changed: ${networkStatus.quality} → ${quality}`
+      )
+
       // Log significant quality degradation
-      if ((networkStatus.quality === 'excellent' && quality === 'poor') ||
-          (networkStatus.quality === 'good' && quality === 'offline')) {
+      if (
+        (networkStatus.quality === 'excellent' && quality === 'poor') ||
+        (networkStatus.quality === 'good' && quality === 'offline')
+      ) {
         logNetworkError(
           `Network quality degraded from ${networkStatus.quality} to ${quality}`,
           undefined,
@@ -242,19 +258,14 @@ export function useNetworkStatus(config: Partial<NetworkMonitorConfig> = {}) {
 
   const handleOffline = useCallback(() => {
     console.log('Browser reports offline')
-    setNetworkStatus(prev => ({
+    setNetworkStatus((prev) => ({
       ...prev,
       isOnline: false,
       quality: 'offline',
       lastUpdated: Date.now(),
     }))
 
-    logNetworkError(
-      'Network connection lost',
-      undefined,
-      undefined,
-      'offline'
-    )
+    logNetworkError('Network connection lost', undefined, undefined, 'offline')
   }, [networkStatus.quality])
 
   /**
@@ -276,9 +287,11 @@ export function useNetworkStatus(config: Partial<NetworkMonitorConfig> = {}) {
    * Check if network is suitable for exam
    */
   const isNetworkSuitable = useCallback(() => {
-    return networkStatus.isOnline && 
-           networkStatus.quality !== 'offline' && 
-           networkStatus.quality !== 'poor'
+    return (
+      networkStatus.isOnline &&
+      networkStatus.quality !== 'offline' &&
+      networkStatus.quality !== 'poor'
+    )
   }, [networkStatus])
 
   /**
@@ -312,13 +325,17 @@ export function useNetworkStatus(config: Partial<NetworkMonitorConfig> = {}) {
     if (!networkStatus.isOnline) {
       actions.push('Pārbaudiet interneta savienojumu')
       actions.push('Pārstartējiet Wi-Fi vai mobilo datu')
-      actions.push('Pārbaudiet, vai nav problēmu ar interneta pakalpojumu sniedzēju')
+      actions.push(
+        'Pārbaudiet, vai nav problēmu ar interneta pakalpojumu sniedzēju'
+      )
     } else if (networkStatus.quality === 'poor') {
       actions.push('Pārvietojieties tuvāk Wi-Fi rūterim')
       actions.push('Aizveriet citas internetu izmantojošās aplikācijas')
       actions.push('Izmantojiet stabilāku interneta savienojumu')
     } else if (networkStatus.saveData) {
-      actions.push('Datu taupīšanas režīms ir ieslēgts - tas var ietekmēt veiktspēju')
+      actions.push(
+        'Datu taupīšanas režīms ir ieslēgts - tas var ietekmēt veiktspēju'
+      )
     }
 
     return actions
@@ -330,9 +347,10 @@ export function useNetworkStatus(config: Partial<NetworkMonitorConfig> = {}) {
     window.addEventListener('offline', handleOffline)
 
     // Listen for connection changes
-    const connection = (navigator as any).connection || 
-                      (navigator as any).mozConnection || 
-                      (navigator as any).webkitConnection
+    const connection =
+      (navigator as any).connection ||
+      (navigator as any).mozConnection ||
+      (navigator as any).webkitConnection
 
     if (connection) {
       connection.addEventListener('change', handleConnectionChange)
@@ -344,7 +362,7 @@ export function useNetworkStatus(config: Partial<NetworkMonitorConfig> = {}) {
     return () => {
       window.removeEventListener('online', handleOnline)
       window.removeEventListener('offline', handleOffline)
-      
+
       if (connection) {
         connection.removeEventListener('change', handleConnectionChange)
       }
@@ -364,7 +382,11 @@ export function useNetworkStatus(config: Partial<NetworkMonitorConfig> = {}) {
         clearInterval(checkIntervalRef.current)
       }
     }
-  }, [finalConfig.enablePeriodicChecks, finalConfig.checkInterval, updateNetworkStatus])
+  }, [
+    finalConfig.enablePeriodicChecks,
+    finalConfig.checkInterval,
+    updateNetworkStatus,
+  ])
 
   // Cleanup on unmount
   useEffect(() => {

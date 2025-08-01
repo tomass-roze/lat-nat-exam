@@ -1,6 +1,6 @@
 /**
  * @fileoverview Enhanced error boundary component for graceful error handling
- *  
+ *
  * Provides React error boundary functionality with fallback UI,
  * error reporting, and integration with global error handling system.
  */
@@ -40,13 +40,13 @@ export class ErrorBoundary extends Component<Props, State> {
 
   constructor(props: Props) {
     super(props)
-    this.state = { 
-      hasError: false, 
-      error: null, 
+    this.state = {
+      hasError: false,
+      error: null,
       errorInfo: null,
       errorId: null,
       retryCount: 0,
-      lastErrorTime: 0
+      lastErrorTime: 0,
     }
   }
 
@@ -57,16 +57,11 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     const componentName = this.props.componentName || 'UnknownComponent'
-    
+
     // Log error to global error handling system
-    const errorId = logRuntimeError(
-      error,
-      componentName,
-      'ErrorBoundary',
-      {
-        session: this.getSessionInfo(),
-      }
-    )
+    const errorId = logRuntimeError(error, componentName, 'ErrorBoundary', {
+      session: this.getSessionInfo(),
+    })
 
     this.setState({
       error,
@@ -99,12 +94,12 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   handleReset = () => {
-    this.setState({ 
-      hasError: false, 
-      error: null, 
-      errorInfo: null, 
+    this.setState({
+      hasError: false,
+      error: null,
+      errorInfo: null,
       errorId: null,
-      retryCount: this.state.retryCount + 1
+      retryCount: this.state.retryCount + 1,
     })
   }
 
@@ -150,7 +145,6 @@ export class ErrorBoundary extends Component<Props, State> {
     return undefined
   }
 
-
   render() {
     if (this.state.hasError) {
       // Custom fallback UI
@@ -185,7 +179,7 @@ export class ErrorBoundary extends Component<Props, State> {
                     </Badge>
                   )}
                 </div>
-                
+
                 <div>
                   Radās neparedzēta kļūda komponentē. Lūdzu, mēģinājiet vēlreiz.
                   {this.state.retryCount > 0 && (
@@ -201,30 +195,39 @@ export class ErrorBoundary extends Component<Props, State> {
                   </div>
                 )}
 
-                {(this.props.showDetails || process.env.NODE_ENV === 'development') && this.state.error && (
-                  <details className="text-xs">
-                    <summary className="cursor-pointer hover:text-foreground">
-                      Tehniskā informācija {process.env.NODE_ENV === 'development' ? '(izstrādes režīms)' : ''}
-                    </summary>
-                    <div className="mt-2 space-y-2">
-                      <div className="font-mono text-xs bg-muted p-2 rounded">
-                        <strong>Kļūda:</strong> {this.state.error.message}
+                {(this.props.showDetails ||
+                  process.env.NODE_ENV === 'development') &&
+                  this.state.error && (
+                    <details className="text-xs">
+                      <summary className="cursor-pointer hover:text-foreground">
+                        Tehniskā informācija{' '}
+                        {process.env.NODE_ENV === 'development'
+                          ? '(izstrādes režīms)'
+                          : ''}
+                      </summary>
+                      <div className="mt-2 space-y-2">
+                        <div className="font-mono text-xs bg-muted p-2 rounded">
+                          <strong>Kļūda:</strong> {this.state.error.message}
+                        </div>
+                        {this.state.error.stack && (
+                          <div className="font-mono text-xs bg-muted p-2 rounded max-h-32 overflow-y-auto">
+                            <strong>Stack trace:</strong>
+                            <pre className="whitespace-pre-wrap">
+                              {this.state.error.stack}
+                            </pre>
+                          </div>
+                        )}
+                        {this.state.errorInfo?.componentStack && (
+                          <div className="font-mono text-xs bg-muted p-2 rounded max-h-32 overflow-y-auto">
+                            <strong>Component stack:</strong>
+                            <pre className="whitespace-pre-wrap">
+                              {this.state.errorInfo.componentStack}
+                            </pre>
+                          </div>
+                        )}
                       </div>
-                      {this.state.error.stack && (
-                        <div className="font-mono text-xs bg-muted p-2 rounded max-h-32 overflow-y-auto">
-                          <strong>Stack trace:</strong>
-                          <pre className="whitespace-pre-wrap">{this.state.error.stack}</pre>
-                        </div>
-                      )}
-                      {this.state.errorInfo?.componentStack && (
-                        <div className="font-mono text-xs bg-muted p-2 rounded max-h-32 overflow-y-auto">
-                          <strong>Component stack:</strong>
-                          <pre className="whitespace-pre-wrap">{this.state.errorInfo.componentStack}</pre>
-                        </div>
-                      )}
-                    </div>
-                  </details>
-                )}
+                    </details>
+                  )}
               </div>
             </AlertDescription>
           </Alert>
@@ -289,7 +292,9 @@ export function useErrorHandler(componentName?: string) {
 
     // Console logging for development
     if (process.env.NODE_ENV === 'development') {
-      console.group(`🚨 useErrorHandler: ${componentName || 'UnknownComponent'}`)
+      console.group(
+        `🚨 useErrorHandler: ${componentName || 'UnknownComponent'}`
+      )
       console.error('Error:', error)
       console.error('Error Info:', errorInfo)
       console.groupEnd()
@@ -314,13 +319,15 @@ export function withErrorBoundary<P extends object>(
   const {
     fallback,
     onError,
-    componentName = Component.displayName || Component.name || 'WrappedComponent',
+    componentName = Component.displayName ||
+      Component.name ||
+      'WrappedComponent',
     isCritical = false,
     enableAutoRecovery = true,
     showDetails = false,
   } = options
 
-  const WrappedComponent = function(props: P) {
+  const WrappedComponent = function (props: P) {
     return (
       <ErrorBoundary
         fallback={fallback}
@@ -342,14 +349,14 @@ export function withErrorBoundary<P extends object>(
 /**
  * Section-specific error boundary for exam sections
  */
-export function SectionErrorBoundary({ 
-  children, 
+export function SectionErrorBoundary({
+  children,
   sectionName,
-  isCritical = true 
-}: { 
+  isCritical = true,
+}: {
   children: ReactNode
   sectionName: string
-  isCritical?: boolean 
+  isCritical?: boolean
 }) {
   return (
     <ErrorBoundary
@@ -366,7 +373,8 @@ export function SectionErrorBoundary({
                 <strong>Sadaļas kļūda: {sectionName}</strong>
               </div>
               <div>
-                Šajā eksāmena sadaļā radās kļūda. Lūdzu, pārlādējiet lapu vai sazinieties ar atbalstu.
+                Šajā eksāmena sadaļā radās kļūda. Lūdzu, pārlādējiet lapu vai
+                sazinieties ar atbalstu.
               </div>
               <div className="flex gap-2 mt-3">
                 <Button

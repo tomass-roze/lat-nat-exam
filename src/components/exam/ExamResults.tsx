@@ -409,7 +409,10 @@ export function ExamResults({ results, onRetakeExam }: ExamResultsProps) {
         </Button>
 
         {results.overall.passed && (
-          <Button size="lg" className="flex items-center justify-center space-x-2 w-full sm:w-auto">
+          <Button
+            size="lg"
+            className="flex items-center justify-center space-x-2 w-full sm:w-auto"
+          >
             <Trophy className="h-5 w-5" />
             <span>Lejupielādēt sertifikātu</span>
           </Button>
@@ -418,3 +421,5 @@ export function ExamResults({ results, onRetakeExam }: ExamResultsProps) {
     </div>
   )
 }
+
+export default ExamResults
