@@ -9,8 +9,8 @@
  * - User interaction flows
  */
 
-import { describe, test, expect, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { describe, test, expect, vi, beforeEach } from 'vitest'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { AnthemSection } from '../AnthemSection'
 import { NATIONAL_ANTHEM_REFERENCE } from '@/types'
@@ -52,7 +52,7 @@ describe('AnthemSection', () => {
       expect(inputs).toHaveLength(8)
       
       // Each input should have proper labeling
-      NATIONAL_ANTHEM_REFERENCE.forEach((line, index) => {
+      NATIONAL_ANTHEM_REFERENCE.forEach((_line, index) => {
         const expectedLabel = `${index + 1}. rinda`
         expect(screen.getByLabelText(expectedLabel)).toBeInTheDocument()
       })

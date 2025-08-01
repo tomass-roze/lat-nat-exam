@@ -238,11 +238,7 @@ describe('Anthem Comparison', () => {
     const result = compareAnthemText(NATIONAL_ANTHEM_TEXT)
 
     // The main assertion - perfect match must be 100%
-    expect(
-      result.accuracy,
-      100,
-      'Perfect anthem match must return 100% accuracy, not 47% as reported in issue #49'
-    )
+    expect(result.accuracy).toBe(100) // Perfect anthem match must return 100% accuracy, not 47% as reported in issue #49
     expect(result.passed).toBe(true)
     expect(result.characterDifferences.length).toBe(0)
   })
@@ -375,10 +371,10 @@ describe('Error Pattern Detection', () => {
       (p) => p.type === 'diacritic_missing'
     )
 
-    expect(diacriticPattern)
-    expect(diacriticPattern.count).toBe(2)
-    expect(diacriticPattern.examples.includes('a → ā'))
-    expect(diacriticPattern.examples.includes('e → ē'))
+    expect(diacriticPattern).toBeDefined()
+    expect(diacriticPattern!.count).toBe(2)
+    expect(diacriticPattern!.examples.includes('a → ā')).toBe(true)
+    expect(diacriticPattern!.examples.includes('e → ē')).toBe(true)
   })
 
   test('detectErrorPatterns identifies case errors', () => {
@@ -396,9 +392,9 @@ describe('Error Pattern Detection', () => {
     const patterns = detectErrorPatterns(differences)
     const casePattern = patterns.find((p) => p.type === 'case_error')
 
-    expect(casePattern)
-    expect(casePattern.count).toBe(1)
-    expect(casePattern.examples.includes('A → a'))
+    expect(casePattern).toBeDefined()
+    expect(casePattern!.count).toBe(1)
+    expect(casePattern!.examples.includes('A → a')).toBe(true)
   })
 
   test('detectErrorPatterns identifies punctuation errors', () => {
@@ -416,9 +412,9 @@ describe('Error Pattern Detection', () => {
     const patterns = detectErrorPatterns(differences)
     const punctuationPattern = patterns.find((p) => p.type === 'punctuation')
 
-    expect(punctuationPattern)
-    expect(punctuationPattern.count).toBe(1)
-    expect(punctuationPattern.examples.includes('. → ).toBe('))
+    expect(punctuationPattern).toBeDefined()
+    expect(punctuationPattern!.count).toBe(1)
+    expect(punctuationPattern!.examples.includes('. → ,')).toBe(true)
   })
 
   test('detectErrorPatterns provides suggestions', () => {
@@ -438,9 +434,9 @@ describe('Error Pattern Detection', () => {
       (p) => p.type === 'diacritic_missing'
     )
 
-    expect(diacriticPattern)
-    expect(diacriticPattern.suggestion)
-    expect(diacriticPattern.suggestion.includes('diakritisk'))
+    expect(diacriticPattern).toBeDefined()
+    expect(diacriticPattern!.suggestion).toBeDefined()
+    expect(diacriticPattern!.suggestion!.includes('diakritisk')).toBe(true)
   })
 })
 
@@ -595,8 +591,8 @@ Ak, sveti jel to!`
     const diacriticErrors = result.analysis.errorPatterns.find(
       (p) => p.type === 'diacritic_missing'
     )
-    expect(diacriticErrors)
-    expect(diacriticErrors.count > 0)
+    expect(diacriticErrors).toBeDefined()
+    expect(diacriticErrors!.count > 0).toBe(true)
 
     // Should still provide accurate line-by-line analysis
     expect(result.analysis.lineStats.length > 0)

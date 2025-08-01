@@ -9,7 +9,7 @@
  * - Accessibility features
  */
 
-import { describe, test, expect, vi } from 'vitest'
+import { describe, test, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ConstitutionSection } from '../ConstitutionSection'
@@ -308,7 +308,7 @@ describe('ConstitutionSection', () => {
     test('displays question numbers correctly', () => {
       render(<ConstitutionSection {...defaultProps} />)
       
-      mockQuestions.forEach((question, index) => {
+      mockQuestions.forEach((question) => {
         // Question numbers should be displayed (implementation-dependent)
         expect(screen.getByText(question.question)).toBeInTheDocument()
       })
@@ -328,7 +328,6 @@ describe('ConstitutionSection', () => {
       render(<ConstitutionSection {...defaultProps} />)
       
       // Should have card components for question organization
-      const cardContent = screen.getAllByTestId('card-content') || []
       // Implementation may vary, but structure should be accessible
       expect(screen.getByTestId('exam-section')).toBeInTheDocument()
     })
@@ -339,8 +338,8 @@ describe('ConstitutionSection', () => {
       const largeQuestionSet = Array.from({ length: 100 }, (_, i) => ({
         id: i + 1,
         question: `Question ${i + 1}?`,
-        options: [`Option A${i}`, `Option B${i}`, `Option C${i}`],
-        correctAnswer: 0,
+        options: [`Option A${i}`, `Option B${i}`, `Option C${i}`] as [string, string, string],
+        correctAnswer: 0 as const,
         category: 'constitution' as const,
         difficulty: 'medium' as const
       }))

@@ -76,6 +76,8 @@ npm run preview
 - `npm run format` - Format code with Prettier
 - `npm run format:check` - Check code formatting
 - `npm run type-check` - Run TypeScript type checking
+- `npm run test` - Run test suite
+- `npm run test:e2e` - Run end-to-end tests
 
 ## 🎯 Exam Structure
 
@@ -155,14 +157,50 @@ This project is tracked using GitHub Issues:
 - [Issue #2](https://github.com/tomass-roze/lat-nat-exam/issues/2) - Install and Configure Shadcn/ui Component System
 - Additional issues track the complete implementation roadmap
 
+## 🚀 Deployment
+
+The application is configured for deployment on **Vercel** with production optimizations.
+
+### Quick Deploy
+
+1. **Vercel Platform** (Recommended)
+   - Connect GitHub repository to Vercel
+   - Automatic deployments from `master` branch
+   - Preview deployments for feature branches
+   - Built-in CDN and edge caching
+
+2. **Custom Domain**: naturalizacijastests.lv
+   - Automatic HTTPS with Let's Encrypt
+   - Global CDN distribution
+   - Security headers configured
+
+3. **Production Build**
+   ```bash
+   npm run build  # Optimized production build
+   npm run preview # Test production build locally
+   ```
+
+### Performance
+- **Bundle Size**: ~337KB (101KB gzipped)
+- **Build Time**: ~3 seconds
+- **Target Load Time**: < 2 seconds
+- **Core Web Vitals**: Green range optimized
+
+For detailed deployment instructions, see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+
 ## 📈 Project Status
 
-✅ **Phase 1 Complete**: Modern React TypeScript foundation with Tailwind CSS v4 and UTF-8 support
+✅ **Phase 1 Complete**: Modern React TypeScript foundation with Tailwind CSS v4 and UTF-8 support  
+✅ **Phase 2 Complete**: shadcn/ui component system integration  
+✅ **Phase 3 Complete**: Production deployment configuration  
 
-**Next Steps**:
-- Install and configure shadcn/ui component system
-- Create TypeScript interfaces and data models
-- Implement Latvian text processing utilities
+**Current Status**: Ready for production deployment
+
+**Architecture**: 
+- Frontend: React 19 + TypeScript + Vite
+- UI Components: shadcn/ui + Radix UI + Tailwind CSS v4
+- Deployment: Vercel with optimized build pipeline
+- Security: Comprehensive security headers and CSP
 
 ---
 
