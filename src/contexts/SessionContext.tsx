@@ -105,6 +105,17 @@ function createInitialTestState(): TestState {
         },
       },
     },
+    enabledSections: {
+      anthem: true,
+      history: true,
+      constitution: true,
+    },
+    selectedSectionIds: ['anthem', 'history', 'constitution'],
+    testConfiguration: {
+      totalSections: 3,
+      sectionNames: ['anthem', 'history', 'constitution'],
+      isPartialTest: false,
+    },
     metadata: {
       sessionId: '',
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,

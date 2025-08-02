@@ -36,6 +36,23 @@ export interface TestState {
   /** Questions selected for this exam session */
   selectedQuestions: SelectedQuestions
 
+  /** Track which sections are enabled for this session */
+  enabledSections: {
+    anthem: boolean
+    history: boolean
+    constitution: boolean
+  }
+
+  /** Store original selection for context and results */
+  selectedSectionIds: string[]
+
+  /** Session metadata for partial tests */
+  testConfiguration: {
+    totalSections: number
+    sectionNames: string[]
+    isPartialTest: boolean
+  }
+
   /** Additional state metadata */
   metadata: TestStateMetadata
 }
@@ -258,26 +275,36 @@ export function isValidTestState(state: unknown): state is TestState {
     typeof (state as TestState).historyAnswers === 'object' &&
     typeof (state as TestState).constitutionAnswers === 'object' &&
     typeof (state as TestState).startTime === 'number' &&
-    typeof (state as TestState).isCompleted === 'boolean'
+    typeof (state as TestState).isCompleted === 'boolean' &&
+    typeof (state as TestState).enabledSections === 'object' &&
+    Array.isArray((state as TestState).selectedSectionIds) &&
+    typeof (state as TestState).testConfiguration === 'object'
   )
 }
 
 /**
- * Check if exam is ready for submission
+ * Check if exam is ready for submission - supports dynamic sections
  */
 export function isReadyForSubmission(context: ExamContext): boolean {
   const { testState, validation } = context
+  const { enabledSections } = testState
 
-  // Must have anthem text with minimum length
-  if (testState.anthemText.length < 100) return false
+  // Check anthem section if enabled
+  if (enabledSections.anthem) {
+    if (testState.anthemText.length < 100) return false
+  }
 
-  // Must have all history questions answered
-  const historyCount = Object.keys(testState.historyAnswers).length
-  if (historyCount < 10) return false
+  // Check history section if enabled
+  if (enabledSections.history) {
+    const historyCount = Object.keys(testState.historyAnswers).length
+    if (historyCount < 10) return false
+  }
 
-  // Must have all constitution questions answered
-  const constitutionCount = Object.keys(testState.constitutionAnswers).length
-  if (constitutionCount < 8) return false
+  // Check constitution section if enabled
+  if (enabledSections.constitution) {
+    const constitutionCount = Object.keys(testState.constitutionAnswers).length
+    if (constitutionCount < 8) return false
+  }
 
   // Must pass validation
   return validation.isValidForSubmission
