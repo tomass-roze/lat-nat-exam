@@ -70,7 +70,6 @@ const PRODUCTION_CONFIG: NetworkMonitorConfig = {
   testTimeout: 8000, // 8 seconds (longer timeout for production)
   testUrls: [
     '/', // Test current domain root
-    '/favicon.ico', // Test favicon (should exist)
   ],
   enablePeriodicChecks: true,
   trackQualityChanges: false, // Reduce logging in production
@@ -83,7 +82,6 @@ const DEVELOPMENT_CONFIG: NetworkMonitorConfig = {
   testTimeout: 5000, // 5 seconds
   testUrls: [
     '/', // Test current domain root
-    '/favicon.ico', // Test favicon
   ],
   enablePeriodicChecks: true,
   trackQualityChanges: true,
