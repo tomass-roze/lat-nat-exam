@@ -8,14 +8,28 @@ import type { SectionStatus } from './ProgressIndicator'
 interface BottomProgressBarProps {
   sections: SectionStatus[]
   overallProgress: number
+  enabledSections?: {
+    anthem: boolean
+    history: boolean
+    constitution: boolean
+  }
   className?: string
 }
 
 export function BottomProgressBar({
   sections,
   overallProgress,
+  enabledSections,
   className,
 }: BottomProgressBarProps) {
+  // Filter sections if enabledSections is provided
+  const filteredSections = enabledSections
+    ? sections.filter((section) => {
+        const sectionId = section.id as keyof typeof enabledSections
+        return enabledSections[sectionId]
+      })
+    : sections
+
   const getSectionIcon = (section: SectionStatus) => {
     if (section.isCompleted) {
       return <CheckCircle className="h-3 w-3 text-green-500" />
@@ -53,7 +67,7 @@ export function BottomProgressBar({
 
         {/* Section Progress */}
         <div className="flex items-center justify-center gap-3 sm:gap-6 flex-wrap overflow-x-auto pb-2 sm:pb-0">
-          {sections.map((section) => (
+          {filteredSections.map((section) => (
             <div
               key={section.id}
               className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-shrink-0"

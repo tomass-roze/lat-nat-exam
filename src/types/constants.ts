@@ -139,7 +139,7 @@ export const SECTION_METADATA = {
     icon: '🎵',
     passingCriteria: '75% precizitāte',
     estimatedTime: 15,
-    order: 1
+    order: 1,
   },
   history: {
     id: 'history',
@@ -148,7 +148,7 @@ export const SECTION_METADATA = {
     icon: '📚',
     passingCriteria: '7 no 10 pareizi',
     estimatedTime: 25,
-    order: 2
+    order: 2,
   },
   constitution: {
     id: 'constitution',
@@ -157,6 +157,6 @@ export const SECTION_METADATA = {
     icon: '⚖️',
     passingCriteria: '5 no 8 pareizi',
     estimatedTime: 20,
-    order: 3
-  }
+    order: 3,
+  },
 } as const

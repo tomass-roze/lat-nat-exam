@@ -40,7 +40,8 @@ export function SubmissionPanel({
 
   // Get detailed validation status for each section
   const getDetailedValidationStatus = () => {
-    const { anthemText, historyAnswers, constitutionAnswers, enabledSections } = testState
+    const { anthemText, historyAnswers, constitutionAnswers, enabledSections } =
+      testState
 
     // Only validate enabled sections
     const anthemIssues: string[] = []
@@ -54,7 +55,9 @@ export function SubmissionPanel({
       } else {
         // Check if all 8 lines have content (at least one letter each)
         // Filter out empty lines to handle the extra newline after 4th line
-        const lines = anthemText.split('\n').filter((line) => line.trim() !== '')
+        const lines = anthemText
+          .split('\n')
+          .filter((line) => line.trim() !== '')
         const requiredLines = 8
         let emptyLineCount = 0
 
@@ -106,7 +109,9 @@ export function SubmissionPanel({
           ([, answer]) => ![0, 1, 2].includes(answer)
         )
         if (invalidAnswers.length > 0) {
-          constitutionIssues.push(`${invalidAnswers.length} nepareizas atbildes`)
+          constitutionIssues.push(
+            `${invalidAnswers.length} nepareizas atbildes`
+          )
         }
       }
     }
@@ -198,45 +203,52 @@ export function SubmissionPanel({
           <h4 className="font-medium">Sekciju statuss</h4>
 
           <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 rounded-lg border">
-              <div className="flex items-center gap-3">
-                {getStatusIcon(anthemStatus)}
-                <span className="font-medium">Valsts himna</span>
+            {testState.enabledSections.anthem && (
+              <div className="flex items-center justify-between p-3 rounded-lg border">
+                <div className="flex items-center gap-3">
+                  {getStatusIcon(anthemStatus)}
+                  <span className="font-medium">Valsts himna</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">
+                    {Math.round(anthemProgress)}%
+                  </span>
+                  {getStatusBadge(anthemStatus)}
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">
-                  {Math.round(anthemProgress)}%
-                </span>
-                {getStatusBadge(anthemStatus)}
-              </div>
-            </div>
+            )}
 
-            <div className="flex items-center justify-between p-3 rounded-lg border">
-              <div className="flex items-center gap-3">
-                {getStatusIcon(historyStatus)}
-                <span className="font-medium">Vēstures jautājumi</span>
+            {testState.enabledSections.history && (
+              <div className="flex items-center justify-between p-3 rounded-lg border">
+                <div className="flex items-center gap-3">
+                  {getStatusIcon(historyStatus)}
+                  <span className="font-medium">Vēstures jautājumi</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">
+                    {historyAnswered}/
+                    {SCORING_THRESHOLDS.HISTORY_TOTAL_QUESTIONS}
+                  </span>
+                  {getStatusBadge(historyStatus)}
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">
-                  {historyAnswered}/{SCORING_THRESHOLDS.HISTORY_TOTAL_QUESTIONS}
-                </span>
-                {getStatusBadge(historyStatus)}
-              </div>
-            </div>
+            )}
 
-            <div className="flex items-center justify-between p-3 rounded-lg border">
-              <div className="flex items-center gap-3">
-                {getStatusIcon(constitutionStatus)}
-                <span className="font-medium">Konstitūcijas jautājumi</span>
+            {testState.enabledSections.constitution && (
+              <div className="flex items-center justify-between p-3 rounded-lg border">
+                <div className="flex items-center gap-3">
+                  {getStatusIcon(constitutionStatus)}
+                  <span className="font-medium">Konstitūcijas jautājumi</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">
+                    {constitutionAnswered}/
+                    {SCORING_THRESHOLDS.CONSTITUTION_TOTAL_QUESTIONS}
+                  </span>
+                  {getStatusBadge(constitutionStatus)}
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">
-                  {constitutionAnswered}/
-                  {SCORING_THRESHOLDS.CONSTITUTION_TOTAL_QUESTIONS}
-                </span>
-                {getStatusBadge(constitutionStatus)}
-              </div>
-            </div>
+            )}
           </div>
         </div>
 

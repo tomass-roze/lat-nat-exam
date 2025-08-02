@@ -37,13 +37,12 @@ export function ExamResults({ results, onRetakeExam }: ExamResultsProps) {
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Nav pieejami rezultāti</AlertTitle>
           <AlertDescription>
-            Eksāmena rezultāti nav pieejami. Lūdzu, vispirms nokārtojiet eksāmenu.
+            Eksāmena rezultāti nav pieejami. Lūdzu, vispirms nokārtojiet
+            eksāmenu.
           </AlertDescription>
         </Alert>
         <div className="mt-6">
-          <Button onClick={onRetakeExam}>
-            Sākt eksāmenu
-          </Button>
+          <Button onClick={onRetakeExam}>Sākt eksāmenu</Button>
         </div>
       </div>
     )
@@ -162,68 +161,68 @@ export function ExamResults({ results, onRetakeExam }: ExamResultsProps) {
                   >
                     {results.anthem.accuracy.toFixed(1)}% precizitāte
                   </Badge>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => toggleSection('anthem')}
-                className="flex items-center space-x-1"
-                aria-expanded={expandedSections.has('anthem')}
-                aria-controls="anthem-details"
-              >
-                <span>Detaļas</span>
-                {expandedSections.has('anthem') ? (
-                  <ChevronUp className="h-4 w-4" />
-                ) : (
-                  <ChevronDown className="h-4 w-4" />
-                )}
-              </Button>
-            </div>
-          </CardHeader>
-
-          {expandedSections.has('anthem') && (
-            <CardContent
-              id="anthem-details"
-              className="pt-0"
-              role="region"
-              aria-labelledby="anthem-title"
-            >
-              <div className="space-y-4">
-                <div>
-                  <p className="text-sm font-medium mb-2">Rezultāts</p>
-                  <div className="text-sm space-y-1 text-muted-foreground">
-                    <div>
-                      Pareizi rakstu: {results.anthem.correctCharacters}/
-                      {results.anthem.totalCharacters}
-                    </div>
-                    <div>
-                      Precizitāte: {results.anthem.accuracy.toFixed(2)}%
-                    </div>
-                    <div>Nepieciešamā precizitāte: 75%</div>
-                  </div>
                 </div>
-
-                {results.anthem.characterDifferences.length > 0 && (
-                  <Alert>
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertTitle>Atrastās kļūdas</AlertTitle>
-                    <AlertDescription className="mt-2">
-                      <div className="text-sm space-y-1">
-                        {results.anthem.analysis.errorPatterns
-                          .slice(0, 3)
-                          .map((pattern, index) => (
-                            <div key={index}>
-                              • {pattern.suggestion} ({pattern.count} reizes)
-                            </div>
-                          ))}
-                      </div>
-                    </AlertDescription>
-                  </Alert>
-                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => toggleSection('anthem')}
+                  className="flex items-center space-x-1"
+                  aria-expanded={expandedSections.has('anthem')}
+                  aria-controls="anthem-details"
+                >
+                  <span>Detaļas</span>
+                  {expandedSections.has('anthem') ? (
+                    <ChevronUp className="h-4 w-4" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4" />
+                  )}
+                </Button>
               </div>
-            </CardContent>
-          )}
-        </Card>
+            </CardHeader>
+
+            {expandedSections.has('anthem') && (
+              <CardContent
+                id="anthem-details"
+                className="pt-0"
+                role="region"
+                aria-labelledby="anthem-title"
+              >
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-sm font-medium mb-2">Rezultāts</p>
+                    <div className="text-sm space-y-1 text-muted-foreground">
+                      <div>
+                        Pareizi rakstu: {results.anthem.correctCharacters}/
+                        {results.anthem.totalCharacters}
+                      </div>
+                      <div>
+                        Precizitāte: {results.anthem.accuracy.toFixed(2)}%
+                      </div>
+                      <div>Nepieciešamā precizitāte: 75%</div>
+                    </div>
+                  </div>
+
+                  {results.anthem.characterDifferences.length > 0 && (
+                    <Alert>
+                      <AlertTriangle className="h-4 w-4" />
+                      <AlertTitle>Atrastās kļūdas</AlertTitle>
+                      <AlertDescription className="mt-2">
+                        <div className="text-sm space-y-1">
+                          {results.anthem.analysis.errorPatterns
+                            .slice(0, 3)
+                            .map((pattern, index) => (
+                              <div key={index}>
+                                • {pattern.suggestion} ({pattern.count} reizes)
+                              </div>
+                            ))}
+                        </div>
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </div>
+              </CardContent>
+            )}
+          </Card>
         )}
 
         {/* History Results */}
@@ -238,68 +237,76 @@ export function ExamResults({ results, onRetakeExam }: ExamResultsProps) {
                   >
                     {results.history.correct}/{results.history.total} pareizi
                   </Badge>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => toggleSection('history')}
-                className="flex items-center space-x-1"
-              >
-                <span>Detaļas</span>
-                {expandedSections.has('history') ? (
-                  <ChevronUp className="h-4 w-4" />
-                ) : (
-                  <ChevronDown className="h-4 w-4" />
-                )}
-              </Button>
-            </div>
-          </CardHeader>
-
-          {expandedSections.has('history') && (
-            <CardContent className="pt-0">
-              <div className="space-y-4">
-                <div className="flex justify-between text-sm">
-                  <span>Rezultāts: {results.history.percentage}%</span>
-                  <span className="text-muted-foreground">
-                    Nepieciešams: ≥70%
-                  </span>
                 </div>
-
-                {results.history.answers.some((a) => !a.isCorrect) && (
-                  <Alert>
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertTitle>Nepareizās atbildes</AlertTitle>
-                    <AlertDescription className="mt-2">
-                      <div className="space-y-2">
-                        {results.history.answers
-                          .filter((a) => !a.isCorrect)
-                          .slice(0, 5)
-                          .map((answer, index) => (
-                            <div
-                              key={index}
-                              className="text-sm p-2 bg-muted rounded"
-                            >
-                              <div className="font-medium">
-                                {answer.question.question}
-                              </div>
-                              <div className="text-red-600 mt-1">
-                                Jūsu atbilde:{' '}
-                                {answer.question.options[answer.selectedAnswer]}
-                              </div>
-                              <div className="text-green-600">
-                                Pareizā atbilde:{' '}
-                                {answer.question.options[answer.correctAnswer]}
-                              </div>
-                            </div>
-                          ))}
-                      </div>
-                    </AlertDescription>
-                  </Alert>
-                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => toggleSection('history')}
+                  className="flex items-center space-x-1"
+                >
+                  <span>Detaļas</span>
+                  {expandedSections.has('history') ? (
+                    <ChevronUp className="h-4 w-4" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4" />
+                  )}
+                </Button>
               </div>
-            </CardContent>
-          )}
-        </Card>
+            </CardHeader>
+
+            {expandedSections.has('history') && (
+              <CardContent className="pt-0">
+                <div className="space-y-4">
+                  <div className="flex justify-between text-sm">
+                    <span>Rezultāts: {results.history.percentage}%</span>
+                    <span className="text-muted-foreground">
+                      Nepieciešams: ≥70%
+                    </span>
+                  </div>
+
+                  {results.history.answers.some((a) => !a.isCorrect) && (
+                    <Alert>
+                      <AlertTriangle className="h-4 w-4" />
+                      <AlertTitle>Nepareizās atbildes</AlertTitle>
+                      <AlertDescription className="mt-2">
+                        <div className="space-y-2">
+                          {results.history.answers
+                            .filter((a) => !a.isCorrect)
+                            .slice(0, 5)
+                            .map((answer, index) => (
+                              <div
+                                key={index}
+                                className="text-sm p-2 bg-muted rounded"
+                              >
+                                <div className="font-medium">
+                                  {answer.question.question}
+                                </div>
+                                <div className="text-red-600 mt-1">
+                                  Jūsu atbilde:{' '}
+                                  {
+                                    answer.question.options[
+                                      answer.selectedAnswer
+                                    ]
+                                  }
+                                </div>
+                                <div className="text-green-600">
+                                  Pareizā atbilde:{' '}
+                                  {
+                                    answer.question.options[
+                                      answer.correctAnswer
+                                    ]
+                                  }
+                                </div>
+                              </div>
+                            ))}
+                        </div>
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </div>
+              </CardContent>
+            )}
+          </Card>
         )}
 
         {/* Constitution Results */}
@@ -309,76 +316,84 @@ export function ExamResults({ results, onRetakeExam }: ExamResultsProps) {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <CardTitle>Konstitūcijas jautājumi</CardTitle>
-                <Badge
-                  variant={
-                    results.constitution.passed ? 'default' : 'destructive'
-                  }
-                >
-                  {results.constitution.correct}/{results.constitution.total}{' '}
-                  pareizi
-                </Badge>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => toggleSection('constitution')}
-                className="flex items-center space-x-1"
-              >
-                <span>Detaļas</span>
-                {expandedSections.has('constitution') ? (
-                  <ChevronUp className="h-4 w-4" />
-                ) : (
-                  <ChevronDown className="h-4 w-4" />
-                )}
-              </Button>
-            </div>
-          </CardHeader>
-
-          {expandedSections.has('constitution') && (
-            <CardContent className="pt-0">
-              <div className="space-y-4">
-                <div className="flex justify-between text-sm">
-                  <span>Rezultāts: {results.constitution.percentage}%</span>
-                  <span className="text-muted-foreground">
-                    Nepieciešams: ≥62.5%
-                  </span>
+                  <Badge
+                    variant={
+                      results.constitution.passed ? 'default' : 'destructive'
+                    }
+                  >
+                    {results.constitution.correct}/{results.constitution.total}{' '}
+                    pareizi
+                  </Badge>
                 </div>
-
-                {results.constitution.answers.some((a) => !a.isCorrect) && (
-                  <Alert>
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertTitle>Nepareizās atbildes</AlertTitle>
-                    <AlertDescription className="mt-2">
-                      <div className="space-y-2">
-                        {results.constitution.answers
-                          .filter((a) => !a.isCorrect)
-                          .slice(0, 5)
-                          .map((answer, index) => (
-                            <div
-                              key={index}
-                              className="text-sm p-2 bg-muted rounded"
-                            >
-                              <div className="font-medium">
-                                {answer.question.question}
-                              </div>
-                              <div className="text-red-600 mt-1">
-                                Jūsu atbilde:{' '}
-                                {answer.question.options[answer.selectedAnswer]}
-                              </div>
-                              <div className="text-green-600">
-                                Pareizā atbilde:{' '}
-                                {answer.question.options[answer.correctAnswer]}
-                              </div>
-                            </div>
-                          ))}
-                      </div>
-                    </AlertDescription>
-                  </Alert>
-                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => toggleSection('constitution')}
+                  className="flex items-center space-x-1"
+                >
+                  <span>Detaļas</span>
+                  {expandedSections.has('constitution') ? (
+                    <ChevronUp className="h-4 w-4" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4" />
+                  )}
+                </Button>
               </div>
-            </CardContent>
-          )}
-        </Card>
+            </CardHeader>
+
+            {expandedSections.has('constitution') && (
+              <CardContent className="pt-0">
+                <div className="space-y-4">
+                  <div className="flex justify-between text-sm">
+                    <span>Rezultāts: {results.constitution.percentage}%</span>
+                    <span className="text-muted-foreground">
+                      Nepieciešams: ≥62.5%
+                    </span>
+                  </div>
+
+                  {results.constitution.answers.some((a) => !a.isCorrect) && (
+                    <Alert>
+                      <AlertTriangle className="h-4 w-4" />
+                      <AlertTitle>Nepareizās atbildes</AlertTitle>
+                      <AlertDescription className="mt-2">
+                        <div className="space-y-2">
+                          {results.constitution.answers
+                            .filter((a) => !a.isCorrect)
+                            .slice(0, 5)
+                            .map((answer, index) => (
+                              <div
+                                key={index}
+                                className="text-sm p-2 bg-muted rounded"
+                              >
+                                <div className="font-medium">
+                                  {answer.question.question}
+                                </div>
+                                <div className="text-red-600 mt-1">
+                                  Jūsu atbilde:{' '}
+                                  {
+                                    answer.question.options[
+                                      answer.selectedAnswer
+                                    ]
+                                  }
+                                </div>
+                                <div className="text-green-600">
+                                  Pareizā atbilde:{' '}
+                                  {
+                                    answer.question.options[
+                                      answer.correctAnswer
+                                    ]
+                                  }
+                                </div>
+                              </div>
+                            ))}
+                        </div>
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </div>
+              </CardContent>
+            )}
+          </Card>
         )}
       </div>
 

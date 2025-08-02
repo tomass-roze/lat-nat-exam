@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, Suspense, lazy } from 'react'
-import { Routes, Route, useLocation, useNavigate } from 'react-router-dom'
+import { Routes, Route, useLocation } from 'react-router-dom'
 import { useKeyboardNavigation } from '@/hooks/useKeyboardNavigation'
 import { MainLayout } from '@/components/layout/MainLayout'
 import { ExamHeader } from '@/components/layout/ExamHeader'
@@ -50,10 +50,12 @@ function ExamContent() {
 
   // Router hooks
   const location = useLocation()
-  const navigate = useNavigate()
 
   // Get section selection from navigation state
-  const { selectedSections = ['anthem', 'history', 'constitution'], isPartialTest = false } = location.state || {}
+  const {
+    selectedSections = ['anthem', 'history', 'constitution'],
+    isPartialTest = false,
+  } = location.state || {}
 
   // Session and validation contexts
   const {
@@ -147,7 +149,7 @@ function ExamContent() {
             startTime: Date.now(),
             lastSaved: 0,
             isCompleted: false,
-            currentSection: selectedSections[0] as ExamSection || 'anthem',
+            currentSection: (selectedSections[0] as ExamSection) || 'anthem',
             selectedQuestions: questions,
             enabledSections,
             selectedSectionIds: selectedSections,
@@ -254,8 +256,27 @@ function ExamContent() {
   const anthemProgress = getAnthemProgress()
   const historyProgress = getHistoryProgress()
   const constitutionProgress = getConstitutionProgress()
-  const overallProgress =
-    (anthemProgress + historyProgress + constitutionProgress) / 3
+
+  // Helper function to calculate overall progress for enabled sections only
+  const calculateFilteredOverallProgress = (
+    enabledSections: TestState['enabledSections']
+  ) => {
+    const progressValues: number[] = []
+
+    if (enabledSections.anthem) progressValues.push(anthemProgress)
+    if (enabledSections.history) progressValues.push(historyProgress)
+    if (enabledSections.constitution) progressValues.push(constitutionProgress)
+
+    if (progressValues.length === 0) return 0
+    return (
+      progressValues.reduce((sum, progress) => sum + progress, 0) /
+      progressValues.length
+    )
+  }
+
+  const overallProgress = calculateFilteredOverallProgress(
+    testState.enabledSections
+  )
 
   // Helper function to check if anthem meets validation requirements - simplified line-based
   const isAnthemValid = () => {
@@ -519,23 +540,15 @@ function ExamContent() {
 
   return (
     <MainLayout>
-      <ExamHeader>
-        {/* Back to Selection Button */}
-        <div className="flex items-center justify-between w-full mb-4">
-          <button
-            onClick={() => navigate('/')}
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            ← Atpakaļ uz sadaļu izvēli
-          </button>
-          {isPartialTest && (
-            <span className="text-sm text-muted-foreground">
+      <ExamHeader
+        partialTestIndicator={
+          isPartialTest ? (
+            <span className="text-sm font-medium text-muted-foreground">
               Daļējs eksāmens ({selectedSections.length} no 3)
             </span>
-          )}
-        </div>
-        <ProgressIndicator sections={sections} className="w-full" />
-      </ExamHeader>
+          ) : undefined
+        }
+      />
 
       <SessionRecoveryDialog
         open={showRecoveryDialog}
@@ -633,6 +646,7 @@ function ExamContent() {
       <BottomProgressBar
         sections={sections}
         overallProgress={overallProgress}
+        enabledSections={testState.enabledSections}
       />
 
       {/* Submission Loading Screen */}
@@ -671,39 +685,52 @@ function App() {
         >
           <ValidationProvider>
             <Routes>
-              <Route path="/" element={
-                <Suspense fallback={
-                  <div className="flex items-center justify-center min-h-screen">
-                    <div className="text-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                      <p>Ielādē sadaļu izvēli...</p>
-                    </div>
-                  </div>
-                }>
-                  <LandingPage />
-                </Suspense>
-              } />
-              <Route path="/test" element={
-                <ErrorBoundary
-                  componentName="ExamContent"
-                  isCritical={true}
-                  enableAutoRecovery={false}
-                >
-                  <ExamContent />
-                </ErrorBoundary>
-              } />
-              <Route path="/results" element={
-                <Suspense fallback={
-                  <div className="flex items-center justify-center min-h-screen">
-                    <div className="text-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                      <p>Ielādē rezultātus...</p>
-                    </div>
-                  </div>
-                }>
-                  <ExamResults results={undefined} onRetakeExam={() => {}} />
-                </Suspense>
-              } />
+              <Route
+                path="/"
+                element={
+                  <Suspense
+                    fallback={
+                      <div className="flex items-center justify-center min-h-screen">
+                        <div className="text-center">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                          <p>Ielādē sadaļu izvēli...</p>
+                        </div>
+                      </div>
+                    }
+                  >
+                    <LandingPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/test"
+                element={
+                  <ErrorBoundary
+                    componentName="ExamContent"
+                    isCritical={true}
+                    enableAutoRecovery={false}
+                  >
+                    <ExamContent />
+                  </ErrorBoundary>
+                }
+              />
+              <Route
+                path="/results"
+                element={
+                  <Suspense
+                    fallback={
+                      <div className="flex items-center justify-center min-h-screen">
+                        <div className="text-center">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                          <p>Ielādē rezultātus...</p>
+                        </div>
+                      </div>
+                    }
+                  >
+                    <ExamResults results={undefined} onRetakeExam={() => {}} />
+                  </Suspense>
+                }
+              />
             </Routes>
           </ValidationProvider>
         </ErrorBoundary>
