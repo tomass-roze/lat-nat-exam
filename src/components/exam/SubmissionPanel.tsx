@@ -40,73 +40,79 @@ export function SubmissionPanel({
 
   // Get detailed validation status for each section
   const getDetailedValidationStatus = () => {
-    const { anthemText, historyAnswers, constitutionAnswers } = testState
+    const { anthemText, historyAnswers, constitutionAnswers, enabledSections } = testState
 
-    // Anthem validation - simplified line-based check for submission
+    // Only validate enabled sections
     const anthemIssues: string[] = []
-    let anthemAccuracy = 0
+    const historyIssues: string[] = []
+    const constitutionIssues: string[] = []
 
-    if (!anthemText || anthemText.trim().length === 0) {
-      anthemIssues.push('Himnas teksts nav ievadīts')
-    } else {
-      // Check if all 8 lines have content (at least one letter each)
-      // Filter out empty lines to handle the extra newline after 4th line
-      const lines = anthemText.split('\n').filter((line) => line.trim() !== '')
-      const requiredLines = 8
-      let emptyLineCount = 0
+    // Anthem validation - only if enabled
+    if (enabledSections.anthem) {
+      if (!anthemText || anthemText.trim().length === 0) {
+        anthemIssues.push('Himnas teksts nav ievadīts')
+      } else {
+        // Check if all 8 lines have content (at least one letter each)
+        // Filter out empty lines to handle the extra newline after 4th line
+        const lines = anthemText.split('\n').filter((line) => line.trim() !== '')
+        const requiredLines = 8
+        let emptyLineCount = 0
 
-      // Count how many of the 8 expected lines are missing or empty
-      for (let i = 0; i < requiredLines; i++) {
-        const line = lines[i] || ''
-        if (!/[a-zA-ZāčēģīķļņšūžĀČĒĢĪĶĻŅŠŪŽ]/.test(line)) {
-          emptyLineCount++
+        // Count how many of the 8 expected lines are missing or empty
+        for (let i = 0; i < requiredLines; i++) {
+          const line = lines[i] || ''
+          if (!/[a-zA-ZāčēģīķļņšūžĀČĒĢĪĶĻŅŠŪŽ]/.test(line)) {
+            emptyLineCount++
+          }
+        }
+
+        if (emptyLineCount > 0) {
+          anthemIssues.push(
+            `${emptyLineCount} rinda${emptyLineCount > 1 ? 's' : ''} nav aizpildīta${emptyLineCount > 1 ? 's' : ''}`
+          )
+        }
+        // Accuracy validation removed - will be checked only in final results
+      }
+    }
+
+    // History validation - only if enabled
+    if (enabledSections.history) {
+      const historyCount = Object.keys(historyAnswers).length
+      if (historyCount < SCORING_THRESHOLDS.HISTORY_TOTAL_QUESTIONS) {
+        historyIssues.push(
+          `Trūkst ${SCORING_THRESHOLDS.HISTORY_TOTAL_QUESTIONS - historyCount} atbilžu`
+        )
+      } else {
+        // Check for invalid answers
+        const invalidAnswers = Object.entries(historyAnswers).filter(
+          ([, answer]) => ![0, 1, 2].includes(answer)
+        )
+        if (invalidAnswers.length > 0) {
+          historyIssues.push(`${invalidAnswers.length} nepareizas atbildes`)
         }
       }
+    }
 
-      if (emptyLineCount > 0) {
-        anthemIssues.push(
-          `${emptyLineCount} rinda${emptyLineCount > 1 ? 's' : ''} nav aizpildīta${emptyLineCount > 1 ? 's' : ''}`
+    // Constitution validation - only if enabled
+    if (enabledSections.constitution) {
+      const constitutionCount = Object.keys(constitutionAnswers).length
+      if (constitutionCount < SCORING_THRESHOLDS.CONSTITUTION_TOTAL_QUESTIONS) {
+        constitutionIssues.push(
+          `Trūkst ${SCORING_THRESHOLDS.CONSTITUTION_TOTAL_QUESTIONS - constitutionCount} atbilžu`
         )
-      }
-      // Accuracy validation removed - will be checked only in final results
-    }
-
-    // History validation
-    const historyIssues: string[] = []
-    const historyCount = Object.keys(historyAnswers).length
-    if (historyCount < SCORING_THRESHOLDS.HISTORY_TOTAL_QUESTIONS) {
-      historyIssues.push(
-        `Trūkst ${SCORING_THRESHOLDS.HISTORY_TOTAL_QUESTIONS - historyCount} atbilžu`
-      )
-    } else {
-      // Check for invalid answers
-      const invalidAnswers = Object.entries(historyAnswers).filter(
-        ([, answer]) => ![0, 1, 2].includes(answer)
-      )
-      if (invalidAnswers.length > 0) {
-        historyIssues.push(`${invalidAnswers.length} nepareizas atbildes`)
-      }
-    }
-
-    // Constitution validation
-    const constitutionIssues: string[] = []
-    const constitutionCount = Object.keys(constitutionAnswers).length
-    if (constitutionCount < SCORING_THRESHOLDS.CONSTITUTION_TOTAL_QUESTIONS) {
-      constitutionIssues.push(
-        `Trūkst ${SCORING_THRESHOLDS.CONSTITUTION_TOTAL_QUESTIONS - constitutionCount} atbilžu`
-      )
-    } else {
-      // Check for invalid answers
-      const invalidAnswers = Object.entries(constitutionAnswers).filter(
-        ([, answer]) => ![0, 1, 2].includes(answer)
-      )
-      if (invalidAnswers.length > 0) {
-        constitutionIssues.push(`${invalidAnswers.length} nepareizas atbildes`)
+      } else {
+        // Check for invalid answers
+        const invalidAnswers = Object.entries(constitutionAnswers).filter(
+          ([, answer]) => ![0, 1, 2].includes(answer)
+        )
+        if (invalidAnswers.length > 0) {
+          constitutionIssues.push(`${invalidAnswers.length} nepareizas atbildes`)
+        }
       }
     }
 
     return {
-      anthem: { issues: anthemIssues, accuracy: anthemAccuracy },
+      anthem: { issues: anthemIssues },
       history: { issues: historyIssues },
       constitution: { issues: constitutionIssues },
       isValid:

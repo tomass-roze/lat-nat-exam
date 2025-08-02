@@ -24,11 +24,31 @@ import type { TestResults } from '@/types'
 import { getSectionPassSummary } from '@/utils/scoring'
 
 interface ExamResultsProps {
-  results: TestResults
+  results?: TestResults
   onRetakeExam: () => void
 }
 
 export function ExamResults({ results, onRetakeExam }: ExamResultsProps) {
+  // Handle case where results are not available
+  if (!results) {
+    return (
+      <div className="container max-w-4xl mx-auto px-4 py-8">
+        <Alert>
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Nav pieejami rezultāti</AlertTitle>
+          <AlertDescription>
+            Eksāmena rezultāti nav pieejami. Lūdzu, vispirms nokārtojiet eksāmenu.
+          </AlertDescription>
+        </Alert>
+        <div className="mt-6">
+          <Button onClick={onRetakeExam}>
+            Sākt eksāmenu
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set()
   )
@@ -131,16 +151,17 @@ export function ExamResults({ results, onRetakeExam }: ExamResultsProps) {
       {/* Detailed Section Results */}
       <div className="space-y-6">
         {/* Anthem Results */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <CardTitle id="anthem-title">Valsts himna</CardTitle>
-                <Badge
-                  variant={results.anthem.passed ? 'default' : 'destructive'}
-                >
-                  {results.anthem.accuracy.toFixed(1)}% precizitāte
-                </Badge>
+        {results.anthem && (
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <CardTitle id="anthem-title">Valsts himna</CardTitle>
+                  <Badge
+                    variant={results.anthem.passed ? 'default' : 'destructive'}
+                  >
+                    {results.anthem.accuracy.toFixed(1)}% precizitāte
+                  </Badge>
               </div>
               <Button
                 variant="ghost"
@@ -203,18 +224,20 @@ export function ExamResults({ results, onRetakeExam }: ExamResultsProps) {
             </CardContent>
           )}
         </Card>
+        )}
 
         {/* History Results */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <CardTitle>Vēstures jautājumi</CardTitle>
-                <Badge
-                  variant={results.history.passed ? 'default' : 'destructive'}
-                >
-                  {results.history.correct}/{results.history.total} pareizi
-                </Badge>
+        {results.history && (
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <CardTitle>Vēstures jautājumi</CardTitle>
+                  <Badge
+                    variant={results.history.passed ? 'default' : 'destructive'}
+                  >
+                    {results.history.correct}/{results.history.total} pareizi
+                  </Badge>
               </div>
               <Button
                 variant="ghost"
@@ -277,13 +300,15 @@ export function ExamResults({ results, onRetakeExam }: ExamResultsProps) {
             </CardContent>
           )}
         </Card>
+        )}
 
         {/* Constitution Results */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <CardTitle>Konstitūcijas jautājumi</CardTitle>
+        {results.constitution && (
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <CardTitle>Konstitūcijas jautājumi</CardTitle>
                 <Badge
                   variant={
                     results.constitution.passed ? 'default' : 'destructive'
@@ -354,6 +379,7 @@ export function ExamResults({ results, onRetakeExam }: ExamResultsProps) {
             </CardContent>
           )}
         </Card>
+        )}
       </div>
 
       {/* Recommendations and Next Steps */}

@@ -368,25 +368,30 @@ export function createValidationSummary(
 }
 
 /**
- * Validate complete test state
+ * Validate complete test state - supports dynamic section validation
  */
 export function validateTestState(testState: TestState): ValidationResult {
   const startTime = Date.now()
   const fieldResults: Record<string, FieldValidationResult> = {}
+  const { enabledSections } = testState
 
-  // Validate anthem section
-  const anthemResult = validateAnthemSection(testState.anthemText)
-  fieldResults.anthemText = anthemResult
+  // Only validate enabled sections
+  if (enabledSections.anthem) {
+    const anthemResult = validateAnthemSection(testState.anthemText)
+    fieldResults.anthemText = anthemResult
+  }
 
-  // Validate history section
-  const historyResult = validateHistorySection(testState.historyAnswers)
-  fieldResults.historyAnswers = historyResult
+  if (enabledSections.history) {
+    const historyResult = validateHistorySection(testState.historyAnswers)
+    fieldResults.historyAnswers = historyResult
+  }
 
-  // Validate constitution section
-  const constitutionResult = validateConstitutionSection(
-    testState.constitutionAnswers
-  )
-  fieldResults.constitutionAnswers = constitutionResult
+  if (enabledSections.constitution) {
+    const constitutionResult = validateConstitutionSection(
+      testState.constitutionAnswers
+    )
+    fieldResults.constitutionAnswers = constitutionResult
+  }
 
   // Create summary
   const summary = createValidationSummary(fieldResults)

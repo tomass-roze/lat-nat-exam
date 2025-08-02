@@ -13,13 +13,13 @@ import type { Question } from './questions'
  */
 export interface TestResults {
   /** National anthem section results */
-  anthem: AnthemResult
+  anthem?: AnthemResult
 
   /** History questions section results */
-  history: MultipleChoiceResult
+  history?: MultipleChoiceResult
 
   /** Constitution questions section results */
-  constitution: MultipleChoiceResult
+  constitution?: MultipleChoiceResult
 
   /** Overall exam result */
   overall: OverallResult
@@ -285,6 +285,13 @@ export interface OverallResult {
 
   /** Certificate eligibility status */
   certificateEligible: boolean
+
+  /** Information about partial test if applicable */
+  partialTestInfo?: {
+    completedSections: string[]
+    totalSections: number
+    remainingSections: string[]
+  }
 }
 
 /**

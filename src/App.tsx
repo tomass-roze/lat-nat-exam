@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, Suspense, lazy } from 'react'
+import { Routes, Route, useLocation, useNavigate } from 'react-router-dom'
 import { useKeyboardNavigation } from '@/hooks/useKeyboardNavigation'
 import { MainLayout } from '@/components/layout/MainLayout'
 import { ExamHeader } from '@/components/layout/ExamHeader'
@@ -15,6 +16,7 @@ import { SubmissionLoadingScreen } from '@/components/exam/SubmissionLoadingScre
 
 // Lazy load heavy components that are not immediately needed
 const ExamResults = lazy(() => import('@/components/exam/ExamResults'))
+const LandingPage = lazy(() => import('@/pages/LandingPage'))
 import { ValidationProvider, useValidation } from '@/contexts/ValidationContext'
 import {
   SessionProvider,
@@ -34,6 +36,7 @@ import {
   isBrowserCompatible,
 } from '@/utils/browserCompatibility'
 import { SCORING_THRESHOLDS } from '@/types/constants'
+import type { ExamSection } from '@/types/constants'
 import type { TestState } from '@/types/exam'
 import type { TestResults } from '@/types/scoring'
 import { loadExamQuestions, QuestionLoadingError } from '@/utils/questionLoader'
@@ -44,6 +47,13 @@ import { logRuntimeError } from '@/utils/errorLogger'
 function ExamContent() {
   // Error handling
   useErrorHandler('ExamContent')
+
+  // Router hooks
+  const location = useLocation()
+  const navigate = useNavigate()
+
+  // Get section selection from navigation state
+  const { selectedSections = ['anthem', 'history', 'constitution'], isPartialTest = false } = location.state || {}
 
   // Session and validation contexts
   const {
@@ -123,7 +133,13 @@ function ExamContent() {
           // Load questions for new session
           const questions = loadExamQuestions()
 
-          // Create initial test state
+          // Create initial test state with enabled sections
+          const enabledSections = {
+            anthem: selectedSections.includes('anthem'),
+            history: selectedSections.includes('history'),
+            constitution: selectedSections.includes('constitution'),
+          }
+
           const initialTestState: TestState = {
             anthemText: '',
             historyAnswers: {},
@@ -131,8 +147,15 @@ function ExamContent() {
             startTime: Date.now(),
             lastSaved: 0,
             isCompleted: false,
-            currentSection: 'anthem',
+            currentSection: selectedSections[0] as ExamSection || 'anthem',
             selectedQuestions: questions,
+            enabledSections,
+            selectedSectionIds: selectedSections,
+            testConfiguration: {
+              totalSections: selectedSections.length,
+              sectionNames: selectedSections,
+              isPartialTest: isPartialTest,
+            },
             metadata: {
               sessionId: `session-${Date.now()}`,
               timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -497,6 +520,20 @@ function ExamContent() {
   return (
     <MainLayout>
       <ExamHeader>
+        {/* Back to Selection Button */}
+        <div className="flex items-center justify-between w-full mb-4">
+          <button
+            onClick={() => navigate('/')}
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            ← Atpakaļ uz sadaļu izvēli
+          </button>
+          {isPartialTest && (
+            <span className="text-sm text-muted-foreground">
+              Daļējs eksāmens ({selectedSections.length} no 3)
+            </span>
+          )}
+        </div>
         <ProgressIndicator sections={sections} className="w-full" />
       </ExamHeader>
 
@@ -515,60 +552,64 @@ function ExamContent() {
       <CompatibilityWarning autoShow={true} />
 
       <div className="space-y-8 sm:space-y-12 py-4 sm:py-8 mobile-bottom-safe">
-        {/* Anthem Section */}
-        <section id="anthem-section" aria-labelledby="anthem-title">
-          <SectionErrorBoundary
-            sectionName="Himna"
-            isCritical={true}
-            isInitializing={!isAppFullyInitialized}
-          >
-            <AnthemSection
-              value={anthemText}
-              onChange={handleAnthemChange}
-              onNext={scrollToHistory}
-            />
-          </SectionErrorBoundary>
-        </section>
+        {/* Conditionally render sections based on enabledSections */}
+        {testState.enabledSections.anthem && (
+          <section id="anthem-section" aria-labelledby="anthem-title">
+            <SectionErrorBoundary
+              sectionName="Himna"
+              isCritical={true}
+              isInitializing={!isAppFullyInitialized}
+            >
+              <AnthemSection
+                value={anthemText}
+                onChange={handleAnthemChange}
+                onNext={scrollToHistory}
+              />
+            </SectionErrorBoundary>
+          </section>
+        )}
 
-        {/* History Section */}
-        <section
-          id="history-section"
-          aria-labelledby="history-title"
-          ref={historyRef}
-        >
-          <SectionErrorBoundary
-            sectionName="Vēsture"
-            isCritical={true}
-            isInitializing={!isAppFullyInitialized}
+        {testState.enabledSections.history && (
+          <section
+            id="history-section"
+            aria-labelledby="history-title"
+            ref={historyRef}
           >
-            <HistorySection
-              answers={historyAnswers}
-              onChange={handleHistoryAnswer}
-              onNext={scrollToConstitution}
-              questions={selectedQuestions?.history || []}
-            />
-          </SectionErrorBoundary>
-        </section>
+            <SectionErrorBoundary
+              sectionName="Vēsture"
+              isCritical={true}
+              isInitializing={!isAppFullyInitialized}
+            >
+              <HistorySection
+                answers={historyAnswers}
+                onChange={handleHistoryAnswer}
+                onNext={scrollToConstitution}
+                questions={selectedQuestions?.history || []}
+              />
+            </SectionErrorBoundary>
+          </section>
+        )}
 
-        {/* Constitution Section */}
-        <section
-          id="constitution-section"
-          aria-labelledby="constitution-title"
-          ref={constitutionRef}
-        >
-          <SectionErrorBoundary
-            sectionName="Konstitūcija"
-            isCritical={true}
-            isInitializing={!isAppFullyInitialized}
+        {testState.enabledSections.constitution && (
+          <section
+            id="constitution-section"
+            aria-labelledby="constitution-title"
+            ref={constitutionRef}
           >
-            <ConstitutionSection
-              answers={constitutionAnswers}
-              onChange={handleConstitutionAnswer}
-              questions={selectedQuestions?.constitution || []}
-              error={questionLoadingError || undefined}
-            />
-          </SectionErrorBoundary>
-        </section>
+            <SectionErrorBoundary
+              sectionName="Konstitūcija"
+              isCritical={true}
+              isInitializing={!isAppFullyInitialized}
+            >
+              <ConstitutionSection
+                answers={constitutionAnswers}
+                onChange={handleConstitutionAnswer}
+                questions={selectedQuestions?.constitution || []}
+                error={questionLoadingError || undefined}
+              />
+            </SectionErrorBoundary>
+          </section>
+        )}
 
         {/* Submission Panel */}
         <section id="submission-section" aria-labelledby="submission-title">
@@ -629,13 +670,41 @@ function App() {
           enableAutoRecovery={true}
         >
           <ValidationProvider>
-            <ErrorBoundary
-              componentName="ExamContent"
-              isCritical={true}
-              enableAutoRecovery={false}
-            >
-              <ExamContent />
-            </ErrorBoundary>
+            <Routes>
+              <Route path="/" element={
+                <Suspense fallback={
+                  <div className="flex items-center justify-center min-h-screen">
+                    <div className="text-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                      <p>Ielādē sadaļu izvēli...</p>
+                    </div>
+                  </div>
+                }>
+                  <LandingPage />
+                </Suspense>
+              } />
+              <Route path="/test" element={
+                <ErrorBoundary
+                  componentName="ExamContent"
+                  isCritical={true}
+                  enableAutoRecovery={false}
+                >
+                  <ExamContent />
+                </ErrorBoundary>
+              } />
+              <Route path="/results" element={
+                <Suspense fallback={
+                  <div className="flex items-center justify-center min-h-screen">
+                    <div className="text-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                      <p>Ielādē rezultātus...</p>
+                    </div>
+                  </div>
+                }>
+                  <ExamResults results={undefined} onRetakeExam={() => {}} />
+                </Suspense>
+              } />
+            </Routes>
           </ValidationProvider>
         </ErrorBoundary>
       </SessionProvider>

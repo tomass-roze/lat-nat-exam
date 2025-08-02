@@ -127,3 +127,36 @@ export const NATIONAL_ANTHEM_REFERENCE = [
  * Anthem reference as single string for comparison
  */
 export const NATIONAL_ANTHEM_TEXT = NATIONAL_ANTHEM_REFERENCE.join('\n')
+
+/**
+ * Section metadata for landing page configuration
+ */
+export const SECTION_METADATA = {
+  anthem: {
+    id: 'anthem',
+    title: 'Valsts himna',
+    description: 'Latvijas valsts himnas teksta uzrakstīšana',
+    icon: '🎵',
+    passingCriteria: '75% precizitāte',
+    estimatedTime: 15,
+    order: 1
+  },
+  history: {
+    id: 'history',
+    title: 'Vēstures jautājumi',
+    description: 'Latvijas vēstures jautājumi',
+    icon: '📚',
+    passingCriteria: '7 no 10 pareizi',
+    estimatedTime: 25,
+    order: 2
+  },
+  constitution: {
+    id: 'constitution',
+    title: 'Konstitūcijas jautājumi',
+    description: 'Latvijas Republikas Satversmes jautājumi',
+    icon: '⚖️',
+    passingCriteria: '5 no 8 pareizi',
+    estimatedTime: 20,
+    order: 3
+  }
+} as const
