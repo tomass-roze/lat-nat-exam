@@ -210,7 +210,9 @@ describe('Anthem Comparison', () => {
     const badText = 'Completely wrong text that does not match'
     const result = compareAnthemText(badText)
     expect(result.passed).toBe(false)
-    expect(result.accuracy < SCORING_THRESHOLDS.ANTHEM_PASS_PERCENTAGE).toBe(true)
+    expect(result.accuracy < SCORING_THRESHOLDS.ANTHEM_PASS_PERCENTAGE).toBe(
+      true
+    )
   })
 
   test('compareAnthemText calculates character counts correctly', () => {

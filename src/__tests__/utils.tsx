@@ -1,6 +1,6 @@
 /**
  * @fileoverview Test utilities and helpers
- * 
+ *
  * Common utilities for testing React components and application logic.
  * Includes custom render functions, mock data, and test helpers.
  */
@@ -19,17 +19,17 @@ export const mockQuestionData = {
       id: 'hist_1',
       question: 'Test history question?',
       options: ['Option A', 'Option B', 'Option C', 'Option D'],
-      correctAnswer: 0
-    }
+      correctAnswer: 0,
+    },
   ],
   constitution: [
     {
-      id: 'const_1', 
+      id: 'const_1',
       question: 'Test constitution question?',
       options: ['Option A', 'Option B', 'Option C', 'Option D'],
-      correctAnswer: 1
-    }
-  ]
+      correctAnswer: 1,
+    },
+  ],
 }
 
 export const mockSessionData = {
@@ -37,7 +37,7 @@ export const mockSessionData = {
   startTime: new Date().toISOString(),
   currentSection: 'history' as const,
   responses: {},
-  isCompleted: false
+  isCompleted: false,
 }
 
 // Custom render function with providers
@@ -50,21 +50,20 @@ export function renderWithProviders(
   ui: ReactElement,
   options: CustomRenderOptions = {}
 ) {
-  const { initialSessionState, initialValidationState, ...renderOptions } = options
+  const { initialSessionState, initialValidationState, ...renderOptions } =
+    options
 
   function Wrapper({ children }: { children: React.ReactNode }) {
     return (
       <SessionProvider>
-        <ValidationProvider>
-          {children}
-        </ValidationProvider>
+        <ValidationProvider>{children}</ValidationProvider>
       </SessionProvider>
     )
   }
 
   return {
     user: userEvent.setup(),
-    ...render(ui, { wrapper: Wrapper, ...renderOptions })
+    ...render(ui, { wrapper: Wrapper, ...renderOptions }),
   }
 }
 
@@ -72,13 +71,13 @@ export function renderWithProviders(
 export function renderComponent(ui: ReactElement, options: RenderOptions = {}) {
   return {
     user: userEvent.setup(),
-    ...render(ui, options)
+    ...render(ui, options),
   }
 }
 
 // Utility to wait for async operations
 export const waitForAsyncOperation = (ms: number = 100) =>
-  new Promise(resolve => setTimeout(resolve, ms))
+  new Promise((resolve) => setTimeout(resolve, ms))
 
 // Mock implementations for common dependencies
 export const mockNavigate = vi.fn()
@@ -87,7 +86,7 @@ export const mockLocation = {
   search: '',
   hash: '',
   state: null,
-  key: 'default'
+  key: 'default',
 }
 
 // Accessibility test helper
@@ -95,18 +94,22 @@ export const toHaveNoViolations = (received: any) => {
   if (received.violations.length === 0) {
     return {
       pass: true,
-      message: () => 'Expected to have accessibility violations, but none were found'
+      message: () =>
+        'Expected to have accessibility violations, but none were found',
     }
   }
-  
-  const violationMessages = received.violations.map((violation: any) => 
-    `${violation.impact}: ${violation.description} (${violation.nodes.length} elements)`
-  ).join('\n')
-  
-  
+
+  const violationMessages = received.violations
+    .map(
+      (violation: any) =>
+        `${violation.impact}: ${violation.description} (${violation.nodes.length} elements)`
+    )
+    .join('\n')
+
   return {
     pass: false,
-    message: () => `Expected no accessibility violations, but found:\n${violationMessages}`
+    message: () =>
+      `Expected no accessibility violations, but found:\n${violationMessages}`,
   }
 }
 
@@ -119,11 +122,13 @@ export const measurePerformance = async (fn: () => Promise<void> | void) => {
 }
 
 // Text processing test helpers
-export const createMockAnthemText = (variations: {
-  missingDiacritics?: boolean
-  extraSpaces?: boolean
-  wrongCase?: boolean
-} = {}) => {
+export const createMockAnthemText = (
+  variations: {
+    missingDiacritics?: boolean
+    extraSpaces?: boolean
+    wrongCase?: boolean
+  } = {}
+) => {
   let text = `Dievs, svētī Latviju,
 Mūs' dārgo tēviju,
 Svētī jel Latviju,
@@ -137,9 +142,17 @@ Mūs' Latvijā!`
   if (variations.missingDiacritics) {
     text = text.replace(/[āēīūčģķļņšž]/g, (match) => {
       const replacements: Record<string, string> = {
-        'ā': 'a', 'ē': 'e', 'ī': 'i', 'ū': 'u',
-        'č': 'c', 'ģ': 'g', 'ķ': 'k', 'ļ': 'l',
-        'ņ': 'n', 'š': 's', 'ž': 'z'
+        ā: 'a',
+        ē: 'e',
+        ī: 'i',
+        ū: 'u',
+        č: 'c',
+        ģ: 'g',
+        ķ: 'k',
+        ļ: 'l',
+        ņ: 'n',
+        š: 's',
+        ž: 'z',
       }
       return replacements[match] || match
     })
@@ -164,18 +177,26 @@ export const createMockQuestion = (overrides: Partial<any> = {}) => ({
   correctAnswer: 0,
   category: 'test',
   difficulty: 'medium',
-  ...overrides
+  ...overrides,
 })
 
-export const createMockQuestions = (count: number, type: 'history' | 'constitution' = 'history') => 
-  Array.from({ length: count }, (_, index) => createMockQuestion({
-    id: `${type}_${index + 1}`,
-    question: `Test ${type} question ${index + 1}?`,
-    correctAnswer: index % 4
-  }))
+export const createMockQuestions = (
+  count: number,
+  type: 'history' | 'constitution' = 'history'
+) =>
+  Array.from({ length: count }, (_, index) =>
+    createMockQuestion({
+      id: `${type}_${index + 1}`,
+      question: `Test ${type} question ${index + 1}?`,
+      correctAnswer: index % 4,
+    })
+  )
 
 // Form interaction helpers
-export const fillForm = async (user: ReturnType<typeof userEvent.setup>, fields: Record<string, string>) => {
+export const fillForm = async (
+  user: ReturnType<typeof userEvent.setup>,
+  fields: Record<string, string>
+) => {
   for (const [label, value] of Object.entries(fields)) {
     const input = screen.getByLabelText(new RegExp(label, 'i'))
     await user.clear(input)
@@ -183,7 +204,10 @@ export const fillForm = async (user: ReturnType<typeof userEvent.setup>, fields:
   }
 }
 
-export const selectRadioOption = async (user: ReturnType<typeof userEvent.setup>, value: string) => {
+export const selectRadioOption = async (
+  user: ReturnType<typeof userEvent.setup>,
+  value: string
+) => {
   const radio = screen.getByRole('radio', { name: new RegExp(value, 'i') })
   await user.click(radio)
 }
@@ -191,7 +215,7 @@ export const selectRadioOption = async (user: ReturnType<typeof userEvent.setup>
 // Session storage helpers for testing
 export const mockSessionStorage = () => {
   const storage: Record<string, string> = {}
-  
+
   return {
     getItem: (key: string) => storage[key] || null,
     setItem: (key: string, value: string) => {
@@ -201,11 +225,11 @@ export const mockSessionStorage = () => {
       delete storage[key]
     },
     clear: () => {
-      Object.keys(storage).forEach(key => delete storage[key])
+      Object.keys(storage).forEach((key) => delete storage[key])
     },
     get storage() {
       return { ...storage }
-    }
+    },
   }
 }
 

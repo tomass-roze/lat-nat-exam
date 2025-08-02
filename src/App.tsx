@@ -71,6 +71,9 @@ function ExamContent() {
     boolean | null
   >(null)
 
+  // App initialization state
+  const [isAppFullyInitialized, setIsAppFullyInitialized] = useState(false)
+
   // Results state
   const [examResults, setExamResults] = useState<TestResults | null>(null)
   const [showResults, setShowResults] = useState(false)
@@ -156,6 +159,28 @@ function ExamContent() {
       initializeOrLoadSession()
     }
   }, [isInitialized, isCompatibleBrowser, loadSession, initializeSession])
+
+  // Mark app as fully initialized once session and compatibility are ready
+  useEffect(() => {
+    if (
+      isInitialized &&
+      isCompatibleBrowser !== null &&
+      !questionLoadingError &&
+      !isAppFullyInitialized
+    ) {
+      // Add a small delay to ensure all components have mounted
+      const timer = setTimeout(() => {
+        setIsAppFullyInitialized(true)
+      }, 500)
+
+      return () => clearTimeout(timer)
+    }
+  }, [
+    isInitialized,
+    isCompatibleBrowser,
+    questionLoadingError,
+    isAppFullyInitialized,
+  ])
 
   // Show recovery dialog when there are errors
   useEffect(() => {
@@ -484,7 +509,7 @@ function ExamContent() {
       />
 
       {/* Network Status Warning */}
-      <NetworkWarningBanner />
+      <NetworkWarningBanner isAppInitialized={isAppFullyInitialized} />
 
       {/* Browser Compatibility Warning */}
       <CompatibilityWarning autoShow={true} />
@@ -492,7 +517,11 @@ function ExamContent() {
       <div className="space-y-8 sm:space-y-12 py-4 sm:py-8 mobile-bottom-safe">
         {/* Anthem Section */}
         <section id="anthem-section" aria-labelledby="anthem-title">
-          <SectionErrorBoundary sectionName="Himna" isCritical={true}>
+          <SectionErrorBoundary
+            sectionName="Himna"
+            isCritical={true}
+            isInitializing={!isAppFullyInitialized}
+          >
             <AnthemSection
               value={anthemText}
               onChange={handleAnthemChange}
@@ -507,7 +536,11 @@ function ExamContent() {
           aria-labelledby="history-title"
           ref={historyRef}
         >
-          <SectionErrorBoundary sectionName="Vēsture" isCritical={true}>
+          <SectionErrorBoundary
+            sectionName="Vēsture"
+            isCritical={true}
+            isInitializing={!isAppFullyInitialized}
+          >
             <HistorySection
               answers={historyAnswers}
               onChange={handleHistoryAnswer}
@@ -523,7 +556,11 @@ function ExamContent() {
           aria-labelledby="constitution-title"
           ref={constitutionRef}
         >
-          <SectionErrorBoundary sectionName="Konstitūcija" isCritical={true}>
+          <SectionErrorBoundary
+            sectionName="Konstitūcija"
+            isCritical={true}
+            isInitializing={!isAppFullyInitialized}
+          >
             <ConstitutionSection
               answers={constitutionAnswers}
               onChange={handleConstitutionAnswer}
@@ -535,7 +572,11 @@ function ExamContent() {
 
         {/* Submission Panel */}
         <section id="submission-section" aria-labelledby="submission-title">
-          <SectionErrorBoundary sectionName="Iesniegšana" isCritical={true}>
+          <SectionErrorBoundary
+            sectionName="Iesniegšana"
+            isCritical={true}
+            isInitializing={!isAppFullyInitialized}
+          >
             <SubmissionPanel
               anthemProgress={anthemProgress}
               historyAnswered={Object.keys(historyAnswers).length}

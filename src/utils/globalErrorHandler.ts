@@ -190,8 +190,13 @@ export class GlobalErrorHandler {
     context: any = {}
   ): Promise<ErrorHandlerResult> {
     // Check for recursion before any processing
-    if (this.isHandlingError || this.recursionDepth >= this.MAX_RECURSION_DEPTH) {
-      console.warn('[GlobalErrorHandler] Recursion detected, using fallback handling')
+    if (
+      this.isHandlingError ||
+      this.recursionDepth >= this.MAX_RECURSION_DEPTH
+    ) {
+      console.warn(
+        '[GlobalErrorHandler] Recursion detected, using fallback handling'
+      )
       return this.getFallbackErrorResult(error)
     }
 
@@ -266,21 +271,29 @@ export class GlobalErrorHandler {
 
     try {
       const safeContext: any = {}
-      
+
       // Only include safe, primitive properties
       for (const [key, value] of Object.entries(context)) {
         if (value === null || value === undefined) {
           safeContext[key] = value
-        } else if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+        } else if (
+          typeof value === 'string' ||
+          typeof value === 'number' ||
+          typeof value === 'boolean'
+        ) {
           safeContext[key] = value
-        } else if (key === 'source' || key === 'userAgent' || key === 'timestamp') {
+        } else if (
+          key === 'source' ||
+          key === 'userAgent' ||
+          key === 'timestamp'
+        ) {
           safeContext[key] = String(value).substring(0, 200) // Truncate long strings
         } else {
           // Skip complex objects that might cause circular references
           safeContext[key] = `[${typeof value}]`
         }
       }
-      
+
       return safeContext
     } catch (err) {
       return { error: 'Failed to create safe context' }
@@ -316,8 +329,13 @@ export class GlobalErrorHandler {
         }
 
         // Skip handling if we're already in a recursion loop
-        if (this.isHandlingError || this.recursionDepth >= this.MAX_RECURSION_DEPTH) {
-          console.warn('[GlobalErrorHandler] Skipping window.onerror due to recursion')
+        if (
+          this.isHandlingError ||
+          this.recursionDepth >= this.MAX_RECURSION_DEPTH
+        ) {
+          console.warn(
+            '[GlobalErrorHandler] Skipping window.onerror due to recursion'
+          )
           return true
         }
 
@@ -347,15 +365,21 @@ export class GlobalErrorHandler {
             source: 'window.onerror',
             userAgent: navigator.userAgent?.substring(0, 100),
             timestamp: Date.now(),
-          }).catch(handlingError => {
-            console.error('[GlobalErrorHandler] Failed to handle window error:', handlingError)
+          }).catch((handlingError) => {
+            console.error(
+              '[GlobalErrorHandler] Failed to handle window error:',
+              handlingError
+            )
           })
         }, 0)
 
         // Return true to prevent default error handling
         return true
       } catch (setupError) {
-        console.error('[GlobalErrorHandler] Error in window.onerror handler:', setupError)
+        console.error(
+          '[GlobalErrorHandler] Error in window.onerror handler:',
+          setupError
+        )
         return true
       }
     }
@@ -371,8 +395,13 @@ export class GlobalErrorHandler {
         event.preventDefault()
 
         // Skip handling if we're already in a recursion loop
-        if (this.isHandlingError || this.recursionDepth >= this.MAX_RECURSION_DEPTH) {
-          console.warn('[GlobalErrorHandler] Skipping promise rejection due to recursion')
+        if (
+          this.isHandlingError ||
+          this.recursionDepth >= this.MAX_RECURSION_DEPTH
+        ) {
+          console.warn(
+            '[GlobalErrorHandler] Skipping promise rejection due to recursion'
+          )
           return
         }
 
@@ -413,12 +442,18 @@ export class GlobalErrorHandler {
             source: 'unhandledrejection',
             promiseReason: typeof reason,
             timestamp: Date.now(),
-          }).catch(handlingError => {
-            console.error('[GlobalErrorHandler] Failed to handle promise rejection:', handlingError)
+          }).catch((handlingError) => {
+            console.error(
+              '[GlobalErrorHandler] Failed to handle promise rejection:',
+              handlingError
+            )
           })
         }, 0)
       } catch (setupError) {
-        console.error('[GlobalErrorHandler] Error in promise rejection handler:', setupError)
+        console.error(
+          '[GlobalErrorHandler] Error in promise rejection handler:',
+          setupError
+        )
       }
     }
 
