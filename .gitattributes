@@ -1,0 +1,50 @@
+# Ensure consistent line endings across all platforms
+# This prevents Windows CRLF vs Unix LF line ending issues
+
+# Set default behavior to auto-normalize line endings
+* text=auto eol=lf
+
+# TypeScript and JavaScript files - force LF line endings
+*.ts text eol=lf
+*.tsx text eol=lf
+*.js text eol=lf
+*.jsx text eol=lf
+*.mjs text eol=lf
+
+# Configuration and data files
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.toml text eol=lf
+*.xml text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+
+# Web files
+*.html text eol=lf
+*.css text eol=lf
+*.scss text eol=lf
+*.sass text eol=lf
+
+# Binary files (explicitly mark as binary to prevent any text processing)
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.svg binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.zip binary
+*.tar.gz binary
+
+# Ensure shell scripts use LF (important for CI/CD)
+*.sh text eol=lf
+*.bash text eol=lf
+
+# Prevent specific files from being normalized
+.env* text eol=lf
+package-lock.json text eol=lf -merge
+yarn.lock text eol=lf -merge
