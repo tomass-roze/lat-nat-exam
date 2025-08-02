@@ -36,6 +36,7 @@ export type ErrorRecoveryAction =
   | 'contact' // Contact support
   | 'ignore' // Continue despite error
   | 'export' // Export data before fixing
+  | 'clear-cache' // Clear browser cache and storage
 
 /**
  * Browser compatibility levels

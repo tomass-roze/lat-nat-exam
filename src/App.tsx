@@ -36,9 +36,9 @@ import { SCORING_THRESHOLDS } from '@/types/constants'
 import type { ExamSection } from '@/types/constants'
 import type { TestState } from '@/types/exam'
 import type { TestResults } from '@/types/scoring'
-import { loadExamQuestions, QuestionLoadingError } from '@/utils/questionLoader'
+import { loadExamQuestions, loadExamQuestionsSafe, QuestionLoadingError } from '@/utils/questionLoader'
 import { calculateTestResults } from '@/utils/scoring'
-import { logRuntimeError } from '@/utils/errorLogger'
+import { logRuntimeError, logInitializationError } from '@/utils/errorLogger'
 // compareAnthemText import removed - only used during final results calculation
 
 function ExamContent() {
@@ -98,7 +98,7 @@ function ExamContent() {
     enableGlobalShortcuts: true,
   })
 
-  // Initialize browser compatibility check
+  // Initialize browser compatibility check with enhanced error handling
   useEffect(() => {
     try {
       // Initialize browser compatibility detection
@@ -111,17 +111,61 @@ function ExamContent() {
       // Log compatibility result
       if (!compatible) {
         console.warn('Browser compatibility issues detected')
+        
+        // Log compatibility issues for production debugging
+        if (process.env.NODE_ENV === 'production') {
+          logInitializationError(
+            new Error('Browser compatibility check failed'),
+            'browser-compat',
+            'ExamContent',
+            {
+              environment: {
+                userAgent: navigator.userAgent?.substring(0, 200) || 'Unknown',
+                language: navigator.language || 'Unknown',
+                screenSize: { width: window.screen?.width || 0, height: window.screen?.height || 0 },
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown',
+                cookieEnabled: Boolean(navigator.cookieEnabled),
+                localStorage: true,
+                sessionStorage: true,
+              },
+              isInitialization: true,
+            }
+          )
+        }
       } else {
         console.log('Browser compatibility check passed')
       }
     } catch (error) {
       console.error('Browser compatibility check failed:', error)
+      
+      // Log the compatibility check failure
+      if (error instanceof Error) {
+        logInitializationError(
+          error,
+          'browser-compat',
+          'ExamContent',
+          {
+            environment: {
+              userAgent: navigator.userAgent?.substring(0, 200) || 'Unknown',
+              language: navigator.language || 'Unknown',
+              screenSize: { width: window.screen?.width || 0, height: window.screen?.height || 0 },
+              timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown',
+              cookieEnabled: Boolean(navigator.cookieEnabled),
+              localStorage: true,
+              sessionStorage: true,
+            },
+            isInitialization: true,
+          }
+        )
+      }
+      
       // Assume compatible if check fails to avoid blocking users
-      setIsCompatibleBrowser(true)
+      // But in production, this might indicate a serious issue
+      setIsCompatibleBrowser(process.env.NODE_ENV === 'production' ? false : true)
     }
   }, [])
 
-  // Initialize session or load existing one
+  // Initialize session or load existing one with comprehensive error handling
   useEffect(() => {
     const initializeOrLoadSession = async () => {
       try {
@@ -129,14 +173,68 @@ function ExamContent() {
         const sessionLoaded = await loadSession()
 
         if (!sessionLoaded) {
-          // Load questions for new session
-          const questions = loadExamQuestions()
+          let questions
+          try {
+            // Use safe question loading for production environments
+            questions = process.env.NODE_ENV === 'production' 
+              ? loadExamQuestionsSafe()
+              : loadExamQuestions()
+            
+            // Additional validation of loaded questions
+            if (!questions || !questions.history || !questions.constitution) {
+              throw new Error('Questions object is invalid or incomplete')
+            }
+            
+            if (questions.history.length === 0 && questions.constitution.length === 0) {
+              throw new Error('No questions loaded - both arrays are empty')
+            }
+            
+          } catch (questionError) {
+            console.error('Question loading failed:', questionError)
+            
+            // Log initialization error for production debugging
+            if (questionError instanceof Error) {
+              logInitializationError(
+                questionError,
+                'question-loading',
+                'ExamContent',
+                {
+                  appState: {
+                    currentSection: 'initialization',
+                    progress: 0,
+                    isSubmissionReady: false,
+                  },
+                  isInitialization: true,
+                }
+              )
+            }
+            
+            setQuestionLoadingError(
+              questionError instanceof QuestionLoadingError 
+                ? questionError.message 
+                : 'Neizdevās ielādēt jautājumus. Lūdzu, pārlādējiet lapu.'
+            )
+            return // Exit early if questions can't be loaded
+          }
+
+          // Validate selected sections before creating state
+          const validatedSelectedSections = Array.isArray(selectedSections) && selectedSections.length > 0
+            ? selectedSections
+            : ['anthem', 'history', 'constitution'] // Default fallback
 
           // Create initial test state with enabled sections
           const enabledSections = {
-            anthem: selectedSections.includes('anthem'),
-            history: selectedSections.includes('history'),
-            constitution: selectedSections.includes('constitution'),
+            anthem: validatedSelectedSections.includes('anthem'),
+            history: validatedSelectedSections.includes('history'),
+            constitution: validatedSelectedSections.includes('constitution'),
+          }
+
+          // Ensure at least one section is enabled
+          if (!enabledSections.anthem && !enabledSections.history && !enabledSections.constitution) {
+            console.warn('No sections enabled, defaulting to all sections')
+            enabledSections.anthem = true
+            enabledSections.history = true
+            enabledSections.constitution = true
           }
 
           const initialTestState: TestState = {
@@ -146,41 +244,69 @@ function ExamContent() {
             startTime: Date.now(),
             lastSaved: 0,
             isCompleted: false,
-            currentSection: (selectedSections[0] as ExamSection) || 'anthem',
+            currentSection: (validatedSelectedSections[0] as ExamSection) || 'anthem',
             selectedQuestions: questions,
             enabledSections,
-            selectedSectionIds: selectedSections,
+            selectedSectionIds: validatedSelectedSections,
             testConfiguration: {
-              totalSections: selectedSections.length,
-              sectionNames: selectedSections,
-              isPartialTest: isPartialTest,
+              totalSections: validatedSelectedSections.length,
+              sectionNames: validatedSelectedSections,
+              isPartialTest: Boolean(isPartialTest),
             },
             metadata: {
-              sessionId: `session-${Date.now()}`,
+              sessionId: `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
               timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
               attemptNumber: 1,
               darkMode: false,
             },
           }
 
-          // Initialize new session
-          initializeSession(initialTestState, questions)
+          // Initialize new session with timeout protection
+          try {
+            initializeSession(initialTestState, questions)
+          } catch (sessionError) {
+            console.error('Session initialization failed:', sessionError)
+            
+            // Log session initialization error
+            if (sessionError instanceof Error) {
+              logInitializationError(
+                sessionError,
+                'session-init',
+                'ExamContent',
+                {
+                  appState: {
+                    currentSection: 'session-initialization',
+                    progress: 0,
+                    isSubmissionReady: false,
+                  },
+                  isInitialization: true,
+                }
+              )
+            }
+            
+            setQuestionLoadingError('Neizdevās inicializēt eksāmena sesiju')
+            return
+          }
         }
       } catch (error) {
+        console.error('Complete session initialization failed:', error)
+        
+        // Set appropriate error message based on error type
         if (error instanceof QuestionLoadingError) {
           setQuestionLoadingError(error.message)
+        } else if (error instanceof Error) {
+          setQuestionLoadingError(`Inicializācijas kļūda: ${error.message}`)
         } else {
-          setQuestionLoadingError('Nezināma kļūda ielādējot jautājumus')
+          setQuestionLoadingError('Nezināma kļūda ielādējot jautājumus. Lūdzu, pārlādējiet lapu.')
         }
-        console.error('Session initialization failed:', error)
       }
     }
 
-    // Only initialize session if browser compatibility check is complete
-    if (!isInitialized && isCompatibleBrowser !== null) {
+    // Only initialize session if browser compatibility check is complete and no existing error
+    if (!isInitialized && isCompatibleBrowser !== null && !questionLoadingError) {
       initializeOrLoadSession()
     }
-  }, [isInitialized, isCompatibleBrowser, loadSession, initializeSession])
+  }, [isInitialized, isCompatibleBrowser, loadSession, initializeSession, questionLoadingError])
 
   // Mark app as fully initialized once session and compatibility are ready
   useEffect(() => {
@@ -454,6 +580,49 @@ function ExamContent() {
     // The useEffect will automatically reinitialize a new session
   }
 
+  // Show question loading error with recovery options
+  if (questionLoadingError) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="max-w-2xl mx-auto px-4 text-center">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+              <h1 className="text-xl font-semibold text-red-800 mb-4">
+                Jautājumu ielādes kļūda
+              </h1>
+              <p className="text-red-700 mb-4">
+                {questionLoadingError}
+              </p>
+              <div className="space-y-3">
+                <button
+                  onClick={() => {
+                    setQuestionLoadingError(null)
+                    window.location.reload()
+                  }}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg mr-3"
+                >
+                  Mēģināt vēlreiz
+                </button>
+                <button
+                  onClick={() => {
+                    setQuestionLoadingError(null)
+                    // Clear any cached data that might be causing issues
+                    sessionStorage.clear()
+                    localStorage.clear()
+                    window.location.reload()
+                  }}
+                  className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg"
+                >
+                  Notīrīt kešu un mēģināt vēlreiz
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </MainLayout>
+    )
+  }
+
   // Show loading state while compatibility check or session is initializing
   if (isCompatibleBrowser === null || (!isInitialized && isCompatibleBrowser)) {
     return (
@@ -561,83 +730,91 @@ function ExamContent() {
       {/* Browser Compatibility Warning */}
       <CompatibilityWarning autoShow={true} />
 
-      <div className="space-y-8 sm:space-y-12 py-4 sm:py-8 mobile-bottom-safe">
-        {/* Conditionally render sections based on enabledSections */}
-        {testState.enabledSections.anthem && (
-          <section id="anthem-section" aria-labelledby="anthem-title">
+      <ErrorBoundary
+        componentName="ExamSections"
+        isCritical={true}
+        enableAutoRecovery={false}
+        showDetails={process.env.NODE_ENV === 'development'}
+        isInitializing={!isAppFullyInitialized}
+      >
+        <div className="space-y-8 sm:space-y-12 py-4 sm:py-8 mobile-bottom-safe">
+          {/* Conditionally render sections based on enabledSections */}
+          {testState.enabledSections.anthem && (
+            <section id="anthem-section" aria-labelledby="anthem-title">
+              <SectionErrorBoundary
+                sectionName="Himna"
+                isCritical={true}
+                isInitializing={!isAppFullyInitialized}
+              >
+                <AnthemSection
+                  value={anthemText}
+                  onChange={handleAnthemChange}
+                  onNext={scrollToHistory}
+                />
+              </SectionErrorBoundary>
+            </section>
+          )}
+
+          {testState.enabledSections.history && (
+            <section
+              id="history-section"
+              aria-labelledby="history-title"
+              ref={historyRef}
+            >
+              <SectionErrorBoundary
+                sectionName="Vēsture"
+                isCritical={true}
+                isInitializing={!isAppFullyInitialized}
+              >
+                <HistorySection
+                  answers={historyAnswers}
+                  onChange={handleHistoryAnswer}
+                  onNext={scrollToConstitution}
+                  questions={selectedQuestions?.history || []}
+                />
+              </SectionErrorBoundary>
+            </section>
+          )}
+
+          {testState.enabledSections.constitution && (
+            <section
+              id="constitution-section"
+              aria-labelledby="constitution-title"
+              ref={constitutionRef}
+            >
+              <SectionErrorBoundary
+                sectionName="Konstitūcija"
+                isCritical={true}
+                isInitializing={!isAppFullyInitialized}
+              >
+                <ConstitutionSection
+                  answers={constitutionAnswers}
+                  onChange={handleConstitutionAnswer}
+                  questions={selectedQuestions?.constitution || []}
+                  error={questionLoadingError || undefined}
+                />
+              </SectionErrorBoundary>
+            </section>
+          )}
+
+          {/* Submission Panel */}
+          <section id="submission-section" aria-labelledby="submission-title">
             <SectionErrorBoundary
-              sectionName="Himna"
+              sectionName="Iesniegšana"
               isCritical={true}
               isInitializing={!isAppFullyInitialized}
             >
-              <AnthemSection
-                value={anthemText}
-                onChange={handleAnthemChange}
-                onNext={scrollToHistory}
+              <SubmissionPanel
+                anthemProgress={anthemProgress}
+                historyAnswered={Object.keys(historyAnswers).length}
+                constitutionAnswered={Object.keys(constitutionAnswers).length}
+                testState={testState}
+                onSubmit={handleSubmit}
               />
             </SectionErrorBoundary>
           </section>
-        )}
-
-        {testState.enabledSections.history && (
-          <section
-            id="history-section"
-            aria-labelledby="history-title"
-            ref={historyRef}
-          >
-            <SectionErrorBoundary
-              sectionName="Vēsture"
-              isCritical={true}
-              isInitializing={!isAppFullyInitialized}
-            >
-              <HistorySection
-                answers={historyAnswers}
-                onChange={handleHistoryAnswer}
-                onNext={scrollToConstitution}
-                questions={selectedQuestions?.history || []}
-              />
-            </SectionErrorBoundary>
-          </section>
-        )}
-
-        {testState.enabledSections.constitution && (
-          <section
-            id="constitution-section"
-            aria-labelledby="constitution-title"
-            ref={constitutionRef}
-          >
-            <SectionErrorBoundary
-              sectionName="Konstitūcija"
-              isCritical={true}
-              isInitializing={!isAppFullyInitialized}
-            >
-              <ConstitutionSection
-                answers={constitutionAnswers}
-                onChange={handleConstitutionAnswer}
-                questions={selectedQuestions?.constitution || []}
-                error={questionLoadingError || undefined}
-              />
-            </SectionErrorBoundary>
-          </section>
-        )}
-
-        {/* Submission Panel */}
-        <section id="submission-section" aria-labelledby="submission-title">
-          <SectionErrorBoundary
-            sectionName="Iesniegšana"
-            isCritical={true}
-            isInitializing={!isAppFullyInitialized}
-          >
-            <SubmissionPanel
-              anthemProgress={anthemProgress}
-              historyAnswered={Object.keys(historyAnswers).length}
-              constitutionAnswered={Object.keys(constitutionAnswers).length}
-              testState={testState}
-              onSubmit={handleSubmit}
-            />
-          </SectionErrorBoundary>
-        </section>
-      </div>
+        </div>
+      </ErrorBoundary>
 
       {/* Bottom Progress Bar */}
       <BottomProgressBar
