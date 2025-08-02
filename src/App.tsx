@@ -346,9 +346,29 @@ function ExamContent() {
   //   }
   // }, [sessionState.testState, validateAll, isInitialized, questionLoadingError])
 
-  // Get current data from session state
+  // Get current data from session state with safe defaults
   const { testState, selectedQuestions } = sessionState
-  const { anthemText, historyAnswers, constitutionAnswers } = testState
+  
+  // Add defensive checks for testState properties with safe defaults
+  const safeDefaults = {
+    anthemText: '',
+    historyAnswers: {},
+    constitutionAnswers: {},
+    enabledSections: {
+      anthem: true,
+      history: true,
+      constitution: true,
+    },
+  }
+  
+  const safeTestState = {
+    ...safeDefaults,
+    ...testState,
+    // Ensure enabledSections always exists with safe defaults
+    enabledSections: testState?.enabledSections || safeDefaults.enabledSections,
+  }
+  
+  const { anthemText, historyAnswers, constitutionAnswers } = safeTestState
 
   // Calculate progress - simplified line-based approach
   const getAnthemProgress = () => {
@@ -382,7 +402,7 @@ function ExamContent() {
 
   // Helper function to calculate overall progress for enabled sections only
   const calculateFilteredOverallProgress = (
-    enabledSections: TestState['enabledSections']
+    enabledSections: { anthem: boolean; history: boolean; constitution: boolean }
   ) => {
     const progressValues: number[] = []
 
@@ -398,7 +418,7 @@ function ExamContent() {
   }
 
   const overallProgress = calculateFilteredOverallProgress(
-    testState.enabledSections
+    safeTestState.enabledSections
   )
 
   // Helper function to check if anthem meets validation requirements - simplified line-based
@@ -508,7 +528,7 @@ function ExamContent() {
 
       // Validate at submission time only
       try {
-        validateAll(sessionState.testState, 'onSubmit')
+        validateAll(safeTestState, 'onSubmit')
       } catch (validationError) {
         console.error('Validation failed:', validationError)
         alert(
@@ -520,7 +540,7 @@ function ExamContent() {
       // Calculate exam results (this includes accuracy validation for anthem)
       let results
       try {
-        results = calculateTestResults(testState, selectedQuestions)
+        results = calculateTestResults(safeTestState, selectedQuestions)
         setExamResults(results)
       } catch (calculationError) {
         console.error('Results calculation failed:', calculationError)
@@ -739,7 +759,7 @@ function ExamContent() {
       >
         <div className="space-y-8 sm:space-y-12 py-4 sm:py-8 mobile-bottom-safe">
           {/* Conditionally render sections based on enabledSections */}
-          {testState.enabledSections.anthem && (
+          {safeTestState.enabledSections.anthem && (
             <section id="anthem-section" aria-labelledby="anthem-title">
               <SectionErrorBoundary
                 sectionName="Himna"
@@ -755,7 +775,7 @@ function ExamContent() {
             </section>
           )}
 
-          {testState.enabledSections.history && (
+          {safeTestState.enabledSections.history && (
             <section
               id="history-section"
               aria-labelledby="history-title"
@@ -776,7 +796,7 @@ function ExamContent() {
             </section>
           )}
 
-          {testState.enabledSections.constitution && (
+          {safeTestState.enabledSections.constitution && (
             <section
               id="constitution-section"
               aria-labelledby="constitution-title"
@@ -808,7 +828,7 @@ function ExamContent() {
                 anthemProgress={anthemProgress}
                 historyAnswered={Object.keys(historyAnswers).length}
                 constitutionAnswered={Object.keys(constitutionAnswers).length}
-                testState={testState}
+                testState={safeTestState}
                 onSubmit={handleSubmit}
               />
             </SectionErrorBoundary>
@@ -820,7 +840,7 @@ function ExamContent() {
       <BottomProgressBar
         sections={sections}
         overallProgress={overallProgress}
-        enabledSections={testState.enabledSections}
+        enabledSections={safeTestState.enabledSections}
       />
 
       {/* Submission Loading Screen */}
