@@ -897,7 +897,33 @@ export function logError(
 }
 
 /**
- * Convenience function to create and log a runtime error
+ * Create production-specific error context with deployment information
+ */
+export function createProductionContext(): Partial<ErrorContext> {
+  const context: Partial<ErrorContext> = {}
+  
+  try {
+    // Add build and deployment information for production debugging
+    const productionInfo = {
+      buildMode: process.env.NODE_ENV,
+      deploymentTarget: 'vercel',
+      userAgent: navigator.userAgent?.substring(0, 200) || 'Unknown',
+      timestamp: Date.now(),
+      href: window.location.href,
+      origin: window.location.origin,
+    }
+    
+    // Add to context in a safe way
+    ;(context as any).production = productionInfo
+  } catch (error) {
+    console.warn('Failed to create production context:', error)
+  }
+  
+  return context
+}
+
+/**
+ * Convenience function to create and log a runtime error with production enhancements
  */
 export function logRuntimeError(
   originalError: Error,
@@ -905,6 +931,11 @@ export function logRuntimeError(
   boundary?: string,
   context?: Partial<ErrorContext>
 ): string {
+  const enhancedContext = {
+    ...context,
+    ...(process.env.NODE_ENV === 'production' ? createProductionContext() : {}),
+  }
+
   const runtimeError: ApplicationError = {
     id: `runtime-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
     message: originalError.message || 'Nezināma kļūda',
@@ -921,7 +952,42 @@ export function logRuntimeError(
     boundary,
   }
 
-  return logError(runtimeError, context)
+  return logError(runtimeError, enhancedContext)
+}
+
+/**
+ * Log initialization errors with enhanced context for production debugging
+ */
+export function logInitializationError(
+  originalError: Error,
+  phase: 'question-loading' | 'session-init' | 'browser-compat' | 'component-mount',
+  component?: string,
+  context?: Partial<ErrorContext>
+): string {
+  const enhancedContext = {
+    ...context,
+    isInitialization: true,
+    initializationPhase: phase,
+    ...(process.env.NODE_ENV === 'production' ? createProductionContext() : {}),
+  }
+
+  const initError: ApplicationError = {
+    id: `init-${phase}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    message: `Initialization failed in ${phase}: ${originalError.message}`,
+    details: originalError.stack,
+    severity: 'critical',
+    category: 'runtime',
+    timestamp: Date.now(),
+    recoverable: true,
+    suggestedActions: ['refresh', 'clear-cache', 'retry'],
+    context: { component, boundary: 'initialization' },
+    originalError,
+    stack: originalError.stack,
+    component,
+    boundary: 'initialization',
+  }
+
+  return logError(initError, enhancedContext)
 }
 
 /**
