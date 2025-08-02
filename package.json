@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "npm run build:debug && tsc && vite build",
+    "build:debug": "echo \"Build Environment Debug Info:\" && echo \"Node.js: $(node --version)\" && echo \"TypeScript: $(npx tsc --version)\" && echo \"PWD: $(pwd)\" && echo \"File encoding check:\" && file -b src/__tests__/utils.tsx",
+    "build:vercel": "npm run build:debug && npx tsc --project tsconfig.build.json && vite build",
     "build:analyze": "ANALYZE_BUNDLE=true npm run build",
     "preview": "vite preview",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
@@ -33,6 +35,11 @@
     "url": "https://github.com/tomass-roze/lat-nat-exam/issues"
   },
   "homepage": "https://github.com/tomass-roze/lat-nat-exam#readme",
+  "engines": {
+    "node": ">=20.17.0",
+    "npm": ">=10.0.0",
+    "typescript": "5.8.3"
+  },
   "dependencies": {
     "@hookform/resolvers": "^5.2.0",
     "@radix-ui/react-alert-dialog": "^1.1.14",
