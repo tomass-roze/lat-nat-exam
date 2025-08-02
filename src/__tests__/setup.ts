@@ -1,6 +1,6 @@
 /**
  * @fileoverview Vitest setup configuration
- * 
+ *
  * Global test setup for the Latvian Citizenship Exam application.
  * Configures React Testing Library, jsdom environment, and global test utilities.
  */
@@ -36,12 +36,17 @@ beforeAll(() => {
     root: Element | null = null
     rootMargin: string = '0px'
     thresholds: ReadonlyArray<number> = [0]
-    
-    constructor(_callback: IntersectionObserverCallback, _options?: IntersectionObserverInit) {}
+
+    constructor(
+      _callback: IntersectionObserverCallback,
+      _options?: IntersectionObserverInit
+    ) {}
     observe() {}
     unobserve() {}
     disconnect() {}
-    takeRecords(): IntersectionObserverEntry[] { return [] }
+    takeRecords(): IntersectionObserverEntry[] {
+      return []
+    }
   } as any
 
   // Mock ResizeObserver for responsive components
@@ -65,12 +70,12 @@ beforeAll(() => {
       delete storage[key]
     },
     clear: () => {
-      Object.keys(storage).forEach(key => {
+      Object.keys(storage).forEach((key) => {
         delete storage[key]
       })
     },
   }
-  
+
   Object.defineProperty(window, 'localStorage', {
     value: localStorageMock,
   })
@@ -101,7 +106,7 @@ beforeAll(() => {
     if (
       typeof args[0] === 'string' &&
       (args[0].includes('Warning: ReactDOM.render is deprecated') ||
-       args[0].includes('Warning: act(...) is not supported'))
+        args[0].includes('Warning: act(...) is not supported'))
     ) {
       return
     }

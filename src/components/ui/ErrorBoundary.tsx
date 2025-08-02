@@ -24,6 +24,8 @@ interface Props {
   showDetails?: boolean
   /** Whether to attempt automatic recovery */
   enableAutoRecovery?: boolean
+  /** Whether app is still initializing (affects recovery behavior) */
+  isInitializing?: boolean
 }
 
 interface State {
@@ -59,10 +61,18 @@ export class ErrorBoundary extends Component<Props, State> {
     const componentName = this.props.componentName || 'UnknownComponent'
     let errorId: string | null = null
 
+    // Detect if this is likely an initialization error
+    const isLikelyInitializationError = this.isLikelyInitializationError(
+      error,
+      errorInfo
+    )
+
     try {
       // Log error to global error handling system with safe context
       errorId = logRuntimeError(error, componentName, 'ErrorBoundary', {
         session: this.getSessionInfo(),
+        isInitialization:
+          this.props.isInitializing || isLikelyInitializationError,
       })
     } catch (loggingError) {
       // If error logging fails, use fallback logging
@@ -84,12 +94,19 @@ export class ErrorBoundary extends Component<Props, State> {
       console.error('[ErrorBoundary] Error callback failed:', callbackError)
     }
 
-    // Attempt automatic recovery if enabled and not too many retries
-    if (this.props.enableAutoRecovery && this.state.retryCount < 3) {
+    // Adjust auto-recovery behavior based on error type
+    const shouldAttemptRecovery = this.shouldAttemptAutoRecovery(
+      isLikelyInitializationError
+    )
+
+    if (shouldAttemptRecovery && this.state.retryCount < 3) {
       try {
-        this.scheduleAutoRecovery()
+        this.scheduleAutoRecovery(isLikelyInitializationError)
       } catch (recoveryError) {
-        console.error('[ErrorBoundary] Auto recovery setup failed:', recoveryError)
+        console.error(
+          '[ErrorBoundary] Auto recovery setup failed:',
+          recoveryError
+        )
       }
     }
 
@@ -99,7 +116,9 @@ export class ErrorBoundary extends Component<Props, State> {
         console.group(`🚨 ErrorBoundary: ${componentName}`)
         console.error('Error:', error.message || error)
         console.error('Error Info:', {
-          componentStack: errorInfo.componentStack?.substring(0, 500) + '...' || 'No stack available'
+          componentStack:
+            errorInfo.componentStack?.substring(0, 500) + '...' ||
+            'No stack available',
         })
         console.groupEnd()
       } catch (consoleError) {
@@ -142,12 +161,75 @@ export class ErrorBoundary extends Component<Props, State> {
     }
   }
 
-  private scheduleAutoRecovery = () => {
-    // Try to recover after 3 seconds
+  /**
+   * Detect if this is likely an initialization error based on error patterns
+   */
+  private isLikelyInitializationError = (
+    error: Error,
+    _errorInfo: ErrorInfo
+  ): boolean => {
+    // Check error timing - errors very early are likely initialization issues
+    const timeSincePageLoad = Date.now() - (window.performance?.timeOrigin || 0)
+    if (timeSincePageLoad < 5000) {
+      // Within first 5 seconds
+      return true
+    }
+
+    // Check error patterns that suggest initialization issues
+    const errorMessage = error.message?.toLowerCase() || ''
+    const stackTrace = error.stack?.toLowerCase() || ''
+
+    const initializationPatterns = [
+      'cannot read properties of undefined',
+      'cannot read property',
+      'is not defined',
+      'failed to fetch',
+      'network error',
+      'loading chunk failed',
+      'dynamically imported module',
+      'script error',
+    ]
+
+    return initializationPatterns.some(
+      (pattern) =>
+        errorMessage.includes(pattern) || stackTrace.includes(pattern)
+    )
+  }
+
+  /**
+   * Determine if auto-recovery should be attempted based on error type
+   */
+  private shouldAttemptAutoRecovery = (
+    isInitializationError: boolean
+  ): boolean => {
+    // Don't auto-recover if explicitly disabled
+    if (!this.props.enableAutoRecovery) {
+      return false
+    }
+
+    // In production, be more conservative with initialization errors
+    if (process.env.NODE_ENV === 'production' && isInitializationError) {
+      return false
+    }
+
+    // Be more conservative if the app is still initializing
+    if (this.props.isInitializing) {
+      return false
+    }
+
+    return true
+  }
+
+  private scheduleAutoRecovery = (isInitializationError: boolean = false) => {
+    // Use longer delay for initialization errors
+    const delay = isInitializationError ? 5000 : 3000
+
     this.autoRecoveryTimeout = window.setTimeout(() => {
-      console.log(`Attempting auto-recovery for ${this.props.componentName}`)
+      console.log(
+        `Attempting auto-recovery for ${this.props.componentName} (initialization: ${isInitializationError})`
+      )
       this.handleReset()
-    }, 3000)
+    }, delay)
   }
 
   private getSessionInfo = () => {
@@ -157,14 +239,19 @@ export class ErrorBoundary extends Component<Props, State> {
         const parsed = JSON.parse(sessionData)
         return {
           sessionId: String(parsed.sessionId || 'unknown').substring(0, 50),
-          duration: Number(Date.now() - (parsed.testState?.startTime || Date.now())) || 0,
+          duration:
+            Number(Date.now() - (parsed.testState?.startTime || Date.now())) ||
+            0,
           isActive: Boolean(!parsed.testState?.isCompleted),
         }
       }
     } catch (sessionError) {
       // Ignore parsing errors but log in development
       if (process.env.NODE_ENV === 'development') {
-        console.warn('[ErrorBoundary] Failed to get session info:', sessionError)
+        console.warn(
+          '[ErrorBoundary] Failed to get session info:',
+          sessionError
+        )
       }
     }
     return {
@@ -343,6 +430,7 @@ export function withErrorBoundary<P extends object>(
     isCritical?: boolean
     enableAutoRecovery?: boolean
     showDetails?: boolean
+    isInitializing?: boolean
   } = {}
 ) {
   const {
@@ -354,6 +442,7 @@ export function withErrorBoundary<P extends object>(
     isCritical = false,
     enableAutoRecovery = true,
     showDetails = false,
+    isInitializing = false,
   } = options
 
   const WrappedComponent = function (props: P) {
@@ -365,6 +454,7 @@ export function withErrorBoundary<P extends object>(
         isCritical={isCritical}
         enableAutoRecovery={enableAutoRecovery}
         showDetails={showDetails}
+        isInitializing={isInitializing}
       >
         <Component {...props} />
       </ErrorBoundary>
@@ -382,17 +472,20 @@ export function SectionErrorBoundary({
   children,
   sectionName,
   isCritical = true,
+  isInitializing = false,
 }: {
   children: ReactNode
   sectionName: string
   isCritical?: boolean
+  isInitializing?: boolean
 }) {
   return (
     <ErrorBoundary
       componentName={`${sectionName}Section`}
       isCritical={isCritical}
-      enableAutoRecovery={!isCritical}
+      enableAutoRecovery={!isCritical && !isInitializing}
       showDetails={process.env.NODE_ENV === 'development'}
+      isInitializing={isInitializing}
       fallback={
         <Alert variant="destructive" className="my-4">
           <AlertTriangle className="h-4 w-4" />

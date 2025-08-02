@@ -333,11 +333,30 @@ export function NetworkStatusBadge({ className = '' }: { className?: string }) {
 /**
  * Network warning banner for critical network issues
  */
-export function NetworkWarningBanner() {
-  const { networkStatus, getRecommendedActions } = useNetworkStatus()
+export function NetworkWarningBanner({
+  isAppInitialized = true,
+}: {
+  isAppInitialized?: boolean
+}) {
+  const { networkStatus, getRecommendedActions } = useNetworkStatus(
+    {},
+    isAppInitialized
+  )
 
-  // Only show for offline or very poor connections
-  if (networkStatus.quality !== 'offline' && networkStatus.quality !== 'poor') {
+  // Be more conservative - only show for truly critical network issues
+  // Don't show warnings during app initialization to prevent false positives
+  if (!isAppInitialized) {
+    return null
+  }
+
+  // Only show for offline connections or confirmed poor connections
+  // In production, be even more conservative to avoid false warnings
+  const shouldShowWarning =
+    process.env.NODE_ENV === 'production'
+      ? networkStatus.quality === 'offline'
+      : networkStatus.quality === 'offline' || networkStatus.quality === 'poor'
+
+  if (!shouldShowWarning) {
     return null
   }
 

@@ -244,6 +244,8 @@ export interface ErrorContext {
     downlink?: number
     rtt?: number
   }
+  /** Whether error occurred during app initialization */
+  isInitialization?: boolean
 }
 
 /**

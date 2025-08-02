@@ -426,7 +426,9 @@ export class ErrorLogger {
   /**
    * Sanitize partial context to remove complex objects
    */
-  private sanitizePartialContext(partialContext: Partial<ErrorContext>): Partial<ErrorContext> {
+  private sanitizePartialContext(
+    partialContext: Partial<ErrorContext>
+  ): Partial<ErrorContext> {
     if (!partialContext || typeof partialContext !== 'object') {
       return {}
     }
@@ -438,13 +440,23 @@ export class ErrorLogger {
       for (const [key, value] of Object.entries(partialContext)) {
         if (value === null || value === undefined) {
           sanitized[key as keyof ErrorContext] = value
-        } else if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
-          sanitized[key as keyof ErrorContext] = value
+        } else if (key === 'isInitialization' && typeof value === 'boolean') {
+          // Handle isInitialization specifically
+          sanitized.isInitialization = value
+        } else if (typeof value === 'string' || typeof value === 'number') {
+          // Handle string and number values
+          (sanitized as any)[key] = value
+        } else if (typeof value === 'boolean' && key !== 'isInitialization') {
+          // Handle other boolean values  
+          (sanitized as any)[key] = value
         } else if (key === 'session' && typeof value === 'object') {
           // Safe session data extraction
           const sessionData = value as any
           sanitized.session = {
-            sessionId: String(sessionData.sessionId || 'unknown').substring(0, 50),
+            sessionId: String(sessionData.sessionId || 'unknown').substring(
+              0,
+              50
+            ),
             duration: Number(sessionData.duration) || 0,
             isActive: Boolean(sessionData.isActive),
           }
@@ -561,7 +573,7 @@ export class ErrorLogger {
       const style = this.getConsoleStyle(error.severity)
 
       console.group(`%c[ERROR LOGGER] ${error.category.toUpperCase()}`, style)
-      
+
       // Safely log error with circular reference handling
       try {
         console.error('Error:', this.sanitizeForLogging(error))
@@ -571,21 +583,24 @@ export class ErrorLogger {
           message: error.message,
           category: error.category,
           severity: error.severity,
-          timestamp: error.timestamp
+          timestamp: error.timestamp,
         })
       }
-      
+
       // Safely log context with circular reference handling
       try {
         console.log('Context:', this.sanitizeForLogging(context))
       } catch (contextLogErr) {
         console.log('Context (sanitized):', this.createSafeContext(context))
       }
-      
+
       console.groupEnd()
     } catch (consoleError) {
       // Fallback logging if all else fails
-      console.error('[ERROR LOGGER] Failed to log error safely:', error.message || 'Unknown error')
+      console.error(
+        '[ERROR LOGGER] Failed to log error safely:',
+        error.message || 'Unknown error'
+      )
     }
   }
 
@@ -594,7 +609,7 @@ export class ErrorLogger {
    */
   private sanitizeForLogging(obj: any, maxDepth = 3): any {
     const seen = new WeakSet()
-    
+
     const sanitize = (value: any, depth: number): any => {
       // Depth limit to prevent infinite recursion
       if (depth > maxDepth) {
@@ -619,7 +634,7 @@ export class ErrorLogger {
 
       // Handle arrays
       if (Array.isArray(value)) {
-        return value.slice(0, 10).map(item => sanitize(item, depth + 1)) // Limit array size
+        return value.slice(0, 10).map((item) => sanitize(item, depth + 1)) // Limit array size
       }
 
       // Handle DOM elements
@@ -637,12 +652,16 @@ export class ErrorLogger {
         return {
           name: value.name,
           message: value.message,
-          stack: value.stack?.split('\n').slice(0, 5).join('\n') // Limit stack trace
+          stack: value.stack?.split('\n').slice(0, 5).join('\n'), // Limit stack trace
         }
       }
 
       // Handle React components/elements
-      if (value.$$typeof || (value._owner !== undefined) || (value.type !== undefined)) {
+      if (
+        value.$$typeof ||
+        value._owner !== undefined ||
+        value.type !== undefined
+      ) {
         return '[React Element/Component]'
       }
 
@@ -650,7 +669,7 @@ export class ErrorLogger {
       if (value.constructor === Object || value.constructor === undefined) {
         const sanitized: any = {}
         const keys = Object.keys(value).slice(0, 20) // Limit object keys
-        
+
         for (const key of keys) {
           try {
             sanitized[key] = sanitize(value[key], depth + 1)
@@ -658,11 +677,12 @@ export class ErrorLogger {
             sanitized[key] = '[Error accessing property]'
           }
         }
-        
+
         if (Object.keys(value).length > 20) {
-          sanitized['...'] = `[${Object.keys(value).length - 20} more properties]`
+          sanitized['...'] =
+            `[${Object.keys(value).length - 20} more properties]`
         }
-        
+
         return sanitized
       }
 
@@ -688,25 +708,33 @@ export class ErrorLogger {
     try {
       return {
         environment: {
-          userAgent: context.environment?.userAgent?.substring(0, 100) || 'Unknown',
+          userAgent:
+            context.environment?.userAgent?.substring(0, 100) || 'Unknown',
           language: context.environment?.language || 'Unknown',
-          screenSize: context.environment?.screenSize || { width: 0, height: 0 },
+          screenSize: context.environment?.screenSize || {
+            width: 0,
+            height: 0,
+          },
           timezone: context.environment?.timezone || 'Unknown',
           cookieEnabled: Boolean(context.environment?.cookieEnabled),
           localStorage: Boolean(context.environment?.localStorage),
           sessionStorage: Boolean(context.environment?.sessionStorage),
         },
-        performance: context.performance ? {
-          memoryUsage: context.performance.memoryUsage || 0,
-          timingAvailable: Boolean(context.performance.timing),
-          navigationAvailable: Boolean(context.performance.navigation),
-        } : undefined,
-        network: context.network ? {
-          quality: context.network.quality || 'unknown',
-          effectiveType: context.network.effectiveType || 'unknown',
-          downlink: context.network.downlink || 0,
-          rtt: context.network.rtt || 0,
-        } : undefined,
+        performance: context.performance
+          ? {
+              memoryUsage: context.performance.memoryUsage || 0,
+              timingAvailable: Boolean(context.performance.timing),
+              navigationAvailable: Boolean(context.performance.navigation),
+            }
+          : undefined,
+        network: context.network
+          ? {
+              quality: context.network.quality || 'unknown',
+              effectiveType: context.network.effectiveType || 'unknown',
+              downlink: context.network.downlink || 0,
+              rtt: context.network.rtt || 0,
+            }
+          : undefined,
         session: context.session || undefined,
         // Exclude component and boundary as they're not part of ErrorContext type
         // These are handled in the ApplicationError interface itself

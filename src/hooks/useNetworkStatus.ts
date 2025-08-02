@@ -56,26 +56,54 @@ interface NetworkMonitorConfig {
   enablePeriodicChecks: boolean
   /** Whether to track network quality changes */
   trackQualityChanges: boolean
+  /** Delay before starting network monitoring (ms) */
+  initializationDelay: number
+  /** Whether app is considered fully initialized */
+  waitForInitialization: boolean
 }
 
 /**
- * Default configuration
+ * Environment-specific configuration
  */
-const DEFAULT_CONFIG: NetworkMonitorConfig = {
+const PRODUCTION_CONFIG: NetworkMonitorConfig = {
+  checkInterval: 60000, // 60 seconds (less frequent in production)
+  testTimeout: 8000, // 8 seconds (longer timeout for production)
+  testUrls: [
+    '/', // Test current domain root
+    '/favicon.ico', // Test favicon (should exist)
+  ],
+  enablePeriodicChecks: true,
+  trackQualityChanges: false, // Reduce logging in production
+  initializationDelay: 3000, // Wait 3 seconds for app to initialize
+  waitForInitialization: true,
+}
+
+const DEVELOPMENT_CONFIG: NetworkMonitorConfig = {
   checkInterval: 30000, // 30 seconds
   testTimeout: 5000, // 5 seconds
   testUrls: [
-    'https://www.google.com/favicon.ico',
-    'https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js',
+    '/', // Test current domain root
+    '/favicon.ico', // Test favicon
   ],
   enablePeriodicChecks: true,
   trackQualityChanges: true,
+  initializationDelay: 1000, // Shorter delay in development
+  waitForInitialization: false, // Don't wait in development for easier debugging
 }
+
+/**
+ * Default configuration based on environment
+ */
+const DEFAULT_CONFIG: NetworkMonitorConfig =
+  process.env.NODE_ENV === 'production' ? PRODUCTION_CONFIG : DEVELOPMENT_CONFIG
 
 /**
  * Network status monitoring hook
  */
-export function useNetworkStatus(config: Partial<NetworkMonitorConfig> = {}) {
+export function useNetworkStatus(
+  config: Partial<NetworkMonitorConfig> = {},
+  isAppInitialized: boolean = true
+) {
   const finalConfig = { ...DEFAULT_CONFIG, ...config }
 
   const [networkStatus, setNetworkStatus] = useState<NetworkStatus>(() => ({
@@ -85,20 +113,30 @@ export function useNetworkStatus(config: Partial<NetworkMonitorConfig> = {}) {
     connectionAttempts: 0,
   }))
 
+  const [isInitializationComplete, setIsInitializationComplete] = useState(
+    !finalConfig.waitForInitialization || isAppInitialized
+  )
+
   const checkIntervalRef = useRef<number | null>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
+  const initializationTimeoutRef = useRef<number | null>(null)
 
   /**
-   * Determine network quality from connection info
+   * Determine network quality from connection info with production-safe defaults
    */
   const determineQuality = useCallback(
     (connection: any, isOnline: boolean): NetworkQuality => {
       if (!isOnline) return 'offline'
-      if (!connection) return 'unknown'
+
+      // If no connection info available but we're online, assume good quality in production
+      // This prevents false negatives when Network Information API is unavailable
+      if (!connection) {
+        return process.env.NODE_ENV === 'production' ? 'good' : 'unknown'
+      }
 
       const { effectiveType, downlink, rtt } = connection
 
-      // Use effective type as fallback
+      // Use effective type as primary indicator
       if (effectiveType === '4g' || effectiveType === '5g') {
         if (
           downlink >= QUALITY_THRESHOLDS.excellent.minDownlink &&
@@ -117,30 +155,42 @@ export function useNetworkStatus(config: Partial<NetworkMonitorConfig> = {}) {
         return 'poor'
       }
 
-      // Fallback to speed-based detection
-      if (
-        downlink >= QUALITY_THRESHOLDS.excellent.minDownlink &&
-        rtt <= QUALITY_THRESHOLDS.excellent.maxRtt
-      ) {
-        return 'excellent'
+      // Fallback to speed-based detection if available
+      if (downlink !== undefined && rtt !== undefined) {
+        if (
+          downlink >= QUALITY_THRESHOLDS.excellent.minDownlink &&
+          rtt <= QUALITY_THRESHOLDS.excellent.maxRtt
+        ) {
+          return 'excellent'
+        }
+
+        if (
+          downlink >= QUALITY_THRESHOLDS.good.minDownlink &&
+          rtt <= QUALITY_THRESHOLDS.good.maxRtt
+        ) {
+          return 'good'
+        }
+
+        return 'poor'
       }
 
-      if (
-        downlink >= QUALITY_THRESHOLDS.good.minDownlink &&
-        rtt <= QUALITY_THRESHOLDS.good.maxRtt
-      ) {
-        return 'good'
-      }
-
-      return 'poor'
+      // Final fallback: if we have connection info but no metrics,
+      // be optimistic in production to avoid false warnings
+      return process.env.NODE_ENV === 'production' ? 'good' : 'unknown'
     },
     []
   )
 
   /**
-   * Test actual connectivity by making HTTP requests
+   * Test actual connectivity with CSP-safe fallback mechanism
    */
   const testConnectivity = useCallback(async (): Promise<boolean> => {
+    // First check: Use browser's online status as baseline
+    if (!navigator.onLine) {
+      return false
+    }
+
+    // Second check: Try to fetch relative paths (CSP-safe)
     if (abortControllerRef.current) {
       abortControllerRef.current.abort()
     }
@@ -149,7 +199,7 @@ export function useNetworkStatus(config: Partial<NetworkMonitorConfig> = {}) {
     const { signal } = abortControllerRef.current
 
     try {
-      // Test multiple URLs to increase reliability
+      // Test relative URLs that are CSP-compliant
       const testPromises = finalConfig.testUrls.map(async (url) => {
         const controller = new AbortController()
         signal.addEventListener('abort', () => controller.abort())
@@ -160,16 +210,29 @@ export function useNetworkStatus(config: Partial<NetworkMonitorConfig> = {}) {
         )
 
         try {
-          await fetch(url, {
+          const response = await fetch(url, {
             method: 'HEAD',
-            mode: 'no-cors',
             cache: 'no-cache',
             signal: controller.signal,
           })
           clearTimeout(timeout)
-          return true
-        } catch {
+          // Consider successful if we get any response (even 404 is fine - server is reachable)
+          return response.status < 500
+        } catch (fetchError) {
           clearTimeout(timeout)
+
+          // If fetch fails due to CSP or other restrictions,
+          // fall back to navigator.onLine status
+          if (
+            fetchError instanceof TypeError &&
+            fetchError.message.includes('fetch')
+          ) {
+            console.warn(
+              '[NetworkStatus] Fetch blocked, using navigator.onLine fallback'
+            )
+            return navigator.onLine
+          }
+
           return false
         }
       })
@@ -179,19 +242,31 @@ export function useNetworkStatus(config: Partial<NetworkMonitorConfig> = {}) {
         (result) => result.status === 'fulfilled' && result.value
       ).length
 
-      // Consider connected if at least one test succeeds
-      return successCount > 0
-    } catch (error) {
-      // Log network error
-      logNetworkError(
-        'Connectivity test failed',
-        undefined,
-        undefined,
-        networkStatus.quality
-      )
+      // If any test succeeds, consider connected
+      if (successCount > 0) {
+        return true
+      }
+
+      // Fallback: If all tests fail but browser reports online, trust the browser
+      // This handles cases where CSP blocks our tests but connection is actually fine
+      if (navigator.onLine) {
+        console.info(
+          '[NetworkStatus] Fetch tests failed but navigator.onLine is true, assuming connected'
+        )
+        return true
+      }
+
       return false
+    } catch (error) {
+      // Log error only if not in production or if it's a critical error
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('[NetworkStatus] Connectivity test failed:', error)
+      }
+
+      // Final fallback: trust navigator.onLine
+      return navigator.onLine
     }
-  }, [finalConfig.testUrls, finalConfig.testTimeout, networkStatus.quality])
+  }, [finalConfig.testUrls, finalConfig.testTimeout])
 
   /**
    * Update network status
@@ -284,15 +359,37 @@ export function useNetworkStatus(config: Partial<NetworkMonitorConfig> = {}) {
   }, [updateNetworkStatus])
 
   /**
-   * Check if network is suitable for exam
+   * Check if network is suitable for exam - more lenient to prevent false warnings
    */
   const isNetworkSuitable = useCallback(() => {
-    return (
-      networkStatus.isOnline &&
-      networkStatus.quality !== 'offline' &&
-      networkStatus.quality !== 'poor'
-    )
-  }, [networkStatus])
+    // During initialization, assume network is suitable to prevent false warnings
+    if (!isInitializationComplete) {
+      return true
+    }
+
+    // Only consider truly problematic cases
+    if (!networkStatus.isOnline || networkStatus.quality === 'offline') {
+      return false
+    }
+
+    // In production, be more lenient with poor connections
+    if (
+      process.env.NODE_ENV === 'production' &&
+      networkStatus.quality === 'poor'
+    ) {
+      // Allow poor connections unless we have concrete evidence they're too slow
+      const { downlink } = networkStatus
+      if (downlink !== undefined && downlink < 0.5) {
+        // Less than 0.5 Mbps
+        return false
+      }
+      // If no concrete speed data, assume it's acceptable
+      return true
+    }
+
+    // Development: original logic
+    return networkStatus.quality !== 'poor'
+  }, [networkStatus, isInitializationComplete])
 
   /**
    * Get network status message in Latvian
@@ -341,6 +438,31 @@ export function useNetworkStatus(config: Partial<NetworkMonitorConfig> = {}) {
     return actions
   }, [networkStatus])
 
+  // Handle initialization delay
+  useEffect(() => {
+    if (finalConfig.waitForInitialization && !isAppInitialized) {
+      setIsInitializationComplete(false)
+      return
+    }
+
+    if (!isInitializationComplete) {
+      initializationTimeoutRef.current = window.setTimeout(() => {
+        setIsInitializationComplete(true)
+      }, finalConfig.initializationDelay)
+
+      return () => {
+        if (initializationTimeoutRef.current) {
+          clearTimeout(initializationTimeoutRef.current)
+        }
+      }
+    }
+  }, [
+    finalConfig.waitForInitialization,
+    finalConfig.initializationDelay,
+    isAppInitialized,
+    isInitializationComplete,
+  ])
+
   // Set up event listeners
   useEffect(() => {
     window.addEventListener('online', handleOnline)
@@ -356,8 +478,10 @@ export function useNetworkStatus(config: Partial<NetworkMonitorConfig> = {}) {
       connection.addEventListener('change', handleConnectionChange)
     }
 
-    // Initial status check
-    updateNetworkStatus()
+    // Only do initial status check if initialization is complete
+    if (isInitializationComplete) {
+      updateNetworkStatus()
+    }
 
     return () => {
       window.removeEventListener('online', handleOnline)
@@ -367,11 +491,17 @@ export function useNetworkStatus(config: Partial<NetworkMonitorConfig> = {}) {
         connection.removeEventListener('change', handleConnectionChange)
       }
     }
-  }, [handleOnline, handleOffline, handleConnectionChange, updateNetworkStatus])
+  }, [
+    handleOnline,
+    handleOffline,
+    handleConnectionChange,
+    updateNetworkStatus,
+    isInitializationComplete,
+  ])
 
   // Set up periodic checks
   useEffect(() => {
-    if (!finalConfig.enablePeriodicChecks) return
+    if (!finalConfig.enablePeriodicChecks || !isInitializationComplete) return
 
     checkIntervalRef.current = window.setInterval(() => {
       updateNetworkStatus()
@@ -386,6 +516,7 @@ export function useNetworkStatus(config: Partial<NetworkMonitorConfig> = {}) {
     finalConfig.enablePeriodicChecks,
     finalConfig.checkInterval,
     updateNetworkStatus,
+    isInitializationComplete,
   ])
 
   // Cleanup on unmount
@@ -396,6 +527,9 @@ export function useNetworkStatus(config: Partial<NetworkMonitorConfig> = {}) {
       }
       if (checkIntervalRef.current) {
         clearInterval(checkIntervalRef.current)
+      }
+      if (initializationTimeoutRef.current) {
+        clearTimeout(initializationTimeoutRef.current)
       }
     }
   }, [])
