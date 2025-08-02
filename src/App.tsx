@@ -3,10 +3,7 @@ import { Routes, Route, useLocation } from 'react-router-dom'
 import { useKeyboardNavigation } from '@/hooks/useKeyboardNavigation'
 import { MainLayout } from '@/components/layout/MainLayout'
 import { ExamHeader } from '@/components/layout/ExamHeader'
-import {
-  ProgressIndicator,
-  type SectionStatus,
-} from '@/components/layout/ProgressIndicator'
+import { type SectionStatus } from '@/components/layout/ProgressIndicator'
 import { BottomProgressBar } from '@/components/layout/BottomProgressBar'
 import { AnthemSection } from '@/components/exam/AnthemSection'
 import { HistorySection } from '@/components/exam/HistorySection'

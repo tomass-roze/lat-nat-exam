@@ -497,95 +497,6 @@ function generateDynamicBenchmarks(
   }
 }
 
-/**
- * Generate personalized recommendations based on performance
- */
-function generateRecommendations(
-  anthem: AnthemResult,
-  history: MultipleChoiceResult,
-  constitution: MultipleChoiceResult
-): string[] {
-  const recommendations: string[] = []
-
-  // Anthem recommendations
-  if (!anthem.passed) {
-    if (anthem.accuracy < 50) {
-      recommendations.push(
-        'Izstudējiet Latvijas himnas tekstu un vingrinājieties to rakstīt no galvas'
-      )
-    } else {
-      recommendations.push(
-        'Pievērsiet uzmanību diakritiskajām zīmēm un pareizrakstībai himnā'
-      )
-    }
-  }
-
-  // History recommendations
-  if (!history.passed) {
-    const failedQuestions = history.answers.filter((a) => !a.isCorrect)
-    if (failedQuestions.length > 0) {
-      recommendations.push(
-        `Studējiet Latvijas vēsturi - ${failedQuestions.length} jautājumi bija nepareizi atbildēti`
-      )
-    }
-  }
-
-  // Constitution recommendations
-  if (!constitution.passed) {
-    const failedQuestions = constitution.answers.filter((a) => !a.isCorrect)
-    if (failedQuestions.length > 0) {
-      recommendations.push(
-        `Studējiet Latvijas Konstitūciju - ${failedQuestions.length} jautājumi bija nepareizi atbildēti`
-      )
-    }
-  }
-
-  // General recommendations
-  if (recommendations.length === 0) {
-    recommendations.push(
-      'Lieliski! Turpinājiet uzturēt savas zināšanas par Latviju'
-    )
-  }
-
-  return recommendations
-}
-
-/**
- * Identify user's strengths
- */
-function identifyStrengths(
-  anthem: AnthemResult,
-  history: MultipleChoiceResult,
-  constitution: MultipleChoiceResult
-): string[] {
-  const strengths: string[] = []
-
-  if (anthem.passed) {
-    if (anthem.accuracy >= 95) {
-      strengths.push('Izcila himnas zināšana ar augstu precizitāti')
-    } else {
-      strengths.push('Laba himnas teksta zināšana')
-    }
-  }
-
-  if (history.passed) {
-    if (history.percentage >= 90) {
-      strengths.push('Dziļas zināšanas Latvijas vēsturē')
-    } else {
-      strengths.push('Labas zināšanas Latvijas vēsturē')
-    }
-  }
-
-  if (constitution.passed) {
-    if (constitution.percentage >= 90) {
-      strengths.push('Izcila Latvijas Konstitūcijas zināšana')
-    } else {
-      strengths.push('Laba Latvijas Konstitūcijas zināšana')
-    }
-  }
-
-  return strengths
-}
 
 /**
  * Analyze performance trends (simplified for now)
@@ -599,30 +510,6 @@ function analyzePerformanceTrends(): PerformanceTrends {
   }
 }
 
-/**
- * Generate performance benchmarks
- */
-function generateBenchmarks(
-  anthem: AnthemResult,
-  history: MultipleChoiceResult,
-  constitution: MultipleChoiceResult
-): PerformanceBenchmarks {
-  // Simplified benchmarking - would use real statistical data in production
-  const averageAnthem = 80
-  const averageHistory = 75
-  const averageConstitution = 70
-
-  return {
-    percentileRanking: 50, // Default to median
-    comparedToAverage: {
-      anthem: anthem.accuracy >= averageAnthem ? 'above' : 'below',
-      history: history.percentage >= averageHistory ? 'above' : 'below',
-      constitution:
-        constitution.percentage >= averageConstitution ? 'above' : 'below',
-      timing: 'average',
-    },
-  }
-}
 
 /**
  * Calculate detailed exam statistics
