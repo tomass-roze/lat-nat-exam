@@ -57,11 +57,19 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     const componentName = this.props.componentName || 'UnknownComponent'
+    let errorId: string | null = null
 
-    // Log error to global error handling system
-    const errorId = logRuntimeError(error, componentName, 'ErrorBoundary', {
-      session: this.getSessionInfo(),
-    })
+    try {
+      // Log error to global error handling system with safe context
+      errorId = logRuntimeError(error, componentName, 'ErrorBoundary', {
+        session: this.getSessionInfo(),
+      })
+    } catch (loggingError) {
+      // If error logging fails, use fallback logging
+      console.error('[ErrorBoundary] Error logging failed:', loggingError)
+      console.error('[ErrorBoundary] Original error:', error.message)
+      errorId = `fallback-${Date.now()}`
+    }
 
     this.setState({
       error,
@@ -69,21 +77,35 @@ export class ErrorBoundary extends Component<Props, State> {
       errorId,
     })
 
-    // Call the error callback if provided
-    this.props.onError?.(error, errorInfo)
+    try {
+      // Call the error callback if provided
+      this.props.onError?.(error, errorInfo)
+    } catch (callbackError) {
+      console.error('[ErrorBoundary] Error callback failed:', callbackError)
+    }
 
     // Attempt automatic recovery if enabled and not too many retries
     if (this.props.enableAutoRecovery && this.state.retryCount < 3) {
-      this.scheduleAutoRecovery()
+      try {
+        this.scheduleAutoRecovery()
+      } catch (recoveryError) {
+        console.error('[ErrorBoundary] Auto recovery setup failed:', recoveryError)
+      }
     }
 
-    // Console logging for development
+    // Safe console logging for development
     if (process.env.NODE_ENV === 'development') {
-      console.group(`🚨 ErrorBoundary: ${componentName}`)
-      console.error('Error:', error)
-      console.error('Error Info:', errorInfo)
-      console.error('Component Stack:', errorInfo.componentStack)
-      console.groupEnd()
+      try {
+        console.group(`🚨 ErrorBoundary: ${componentName}`)
+        console.error('Error:', error.message || error)
+        console.error('Error Info:', {
+          componentStack: errorInfo.componentStack?.substring(0, 500) + '...' || 'No stack available'
+        })
+        console.groupEnd()
+      } catch (consoleError) {
+        console.error('[ErrorBoundary] Console logging failed:', consoleError)
+        console.error('[ErrorBoundary] Original error was:', error.message)
+      }
     }
   }
 
@@ -134,15 +156,22 @@ export class ErrorBoundary extends Component<Props, State> {
       if (sessionData) {
         const parsed = JSON.parse(sessionData)
         return {
-          sessionId: parsed.sessionId || 'unknown',
-          duration: Date.now() - (parsed.testState?.startTime || Date.now()),
-          isActive: !parsed.testState?.isCompleted,
+          sessionId: String(parsed.sessionId || 'unknown').substring(0, 50),
+          duration: Number(Date.now() - (parsed.testState?.startTime || Date.now())) || 0,
+          isActive: Boolean(!parsed.testState?.isCompleted),
         }
       }
-    } catch {
-      // Ignore parsing errors
+    } catch (sessionError) {
+      // Ignore parsing errors but log in development
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('[ErrorBoundary] Failed to get session info:', sessionError)
+      }
     }
-    return undefined
+    return {
+      sessionId: 'session-unavailable',
+      duration: 0,
+      isActive: false,
+    }
   }
 
   render() {

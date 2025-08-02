@@ -113,6 +113,10 @@ export class GlobalErrorHandler {
   private originalErrorHandler?: OnErrorEventHandler
   private originalRejectionHandler?: (event: PromiseRejectionEvent) => void
   private notificationContainer?: HTMLElement
+  private isHandlingError = false
+  private recursionDepth = 0
+  private readonly MAX_RECURSION_DEPTH = 3
+  private readonly RECURSION_RESET_DELAY = 1000
 
   constructor(config: Partial<GlobalErrorHandlerConfig> = {}) {
     this.config = { ...DEFAULT_CONFIG, ...config }
@@ -185,9 +189,25 @@ export class GlobalErrorHandler {
     error: ApplicationError,
     context: any = {}
   ): Promise<ErrorHandlerResult> {
+    // Check for recursion before any processing
+    if (this.isHandlingError || this.recursionDepth >= this.MAX_RECURSION_DEPTH) {
+      console.warn('[GlobalErrorHandler] Recursion detected, using fallback handling')
+      return this.getFallbackErrorResult(error)
+    }
+
+    // Set recursion protection
+    this.isHandlingError = true
+    this.recursionDepth++
+
+    // Reset recursion depth after delay
+    setTimeout(() => {
+      this.recursionDepth = Math.max(0, this.recursionDepth - 1)
+    }, this.RECURSION_RESET_DELAY)
+
     try {
-      // Log the error
-      const errorKey = errorLogger.logError(error, context)
+      // Log the error with safe context
+      const safeContext = this.createSafeErrorContext(context)
+      const errorKey = errorLogger.logError(error, safeContext)
 
       // Update error tracking
       this.updateErrorTracking(error)
@@ -229,13 +249,55 @@ export class GlobalErrorHandler {
       return recoveryResult
     } catch (handlingError) {
       console.error('Error while handling error:', handlingError)
-      return {
-        handled: false,
-        actionsTaken: [],
-        requiresUserAction: true,
-        userMessage: 'Radās neparedzēta kļūda. Lūdzu, pārlādējiet lapu.',
-        shouldContinue: false,
+      return this.getFallbackErrorResult(error)
+    } finally {
+      // Always reset handling flag
+      this.isHandlingError = false
+    }
+  }
+
+  /**
+   * Create safe error context by removing problematic properties
+   */
+  private createSafeErrorContext(context: any): any {
+    if (!context || typeof context !== 'object') {
+      return context
+    }
+
+    try {
+      const safeContext: any = {}
+      
+      // Only include safe, primitive properties
+      for (const [key, value] of Object.entries(context)) {
+        if (value === null || value === undefined) {
+          safeContext[key] = value
+        } else if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+          safeContext[key] = value
+        } else if (key === 'source' || key === 'userAgent' || key === 'timestamp') {
+          safeContext[key] = String(value).substring(0, 200) // Truncate long strings
+        } else {
+          // Skip complex objects that might cause circular references
+          safeContext[key] = `[${typeof value}]`
+        }
       }
+      
+      return safeContext
+    } catch (err) {
+      return { error: 'Failed to create safe context' }
+    }
+  }
+
+  /**
+   * Get fallback error result for critical failures
+   */
+  private getFallbackErrorResult(error: ApplicationError): ErrorHandlerResult {
+    return {
+      handled: false,
+      actionsTaken: [],
+      requiresUserAction: true,
+      userMessage: 'Radās neparedzēta kļūda. Lūdzu, pārlādējiet lapu.',
+      technicalMessage: error.message || 'Unknown error',
+      shouldContinue: false,
     }
   }
 
@@ -247,42 +309,55 @@ export class GlobalErrorHandler {
     this.originalErrorHandler = window.onerror
 
     window.onerror = (message, source, lineno, colno, error) => {
-      // Call original handler first
-      if (this.originalErrorHandler) {
-        this.originalErrorHandler(message, source, lineno, colno, error)
-      }
+      try {
+        // Call original handler first
+        if (this.originalErrorHandler) {
+          this.originalErrorHandler(message, source, lineno, colno, error)
+        }
 
-      // Create error object
-      const runtimeError: ApplicationError = {
-        id: `window-error-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        message: typeof message === 'string' ? message : 'Nezināma kļūda',
-        details: error?.stack || `${source}:${lineno}:${colno}`,
-        severity: 'error',
-        category: 'runtime',
-        timestamp: Date.now(),
-        recoverable: true,
-        suggestedActions: ['refresh', 'retry'],
-        context: {
-          source,
-          line: lineno,
-          column: colno,
-        },
-        originalError:
-          error || new Error(message?.toString() || 'Unknown error'),
-        stack: error?.stack,
-      }
+        // Skip handling if we're already in a recursion loop
+        if (this.isHandlingError || this.recursionDepth >= this.MAX_RECURSION_DEPTH) {
+          console.warn('[GlobalErrorHandler] Skipping window.onerror due to recursion')
+          return true
+        }
 
-      // Handle the error asynchronously
-      setTimeout(() => {
-        this.handleError(runtimeError, {
-          source: 'window.onerror',
-          userAgent: navigator.userAgent,
+        // Create error object
+        const runtimeError: ApplicationError = {
+          id: `window-error-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          message: typeof message === 'string' ? message : 'Nezināma kļūda',
+          details: error?.stack || `${source}:${lineno}:${colno}`,
+          severity: 'error',
+          category: 'runtime',
           timestamp: Date.now(),
-        })
-      }, 0)
+          recoverable: true,
+          suggestedActions: ['refresh', 'retry'],
+          context: {
+            source,
+            line: lineno,
+            column: colno,
+          },
+          originalError:
+            error || new Error(message?.toString() || 'Unknown error'),
+          stack: error?.stack,
+        }
 
-      // Return true to prevent default error handling
-      return true
+        // Handle the error asynchronously
+        setTimeout(() => {
+          this.handleError(runtimeError, {
+            source: 'window.onerror',
+            userAgent: navigator.userAgent?.substring(0, 100),
+            timestamp: Date.now(),
+          }).catch(handlingError => {
+            console.error('[GlobalErrorHandler] Failed to handle window error:', handlingError)
+          })
+        }, 0)
+
+        // Return true to prevent default error handling
+        return true
+      } catch (setupError) {
+        console.error('[GlobalErrorHandler] Error in window.onerror handler:', setupError)
+        return true
+      }
     }
   }
 
@@ -291,48 +366,60 @@ export class GlobalErrorHandler {
    */
   private setupPromiseRejectionHandler(): void {
     const handler = (event: PromiseRejectionEvent) => {
-      // Prevent default unhandled rejection logging
-      event.preventDefault()
+      try {
+        // Prevent default unhandled rejection logging
+        event.preventDefault()
 
-      const reason = event.reason
-      let error: ApplicationError
+        // Skip handling if we're already in a recursion loop
+        if (this.isHandlingError || this.recursionDepth >= this.MAX_RECURSION_DEPTH) {
+          console.warn('[GlobalErrorHandler] Skipping promise rejection due to recursion')
+          return
+        }
 
-      if (reason instanceof Error) {
-        error = {
-          id: `promise-rejection-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-          message: reason.message || 'Neapstrādāta Promise noraidīšana',
-          details: reason.stack,
-          severity: 'error',
-          category: 'runtime',
-          timestamp: Date.now(),
-          recoverable: true,
-          suggestedActions: ['retry', 'refresh'],
-          originalError: reason,
-          stack: reason.stack,
+        const reason = event.reason
+        let error: ApplicationError
+
+        if (reason instanceof Error) {
+          error = {
+            id: `promise-rejection-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            message: reason.message || 'Neapstrādāta Promise noraidīšana',
+            details: reason.stack,
+            severity: 'error',
+            category: 'runtime',
+            timestamp: Date.now(),
+            recoverable: true,
+            suggestedActions: ['retry', 'refresh'],
+            originalError: reason,
+            stack: reason.stack,
+          }
+        } else {
+          // Handle non-Error rejections
+          error = {
+            id: `promise-rejection-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            message: 'Neapstrādāta Promise noraidīšana',
+            details: String(reason).substring(0, 200), // Limit string length
+            severity: 'warning',
+            category: 'runtime',
+            timestamp: Date.now(),
+            recoverable: true,
+            suggestedActions: ['retry'],
+            context: { rejectionReason: typeof reason },
+          }
         }
-      } else {
-        // Handle non-Error rejections
-        error = {
-          id: `promise-rejection-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-          message: 'Neapstrādāta Promise noraidīšana',
-          details: String(reason),
-          severity: 'warning',
-          category: 'runtime',
-          timestamp: Date.now(),
-          recoverable: true,
-          suggestedActions: ['retry'],
-          context: { rejectionReason: reason },
-        }
+
+        // Handle the error asynchronously
+        setTimeout(() => {
+          this.handleError(error, {
+            source: 'unhandledrejection',
+            promiseReason: typeof reason,
+            timestamp: Date.now(),
+          }).catch(handlingError => {
+            console.error('[GlobalErrorHandler] Failed to handle promise rejection:', handlingError)
+          })
+        }, 0)
+      } catch (setupError) {
+        console.error('[GlobalErrorHandler] Error in promise rejection handler:', setupError)
       }
-
-      // Handle the error asynchronously
-      setTimeout(() => {
-        this.handleError(error, {
-          source: 'unhandledrejection',
-          promiseReason: reason,
-          timestamp: Date.now(),
-        })
-      }, 0)
     }
 
     this.originalRejectionHandler = handler

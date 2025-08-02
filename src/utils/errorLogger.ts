@@ -361,43 +361,161 @@ export class ErrorLogger {
   private createFullContext(
     partialContext: Partial<ErrorContext>
   ): ErrorContext {
-    const fullContext: ErrorContext = {
-      environment: {
-        userAgent: navigator.userAgent,
-        language: navigator.language,
-        screenSize: {
-          width: window.screen.width,
-          height: window.screen.height,
+    try {
+      const fullContext: ErrorContext = {
+        environment: {
+          userAgent: navigator.userAgent?.substring(0, 200) || 'Unknown',
+          language: navigator.language || 'Unknown',
+          screenSize: {
+            width: window.screen?.width || 0,
+            height: window.screen?.height || 0,
+          },
+          timezone: this.getSafeTimezone(),
+          cookieEnabled: Boolean(navigator.cookieEnabled),
+          localStorage: this.checkStorageAvailable('localStorage'),
+          sessionStorage: this.checkStorageAvailable('sessionStorage'),
         },
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        cookieEnabled: navigator.cookieEnabled,
-        localStorage: this.checkStorageAvailable('localStorage'),
-        sessionStorage: this.checkStorageAvailable('sessionStorage'),
-      },
-      ...partialContext,
-    }
+        ...this.sanitizePartialContext(partialContext),
+      }
 
-    // Add performance information if available
-    if (window.performance) {
-      fullContext.performance = {
-        memoryUsage: (performance as any).memory?.usedJSHeapSize || 0,
-        timing: performance.timing,
-        navigation: performance.navigation,
+      // Add performance information if available (safe extraction)
+      if (window.performance) {
+        fullContext.performance = {
+          memoryUsage: this.getSafeMemoryUsage(),
+          timing: this.getSafePerformanceTiming(),
+          navigation: this.getSafeNavigationInfo(),
+        }
+      }
+
+      // Add network information if available (safe extraction)
+      if ('connection' in navigator) {
+        const connection = (navigator as any).connection
+        if (connection) {
+          fullContext.network = {
+            quality: this.determineNetworkQuality(connection),
+            effectiveType: connection.effectiveType || 'unknown',
+            downlink: Number(connection.downlink) || 0,
+            rtt: Number(connection.rtt) || 0,
+          }
+        }
+      }
+
+      return fullContext
+    } catch (contextError) {
+      // Return minimal context if full context creation fails
+      console.warn('Failed to create full error context:', contextError)
+      return {
+        environment: {
+          userAgent: 'Context creation failed',
+          language: 'unknown',
+          screenSize: { width: 0, height: 0 },
+          timezone: 'unknown',
+          cookieEnabled: false,
+          localStorage: false,
+          sessionStorage: false,
+        },
+        session: {
+          sessionId: 'context-creation-failed',
+          duration: 0,
+          isActive: false,
+        },
       }
     }
+  }
 
-    // Add network information if available
-    if ('connection' in navigator) {
-      const connection = (navigator as any).connection
-      fullContext.network = {
-        quality: this.determineNetworkQuality(connection),
-        effectiveType: connection.effectiveType,
-        downlink: connection.downlink,
-        rtt: connection.rtt,
-      }
+  /**
+   * Sanitize partial context to remove complex objects
+   */
+  private sanitizePartialContext(partialContext: Partial<ErrorContext>): Partial<ErrorContext> {
+    if (!partialContext || typeof partialContext !== 'object') {
+      return {}
     }
 
-    return fullContext
+    const sanitized: Partial<ErrorContext> = {}
+
+    try {
+      // Only include safe, primitive properties
+      for (const [key, value] of Object.entries(partialContext)) {
+        if (value === null || value === undefined) {
+          sanitized[key as keyof ErrorContext] = value
+        } else if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+          sanitized[key as keyof ErrorContext] = value
+        } else if (key === 'session' && typeof value === 'object') {
+          // Safe session data extraction
+          const sessionData = value as any
+          sanitized.session = {
+            sessionId: String(sessionData.sessionId || 'unknown').substring(0, 50),
+            duration: Number(sessionData.duration) || 0,
+            isActive: Boolean(sessionData.isActive),
+          }
+        } else {
+          // Skip complex objects
+          sanitized[key as keyof ErrorContext] = `[${typeof value}]` as any
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to sanitize partial context:', err)
+    }
+
+    return sanitized
+  }
+
+  /**
+   * Get safe timezone information
+   */
+  private getSafeTimezone(): string {
+    try {
+      return Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown'
+    } catch {
+      return 'Unknown'
+    }
+  }
+
+  /**
+   * Get safe memory usage information
+   */
+  private getSafeMemoryUsage(): number {
+    try {
+      return (performance as any).memory?.usedJSHeapSize || 0
+    } catch {
+      return 0
+    }
+  }
+
+  /**
+   * Get safe performance timing information
+   */
+  private getSafePerformanceTiming(): any {
+    try {
+      const timing = performance.timing
+      if (!timing) return undefined
+
+      // Extract only essential timing info to avoid circular references
+      return {
+        navigationStart: timing.navigationStart || 0,
+        loadEventEnd: timing.loadEventEnd || 0,
+        domContentLoadedEventEnd: timing.domContentLoadedEventEnd || 0,
+      }
+    } catch {
+      return undefined
+    }
+  }
+
+  /**
+   * Get safe navigation information
+   */
+  private getSafeNavigationInfo(): any {
+    try {
+      const navigation = performance.navigation
+      if (!navigation) return undefined
+
+      return {
+        type: navigation.type || 0,
+        redirectCount: navigation.redirectCount || 0,
+      }
+    } catch {
+      return undefined
+    }
   }
 
   /**
@@ -439,12 +557,169 @@ export class ErrorLogger {
    * Log error to console in development
    */
   private logToConsole(error: ApplicationError, context: ErrorContext): void {
-    const style = this.getConsoleStyle(error.severity)
+    try {
+      const style = this.getConsoleStyle(error.severity)
 
-    console.group(`%c[ERROR LOGGER] ${error.category.toUpperCase()}`, style)
-    console.error('Error:', error)
-    console.log('Context:', context)
-    console.groupEnd()
+      console.group(`%c[ERROR LOGGER] ${error.category.toUpperCase()}`, style)
+      
+      // Safely log error with circular reference handling
+      try {
+        console.error('Error:', this.sanitizeForLogging(error))
+      } catch (errorLogErr) {
+        console.error('Error (sanitized):', {
+          id: error.id,
+          message: error.message,
+          category: error.category,
+          severity: error.severity,
+          timestamp: error.timestamp
+        })
+      }
+      
+      // Safely log context with circular reference handling
+      try {
+        console.log('Context:', this.sanitizeForLogging(context))
+      } catch (contextLogErr) {
+        console.log('Context (sanitized):', this.createSafeContext(context))
+      }
+      
+      console.groupEnd()
+    } catch (consoleError) {
+      // Fallback logging if all else fails
+      console.error('[ERROR LOGGER] Failed to log error safely:', error.message || 'Unknown error')
+    }
+  }
+
+  /**
+   * Sanitize objects for safe console logging (handles circular references)
+   */
+  private sanitizeForLogging(obj: any, maxDepth = 3): any {
+    const seen = new WeakSet()
+    
+    const sanitize = (value: any, depth: number): any => {
+      // Depth limit to prevent infinite recursion
+      if (depth > maxDepth) {
+        return '[Max Depth Reached]'
+      }
+
+      // Handle null and undefined
+      if (value === null || value === undefined) {
+        return value
+      }
+
+      // Handle primitives
+      if (typeof value !== 'object') {
+        return value
+      }
+
+      // Handle circular references
+      if (seen.has(value)) {
+        return '[Circular Reference]'
+      }
+      seen.add(value)
+
+      // Handle arrays
+      if (Array.isArray(value)) {
+        return value.slice(0, 10).map(item => sanitize(item, depth + 1)) // Limit array size
+      }
+
+      // Handle DOM elements
+      if (value instanceof Element) {
+        return `[DOM Element: ${value.tagName}${value.id ? '#' + value.id : ''}]`
+      }
+
+      // Handle functions
+      if (typeof value === 'function') {
+        return `[Function: ${value.name || 'anonymous'}]`
+      }
+
+      // Handle Error objects
+      if (value instanceof Error) {
+        return {
+          name: value.name,
+          message: value.message,
+          stack: value.stack?.split('\n').slice(0, 5).join('\n') // Limit stack trace
+        }
+      }
+
+      // Handle React components/elements
+      if (value.$$typeof || (value._owner !== undefined) || (value.type !== undefined)) {
+        return '[React Element/Component]'
+      }
+
+      // Handle plain objects
+      if (value.constructor === Object || value.constructor === undefined) {
+        const sanitized: any = {}
+        const keys = Object.keys(value).slice(0, 20) // Limit object keys
+        
+        for (const key of keys) {
+          try {
+            sanitized[key] = sanitize(value[key], depth + 1)
+          } catch (err) {
+            sanitized[key] = '[Error accessing property]'
+          }
+        }
+        
+        if (Object.keys(value).length > 20) {
+          sanitized['...'] = `[${Object.keys(value).length - 20} more properties]`
+        }
+        
+        return sanitized
+      }
+
+      // For other object types, try to extract basic info
+      try {
+        return `[Object: ${value.constructor?.name || 'Unknown'}]`
+      } catch {
+        return '[Complex Object]'
+      }
+    }
+
+    try {
+      return sanitize(obj, 0)
+    } catch (err) {
+      return `[Sanitization Failed: ${err instanceof Error ? err.message : 'Unknown error'}]`
+    }
+  }
+
+  /**
+   * Create a safe context object with only essential properties
+   */
+  private createSafeContext(context: ErrorContext): any {
+    try {
+      return {
+        environment: {
+          userAgent: context.environment?.userAgent?.substring(0, 100) || 'Unknown',
+          language: context.environment?.language || 'Unknown',
+          screenSize: context.environment?.screenSize || { width: 0, height: 0 },
+          timezone: context.environment?.timezone || 'Unknown',
+          cookieEnabled: Boolean(context.environment?.cookieEnabled),
+          localStorage: Boolean(context.environment?.localStorage),
+          sessionStorage: Boolean(context.environment?.sessionStorage),
+        },
+        performance: context.performance ? {
+          memoryUsage: context.performance.memoryUsage || 0,
+          timingAvailable: Boolean(context.performance.timing),
+          navigationAvailable: Boolean(context.performance.navigation),
+        } : undefined,
+        network: context.network ? {
+          quality: context.network.quality || 'unknown',
+          effectiveType: context.network.effectiveType || 'unknown',
+          downlink: context.network.downlink || 0,
+          rtt: context.network.rtt || 0,
+        } : undefined,
+        session: context.session || undefined,
+        // Exclude component and boundary as they're not part of ErrorContext type
+        // These are handled in the ApplicationError interface itself
+      }
+    } catch (err) {
+      return {
+        session: {
+          sessionId: 'safe-context-failed',
+          duration: 0,
+          isActive: false,
+        },
+      }
+    }
   }
 
   /**
