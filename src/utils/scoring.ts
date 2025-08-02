@@ -33,7 +33,7 @@ export function calculateTestResults(
   const { enabledSections } = testState
 
   // Calculate results only for enabled sections
-  const anthem = enabledSections.anthem 
+  const anthem = enabledSections.anthem
     ? calculateAnthemResults(testState.anthemText)
     : undefined
 
@@ -223,22 +223,37 @@ export function calculateDynamicOverallResult(
 
   // Collect results from enabled sections only
   if (results.anthem && enabledSections.anthem) {
-    enabledResults.push({ passed: results.anthem.passed, score: results.anthem.accuracy })
+    enabledResults.push({
+      passed: results.anthem.passed,
+      score: results.anthem.accuracy,
+    })
   }
   if (results.history && enabledSections.history) {
-    enabledResults.push({ passed: results.history.passed, score: results.history.percentage })
+    enabledResults.push({
+      passed: results.history.passed,
+      score: results.history.percentage,
+    })
   }
   if (results.constitution && enabledSections.constitution) {
-    enabledResults.push({ passed: results.constitution.passed, score: results.constitution.percentage })
+    enabledResults.push({
+      passed: results.constitution.passed,
+      score: results.constitution.percentage,
+    })
   }
 
   // Calculate if all enabled sections passed
-  const allEnabledSectionsPassed = enabledResults.every(result => result.passed)
-  
+  const allEnabledSectionsPassed = enabledResults.every(
+    (result) => result.passed
+  )
+
   // Calculate weighted overall score based on enabled sections
-  const overallScore = enabledResults.length > 0 
-    ? Math.round(enabledResults.reduce((sum, result) => sum + result.score, 0) / enabledResults.length)
-    : 0
+  const overallScore =
+    enabledResults.length > 0
+      ? Math.round(
+          enabledResults.reduce((sum, result) => sum + result.score, 0) /
+            enabledResults.length
+        )
+      : 0
 
   const totalTime = Date.now() - testState.startTime
 
@@ -252,16 +267,18 @@ export function calculateDynamicOverallResult(
     },
     totalTime,
     completedAt: Date.now(),
-    certificateEligible: testConfiguration.isPartialTest 
+    certificateEligible: testConfiguration.isPartialTest
       ? false // Partial tests don't qualify for certificate
       : allEnabledSectionsPassed,
-    partialTestInfo: testConfiguration.isPartialTest ? {
-      completedSections: testConfiguration.sectionNames,
-      totalSections: testConfiguration.totalSections,
-      remainingSections: ['anthem', 'history', 'constitution'].filter(
-        section => !testConfiguration.sectionNames.includes(section)
-      )
-    } : undefined
+    partialTestInfo: testConfiguration.isPartialTest
+      ? {
+          completedSections: testConfiguration.sectionNames,
+          totalSections: testConfiguration.totalSections,
+          remainingSections: ['anthem', 'history', 'constitution'].filter(
+            (section) => !testConfiguration.sectionNames.includes(section)
+          ),
+        }
+      : undefined,
   }
 }
 
@@ -319,7 +336,6 @@ function generateMultipleChoiceAnalysis(
     },
   }
 }
-
 
 /**
  * Generate analytics for dynamic section results (partial tests)
@@ -385,19 +401,25 @@ function generateDynamicRecommendations(
   // Partial test specific recommendations
   if (testConfiguration.isPartialTest) {
     const remainingSections = ['anthem', 'history', 'constitution'].filter(
-      section => !testConfiguration.sectionNames.includes(section)
+      (section) => !testConfiguration.sectionNames.includes(section)
     )
-    
+
     if (remainingSections.length > 0) {
-      const sectionNames = remainingSections.map(section => {
-        switch(section) {
-          case 'anthem': return 'himnas'
-          case 'history': return 'vēstures'
-          case 'constitution': return 'konstitūcijas'
-          default: return section
-        }
-      }).join(', ')
-      
+      const sectionNames = remainingSections
+        .map((section) => {
+          switch (section) {
+            case 'anthem':
+              return 'himnas'
+            case 'history':
+              return 'vēstures'
+            case 'constitution':
+              return 'konstitūcijas'
+            default:
+              return section
+          }
+        })
+        .join(', ')
+
       recommendations.push(`Papildus prakticēt ${sectionNames} sadaļu`)
     }
   }
@@ -408,13 +430,11 @@ function generateDynamicRecommendations(
 /**
  * Identify strengths in partial test results
  */
-function identifyDynamicStrengths(
-  results: {
-    anthem?: AnthemResult
-    history?: MultipleChoiceResult
-    constitution?: MultipleChoiceResult
-  }
-): string[] {
+function identifyDynamicStrengths(results: {
+  anthem?: AnthemResult
+  history?: MultipleChoiceResult
+  constitution?: MultipleChoiceResult
+}): string[] {
   const strengths: string[] = []
 
   if (results.anthem?.passed) {
@@ -448,17 +468,32 @@ function generateDynamicBenchmarks(
   return {
     percentileRanking: 50, // Default to median
     comparedToAverage: {
-      anthem: results.anthem && enabledSections.anthem 
-        ? (results.anthem.accuracy > 75 ? 'above' : results.anthem.accuracy < 60 ? 'below' : 'average')
-        : 'average',
-      history: results.history && enabledSections.history
-        ? (results.history.percentage > 70 ? 'above' : results.history.percentage < 50 ? 'below' : 'average')
-        : 'average',
-      constitution: results.constitution && enabledSections.constitution
-        ? (results.constitution.percentage > 70 ? 'above' : results.constitution.percentage < 50 ? 'below' : 'average')
-        : 'average',
-      timing: 'average' // Default to average for now
-    }
+      anthem:
+        results.anthem && enabledSections.anthem
+          ? results.anthem.accuracy > 75
+            ? 'above'
+            : results.anthem.accuracy < 60
+              ? 'below'
+              : 'average'
+          : 'average',
+      history:
+        results.history && enabledSections.history
+          ? results.history.percentage > 70
+            ? 'above'
+            : results.history.percentage < 50
+              ? 'below'
+              : 'average'
+          : 'average',
+      constitution:
+        results.constitution && enabledSections.constitution
+          ? results.constitution.percentage > 70
+            ? 'above'
+            : results.constitution.percentage < 50
+              ? 'below'
+              : 'average'
+          : 'average',
+      timing: 'average', // Default to average for now
+    },
   }
 }
 
@@ -634,7 +669,7 @@ export function getSectionPassSummary(results: TestResults): {
   sections: Array<{ name: string; passed: boolean; score: number }>
 } {
   const sections = []
-  
+
   if (results.anthem) {
     sections.push({
       name: 'Himna',
@@ -642,7 +677,7 @@ export function getSectionPassSummary(results: TestResults): {
       score: results.anthem.accuracy,
     })
   }
-  
+
   if (results.history) {
     sections.push({
       name: 'Vēsture',
@@ -650,7 +685,7 @@ export function getSectionPassSummary(results: TestResults): {
       score: results.history.percentage,
     })
   }
-  
+
   if (results.constitution) {
     sections.push({
       name: 'Konstitūcija',

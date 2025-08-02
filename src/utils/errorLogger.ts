@@ -445,10 +445,10 @@ export class ErrorLogger {
           sanitized.isInitialization = value
         } else if (typeof value === 'string' || typeof value === 'number') {
           // Handle string and number values
-          (sanitized as any)[key] = value
+          ;(sanitized as any)[key] = value
         } else if (typeof value === 'boolean' && key !== 'isInitialization') {
-          // Handle other boolean values  
-          (sanitized as any)[key] = value
+          // Handle other boolean values
+          ;(sanitized as any)[key] = value
         } else if (key === 'session' && typeof value === 'object') {
           // Safe session data extraction
           const sessionData = value as any

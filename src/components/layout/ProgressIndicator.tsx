@@ -15,13 +15,27 @@ export interface SectionStatus {
 
 interface ProgressIndicatorProps {
   sections: SectionStatus[]
+  enabledSections?: {
+    anthem: boolean
+    history: boolean
+    constitution: boolean
+  }
   className?: string
 }
 
 export function ProgressIndicator({
   sections,
+  enabledSections,
   className,
 }: ProgressIndicatorProps) {
+  // Filter sections if enabledSections is provided
+  const filteredSections = enabledSections
+    ? sections.filter((section) => {
+        const sectionId = section.id as keyof typeof enabledSections
+        return enabledSections[sectionId]
+      })
+    : sections
+
   const getSectionIcon = (section: SectionStatus) => {
     if (section.isCompleted) {
       return <CheckCircle className="h-3 w-3 text-green-500" />
@@ -39,7 +53,7 @@ export function ProgressIndicator({
         className
       )}
     >
-      {sections.map((section) => (
+      {filteredSections.map((section) => (
         <div
           key={section.id}
           className="flex items-center gap-2 sm:gap-3 min-w-0 flex-shrink-0"
