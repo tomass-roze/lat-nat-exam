@@ -9,7 +9,6 @@
       "runtime": "nodejs20.x"
     }
   },
-  "nodeVersion": "20.x",
   "headers": [
     {
       "source": "/(.*)",
